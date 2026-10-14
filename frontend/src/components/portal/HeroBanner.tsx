@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function HeroBanner() {
   return (
     <div className="relative h-72 rounded-xl overflow-hidden mb-10" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f172a 100%)' }}>
@@ -18,9 +20,9 @@ export default function HeroBanner() {
               <p className="text-lg mb-6" style={{ color: 'var(--color-text-secondary)' }}>
                 Khám phá đảo nổi kỳ diệu, nuôi dưỡng và chiến đấu cùng rồng
               </p>
-              <a href="/play" className="btn btn-primary btn-lg">
+              <Link href="/play" className="btn btn-primary btn-lg">
                 Chơi ngay →
-              </a>
+              </Link>
             </div>
             <div className="text-9xl opacity-30 hidden md:block">🐉</div>
           </div>

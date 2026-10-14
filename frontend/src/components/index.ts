@@ -1,8 +1,9 @@
-export { default as TopBar } from "./TopBar";
-export { default as Footer } from "./Footer";
-export { default as GameCard } from "./GameCard";
-export { default as GameFrame } from "./GameFrame";
-export { default as GameCanvas } from "./GameCanvas";
-export { default as Breadcrumb } from "./Breadcrumb";
-export { default as HeroBanner } from "./HeroBanner";
-export { default as NewsList } from "./NewsList";
+// Portal components: layout, navigation, cards.
+export { default as TopBar } from './portal/TopBar';
+export { default as Footer } from './portal/Footer';
+export { default as Breadcrumb } from './portal/Breadcrumb';
+export { default as GameCard } from './portal/GameCard';
+export { default as GameFrame } from './portal/GameFrame';
+export { default as GameCanvas } from './portal/GameCanvas';
+export { default as HeroBanner } from './portal/HeroBanner';
+export { default as NewsList } from './portal/NewsList';

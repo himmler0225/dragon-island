@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function NewsList() {
   const news = [
     {
@@ -27,12 +29,12 @@ export default function NewsList() {
     <div>
       <div className="section-header">
         <h3 className="section-title">Tin tức</h3>
-        <a href="/news" className="btn btn-ghost btn-sm">Xem tất cả</a>
+        <Link href="/news" className="btn btn-ghost btn-sm">Xem tất cả</Link>
       </div>
-      
+
       <div className="space-y-3">
         {news.map((item) => (
-          <a key={item.id} href={`/news/${item.id}`} className="news-item">
+          <Link key={item.id} href={`/news/${item.id}`} className="news-item">
             <div className="news-item-thumb">📰</div>
             <div className="news-item-content">
               <span className="news-item-category">{item.category}</span>
@@ -41,7 +43,7 @@ export default function NewsList() {
                 {item.date} · {item.views.toLocaleString()} lượt xem
               </div>
             </div>
-          </a>
+          </Link>
         ))}
       </div>
     </div>

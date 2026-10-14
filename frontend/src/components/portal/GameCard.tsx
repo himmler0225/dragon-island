@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 interface GameCardProps {
   id: string;
   title: string;
@@ -8,7 +10,7 @@ interface GameCardProps {
 
 export default function GameCard({ id, title, players, rating, category }: GameCardProps) {
   return (
-    <a href={`/games/${id}`} className="game-card">
+    <Link href={`/games/${id}`} className="game-card">
       <div className="game-card-thumb">
         <div className="game-card-thumb-inner">🐉</div>
         <div className="game-card-play">
@@ -25,6 +27,6 @@ export default function GameCard({ id, title, players, rating, category }: GameC
         </div>
         <span className="game-card-category">{category}</span>
       </div>
-    </a>
+    </Link>
   );
 }

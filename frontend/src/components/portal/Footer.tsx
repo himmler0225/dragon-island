@@ -1,12 +1,14 @@
+import Link from "next/link";
+
 export default function Footer() {
   return (
     <footer className="footer">
       <div className="page-container">
         <div className="footer-links">
-          <a href="/">Trang chủ</a>
-          <a href="/games">Game</a>
-          <a href="/news">Tin tức</a>
-          <a href="/play">Chơi ngay</a>
+          <Link href="/">Trang chủ</Link>
+          <Link href="/games">Game</Link>
+          <Link href="/news">Tin tức</Link>
+          <Link href="/play">Chơi ngay</Link>
         </div>
         <p>© 2026 Dragon Island. All rights reserved.</p>
       </div>
