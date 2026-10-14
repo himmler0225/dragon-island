@@ -1,9 +1,9 @@
 /* eslint-disable @next/next/no-img-element -- game art from /public, sized by CSS */
 import Link from "next/link";
 import { Footer, TopBar } from "@/components";
-import { BUILDING_NAME, ISLANDS, PRODUCES, RESOURCE_NAME, type BuildingType } from "@/game/constants";
+import { BUILDING_NAME, ISLANDS, PRODUCES, RESOURCE_NAME, type BuildingType } from "@/game/config";
 import { SKILLS, skillIconUrl } from "@/game/skills";
-import { SPECIES, SPECIES_INFO, portraitUrl, type SpeciesId } from "@/game/species";
+import { SPECIES, SPECIES_INFO, portraitUrl, type SpeciesId } from "@/game/config";
 import styles from "./home.module.css";
 
 const DRAGON_BLURB: Record<SpeciesId, string> = {

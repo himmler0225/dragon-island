@@ -2,9 +2,9 @@
 // Test panel: pick a dragon, give it a command, fire its skills. A stand-in for the real HUD.
 import { useEffect, useState } from 'react';
 import { gameEvents, island, type DragonAction, type DragonCommand } from '@/game/bridge';
-import { ISLANDS, RESOURCE_NAME, type Resource } from '@/game/constants';
+import { ISLANDS, RESOURCE_NAME, type Resource } from '@/game/config';
 import { SKILLS, skillIconUrl, type SkillSlot } from '@/game/skills';
-import { SPECIES, SPECIES_INFO, portraitUrl, type SpeciesId } from '@/game/species';
+import { SPECIES, SPECIES_INFO, portraitUrl, type SpeciesId } from '@/game/config';
 import styles from './DevPanel.module.css';
 
 const COMMANDS: [DragonCommand, string][] = [['idle', 'Đứng'], ['walk', 'Đi'], ['fly', 'Bay'], ['sleep', 'Ngủ']];

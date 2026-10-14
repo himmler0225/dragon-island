@@ -1,9 +1,13 @@
 // One floating island: its art, shoreline waves, walkable ground, buildings and their production.
 import * as Phaser from 'phaser';
 import {
-  BUILDING_SCALE, PRODUCES, PRODUCTION, clamp01, islandCentre,
-  type BuildingType, type IslandDef, type Point, type Resource,
-} from './constants';
+  BUILDING_SCALE, PRODUCES, PRODUCTION,
+} from '../config/economy';
+import {
+  clamp01, islandCentre,
+  type Point, type IslandDef, type Resource,
+} from '../config/world';
+import type { BuildingType } from '../config/islands';
 import type { IslandScene } from './IslandScene';
 
 export const islandKey = (id: string) => `island_${id}`;
@@ -28,7 +32,7 @@ export class Island {
   readonly cy: number;
   private img!: Phaser.GameObjects.Image;
   private walk!: Phaser.Geom.Polygon;
-  private top: number;     // walkable y range, for depth scaling
+  private top: number;
   private bottom: number;
   readonly buildings: Building[] = [];
 
@@ -42,8 +46,6 @@ export class Island {
   create() {
     const { def, scene } = this;
     const key = islandKey(def.id);
-    // shoreline waves: white copies of the island outline that swell outward and fade. Only the
-    // lower part, where the island meets the water (tree tops at the back would get a white halo).
     for (let k = 0; k < 3; k++) {
       const ring = scene.add.image(this.cx, this.cy, key).setTintFill(0xffffff).setAlpha(0).setDepth(1)
         .setCrop(0, def.h * 0.35, def.w, def.h * 0.65);
@@ -51,7 +53,6 @@ export class Island {
         alpha: { from: 0.45, to: 0 }, duration: 3600, delay: k * 1200, repeat: -1, ease: 'Sine.easeOut' });
     }
     this.img = scene.add.image(this.cx, this.cy, key).setScale(def.scale).setDepth(2);
-    // gentle bob, as if the island rides the swell (each island on its own beat)
     scene.tweens.add({ targets: this.img, y: this.cy + 3, duration: 2400 + this.index * 300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     this.walk = new Phaser.Geom.Polygon(def.walk.map(p => this.toWorld(p)).flat());
     scene.time.addEvent({ delay: 300, loop: true, callback: () => this.waterSparkle() });
@@ -96,8 +97,6 @@ export class Island {
     this.scene.collected(res, amount, b.x, b.y - b.img.displayHeight * 0.6 + this.bob);
   }
 
-  // ---- geometry -------------------------------------------------------------------------------
-
   toWorld([px, py]: Point): Point {
     const { def } = this;
     return [this.cx + (px - def.w / 2) * def.scale, this.cy + (py - def.h / 2) * def.scale];
@@ -113,7 +112,6 @@ export class Island {
 
   contains(x: number, y: number) { return this.walk.contains(x, y); }
 
-  /** On walkable ground and not inside a building's footprint. */
   free(x: number, y: number, margin = 18) {
     if (!this.walk.contains(x, y)) return false;
     return this.buildings.every(b => {
@@ -139,7 +137,6 @@ export class Island {
     return from;
   }
 
-  /** A free spot from which both `from` and `to` can be reached in a straight line. */
   detour(from: Point, to: Point): Point | null {
     let best: Point | null = null, bestLen = Infinity;
     const b = Phaser.Geom.Polygon.GetAABB(this.walk);
@@ -155,7 +152,6 @@ export class Island {
     return best;
   }
 
-  /** A free spot near `at` (for skill targets when no other dragon is on the island). */
   nearPoint(at: Point, dx: number): Point {
     for (const k of [1, 0.7, 0.45, -0.7, -1]) {
       const p: Point = [at[0] + dx * k, at[1] + 8];
@@ -164,7 +160,6 @@ export class Island {
     return [at[0] + dx, at[1]];
   }
 
-  /** Over the island's art (not the sea). */
   opaqueAt(x: number, y: number) {
     const [px, py] = this.toImage(x, y);
     if (px < 0 || py < 0 || px >= this.def.w || py >= this.def.h) return false;
@@ -176,7 +171,7 @@ export class Island {
     const [x, y] = this.toWorld([Phaser.Math.Between(x0, x1), Phaser.Math.Between(y0, y1)]);
     if (!this.opaqueAt(x, y) || this.walk.contains(x, y)) return;
     const c = this.scene.textures.getPixel(...this.toImage(x, y), islandKey(this.def.id));
-    if (!c || c.blue < 180 || c.red > 150) return;   // only on water-coloured pixels
+    if (!c || c.blue < 180 || c.red > 150) return;
     const sp = this.scene.add.image(x, y + this.bob, 'spark').setDepth(3).setScale(0).setBlendMode(Phaser.BlendModes.ADD);
     this.scene.tweens.add({ targets: sp, scale: Phaser.Math.FloatBetween(0.5, 0.9), angle: 45, duration: 350, yoyo: true, onComplete: () => sp.destroy() });
   }

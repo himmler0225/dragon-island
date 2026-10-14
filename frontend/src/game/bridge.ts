@@ -1,8 +1,8 @@
 // The only contact point between React (HUD, menus, panels) and Phaser (the island).
 // React never imports Phaser: the scene registers an IslandApi here and emits events.
-import type { SpeciesId } from './species';
-import type { SkillSlot } from './skills';
-import type { Resource } from './constants';
+import type { SpeciesId } from './config/species';
+import type { SkillSlot } from './skills/types';
+import type { Resource } from './config/world';
 
 /** What a dragon is doing on the island. */
 export type DragonAction = 'idle' | 'walk' | 'fly' | 'sleep' | 'strike';
@@ -22,12 +22,12 @@ export interface IslandApi {
 }
 
 type Events = {
-  progress: number;                                      // asset loading, 0..1
+  progress: number;
   ready: void;
-  select: SpeciesId;                                     // selected dragon changed (tap or select())
-  action: { id: SpeciesId; action: DragonAction };       // a dragon started doing something else
-  island: number;                                        // the camera moved to this island
-  collect: { resource: Resource; amount: number };       // the player collected from a building
+  select: SpeciesId;
+  action: { id: SpeciesId; action: DragonAction };
+  island: number;
+  collect: { resource: Resource; amount: number };
 };
 
 type Listener<T> = (payload: T) => void;

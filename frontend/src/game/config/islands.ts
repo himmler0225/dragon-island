@@ -1,31 +1,20 @@
-// World layout and tuning. Plain TS (no Phaser) so React can import it.
+// Island definitions: layout, walkable areas, dragons, building placements.
 import type { SpeciesId } from './species';
+import type { Point } from './world';
 
-/** One screen (the viewport); the world is ISLANDS.length screens wide. */
-export const W = 1280;
-export const H = 860;
-
-export type Point = [number, number];
 export type BuildingType = 'gold_mine' | 'training_ground' | 'stone_quarry';
-export type Resource = 'gold' | 'exp' | 'stone';
 
 export interface IslandDef {
   id: string;
   name: string;
-  /** public/islands/<id>.png (tools/slice_world.py); w/h = its size in px. */
   w: number;
   h: number;
   scale: number;
-  /** Walkable ground outline, island-image px. */
   walk: Point[];
-  /** Water areas that sparkle [x0, y0, x1, y1], island-image px. */
   water: [number, number, number, number][];
   dragon: SpeciesId;
-  /** Where the dragon starts, island-image px. */
   start: Point;
-  /** More dragons living on this island. */
   guests?: { dragon: SpeciesId; start: Point }[];
-  /** Bottom-centre of each building on the ground, island-image px. */
   buildings: { type: BuildingType; level: 1 | 2 | 3; at: Point }[];
 }
 
@@ -70,29 +59,3 @@ export const ISLANDS: IslandDef[] = [
     ],
   },
 ];
-
-export const WORLD_W = W * ISLANDS.length;
-
-/** Island centre in the world: one island per screen, side by side. */
-export const islandCentre = (i: number): Point => [W / 2 + i * W, H / 2 + 10];
-
-export const BUILDING_SCALE = 0.42;   // world px per building-image px
-export const PRODUCES: Record<BuildingType, Resource> = { gold_mine: 'gold', training_ground: 'exp', stone_quarry: 'stone' };
-export const BUILDING_NAME: Record<BuildingType, string> = { gold_mine: 'Mỏ vàng', training_ground: 'Sân luyện rồng', stone_quarry: 'Mỏ đá thăng cấp' };
-export const RESOURCE_NAME: Record<Resource, string> = { gold: 'vàng', exp: 'kinh nghiệm', stone: 'đá thăng cấp' };
-/** Seconds to fill up, and amount collected, per level. */
-export const PRODUCTION: Record<Resource, { every: number[]; amount: number[] }> = {
-  gold: { every: [8, 7, 6], amount: [50, 120, 260] },
-  exp: { every: [10, 9, 8], amount: [40, 90, 200] },
-  stone: { every: [14, 12, 10], amount: [1, 2, 4] },
-};
-
-export const DRAGON_SCALE = 0.68;
-export const FLY_SPEED = 95;   // px/s
-export const FLY_ALT = 90;     // cruising height above the ground, px
-export const TAKEOFF_S = 0.8;
-export const LAND_S = 0.7;
-
-export const smooth = (u: number) => u * u * (3 - 2 * u);
-export const clamp01 = (u: number) => Math.max(0, Math.min(1, u));
-export const bump = (t: number, a: number, b: number) => (t < a || t > b ? 0 : Math.sin(Math.PI * (t - a) / (b - a)));

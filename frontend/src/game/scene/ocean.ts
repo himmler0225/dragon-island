@@ -1,5 +1,5 @@
 // Stylised ocean: two drifting noise layers + bright caustic bands, lighter near each island.
-import type { Point } from './constants';
+import type { Point } from '../config/world';
 
 /** Fragment shader for a `width` x `height` ocean with shallow water around `centres` (world px). */
 export function oceanFrag(width: number, height: number, centres: Point[]) {
@@ -19,11 +19,11 @@ float noise(vec2 p) {
 }
 void main() {
   float t = time * 0.5;
-  vec2 p = fragCoord * vec2(1.0, 1.7) / 150.0;      // squashed vertically for the isometric view
+  vec2 p = fragCoord * vec2(1.0, 1.7) / 150.0;
   float n = noise(p + vec2(t * 0.35, t * 0.12)) * 0.6 + noise(p * 2.3 - vec2(t * 0.25, -t * 0.3)) * 0.4;
   float bands = smoothstep(0.9, 0.995, 1.0 - abs(n * 2.0 - 1.0));
   float sparkle = pow(noise(p * 5.0 + vec2(-t, t * 0.7)), 14.0) * 2.0;
-  float r = 99.0;   // distance to the nearest island, in island radii
+  float r = 99.0;
   ${near}
   vec3 deep = vec3(0.05, 0.33, 0.58), mid = vec3(0.10, 0.55, 0.78), shallow = vec3(0.22, 0.78, 0.90);
   vec3 col = mix(shallow, mid, smoothstep(0.75, 1.05, r));

@@ -3,9 +3,9 @@
 // Menu buttons open a placeholder panel for now — replace PANELS entries with real screens.
 import { useEffect, useState } from 'react';
 import { gameEvents, island, type DragonAction, type DragonCommand } from '@/game/bridge';
-import { ISLANDS, RESOURCE_NAME, type Resource } from '@/game/constants';
+import { ISLANDS, RESOURCE_NAME, type Resource } from '@/game/config';
 import { SKILLS, skillIconUrl, type SkillSlot } from '@/game/skills';
-import { SPECIES, SPECIES_INFO, portraitUrl, type SpeciesId } from '@/game/species';
+import { SPECIES, SPECIES_INFO, portraitUrl, type SpeciesId } from '@/game/config';
 import styles from './GameHud.module.css';
 
 type MenuId = 'quest' | 'achievement' | 'ranking' | 'mail' | 'gift' | 'bag' | 'shop' | 'cards' | 'battle' | 'map' | 'friends' | 'settings' | 'profile';
