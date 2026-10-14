@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+
+# Build outputs
+dist/
+*.tsbuildinfo
+
+# Python
+.venv/
+__pycache__/
+
+# Environment
+.env
+.env.local
+
+# macOS
+.DS_Store
+
+# Generated game assets (tools write here)
+frontend/public/dragons/_try/

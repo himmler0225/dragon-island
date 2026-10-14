@@ -1,0 +1,2 @@
+.wrap { display: flex; flex-direction: column; height: 100dvh; }
+.stage { flex: 1; min-height: 0; }

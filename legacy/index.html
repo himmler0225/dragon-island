@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dragon Island – Sprite Demo</title>
+<link rel="stylesheet" href="game-ui.css">
+<style>
+  html, body { margin: 0; height: 100%; background: #0b1218; color: #dfe9f0; font: 14px system-ui, sans-serif; }
+  body { display: flex; flex-direction: column; }
+  #ui { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 10px 12px; background: #0b1218; }
+  #ui button { background: #1f3445; color: #dfe9f0; border: 1px solid #2f5068; border-radius: 6px; padding: 6px 10px; cursor: pointer; }
+  #ui button.on { background: #3b82c4; border-color: #6fb0ea; }
+  #ui label { margin-left: 10px; opacity: .85; }
+  #ui .sep { width: 1px; height: 22px; background: #2f5068; margin: 0 6px; }
+  #hint { padding: 0 12px 8px; opacity: .6; font-size: 12px; }
+  #game { flex: 1; min-height: 0; }
+</style>
+</head>
+<body>
+<div id="ui"></div>
+<div id="hint">Click vào rồng để mở menu · click lên cỏ để rồng đi tới đó · Shift+click (hoặc click khi đang bay) để rồng bay tới · click xuống nước để tạo gợn sóng · "tự đi" để rồng tự đi dạo, bay, ngủ, tung chiêu</div>
+<div id="game"></div>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+<script src="rig.js"></script>
+<script src="game-ui.js"></script>
+<script>
+const W = 1280, H = 860;
+// on the island the dragon only idles, walks, flies and sleeps (all drawn by the rig)
+const ACTIONS = ['idle', 'walk', 'fly', 'sleep'];
+const TRANSITION_MS = 160;
+// actions drawn by the cut-out rig (rig.js); everything else still plays sprite strips
+const RIG_KEYS = new Set(['idle', 'walk', 'fly', 'sleep']);
+// dragon species with a cut-out rig (public/dragons/<id>/, built by tools/build_rig.py)
+const SPECIES = ['hac_long', 'rong_xuong'];
+const rigs = {};
+
+// Island art (1448x1086) placed at ISLAND.x/y, scaled. Walkable grass outlined in image pixels.
+const ISLAND = { x: W / 2, y: H / 2 + 10, scale: 0.78, w: 1448, h: 1086 };
+const GRASS = [[560, 300], [700, 262], [830, 245], [880, 185], [1000, 200], [1120, 280], [1230, 380], [1262, 470],
+  [1240, 600], [1200, 700], [1080, 780], [940, 835], [860, 840], [700, 790], [560, 750], [420, 680], [300, 605],
+  [225, 525], [255, 470], [420, 455], [540, 405]];
+const RIVER = [[250, 200, 520, 440]];  // sparkles on the stream/pond, image pixels
+const toWorld = ([px, py]) => [ISLAND.x + (px - ISLAND.w / 2) * ISLAND.scale, ISLAND.y + (py - ISLAND.h / 2) * ISLAND.scale];
+
+const DRAGON_SCALE = 0.68;
+let WALK_SPEED = 25;   // px/s at depth scale 1; recomputed from the walk strip's stride so the feet never slide
+const FLY_SPEED = 95;   // px/s
+const FLY_ALT = 90;     // cruising height above the ground, px
+const TAKEOFF_S = 0.8, LAND_S = 0.7;
+
+/*
+ * How each action plays. The sheet has few frames per action, so smoothness comes from:
+ *  - cross-fading between neighbouring frames,
+ *  - procedural motion (breathing, bobbing, lunges, jumps) layered on top,
+ *  - fading out the old pose when switching actions.
+ * mode: 'loop' | 'pingpong' | 'once' (frames at fps) or 'timeline' ([frame, seconds] steps).
+ * blend: share of each frame spent cross-fading into the next (0 = crisp; walk must be crisp or
+ * two sets of legs show at once).
+ * Local x < 0 is "forward": the art faces left.
+ */
+const smooth = u => u * u * (3 - 2 * u);
+const clamp01 = u => Math.max(0, Math.min(1, u));
+const bump = (t, a, b) => (t < a || t > b) ? 0 : Math.sin(Math.PI * (t - a) / (b - a));
+
+const MOTION = {
+  // one standing frame in the walk's style (same torso and legs); only breathing moves, so it cannot jitter
+  idle: { mode: 'loop', fps: 1, blend: 0,
+    move: t => { const s = Math.sin(t * 2 * Math.PI / 3); return { sy: 1 + 0.012 * s, sx: 1 - 0.004 * s }; } },
+  // 32 frames (8 drawn + 3 optical-flow in-betweens each), one slow cycle every 2 s
+  walk: { mode: 'loop', fps: 16, blend: 0,
+    move: t => ({ y: -Math.abs(Math.sin(t * Math.PI)) * 1 }) },  // light bob, two per cycle
+  // 8 hand-drawn wing-flap frames (assets/ai/fly_v1.png); short blend only, wings move a lot between frames
+  fly: { mode: 'loop', fps: 9, blend: 0.25,
+    move: t => ({ y: -4 * Math.sin(t * 9 / 8 * 2 * Math.PI - 1.2), rot: 0.045 }) },  // slight nose-up
+  attack: { mode: 'once', fps: 10,
+    move: t => ({ x: -26 * bump(t, 0.22, 0.6), y: -6 * bump(t, 0.22, 0.45), sx: 1 + 0.05 * bump(t, 0.05, 0.25), sy: 1 - 0.04 * bump(t, 0.05, 0.25) }),
+    events: [[0.38, s => s.cameras.main.shake(120, 0.004)]] },
+  skill: { mode: 'timeline', steps: [[0, 0.6], [1, 0.5], [2, 0.45], [3, 0.45], [2, 0.45], [3, 0.5]],
+    move: t => ({
+      x: (Math.random() - 0.5) * 4 * bump(t, 0.1, 0.6) - 30 * smooth(clamp01((t - 0.6) / 0.5)) + 30 * smooth(clamp01((t - 2.5) / 0.45)),
+      y: -80 * bump(t, 0.6, 1.15),
+      sx: 1 + 0.05 * bump(t, 0, 0.6), sy: 1 + 0.05 * bump(t, 0, 0.6) }),
+    events: [[0.15, s => s.cameras.main.shake(400, 0.003)],
+             [1.1, s => { s.cameras.main.shake(300, 0.008); spawnFx('fx_4', 0, -90, 1.4); }],
+             [1.15, s => spawnSwirl()]] },
+  stance: { mode: 'timeline', steps: [[0, 1.6]],
+    move: t => { const s = Math.sin(t * 2 * Math.PI / 1.6); return { sy: 1 + 0.015 * s, sx: 1 - 0.006 * s }; } },
+  stunned: { mode: 'timeline', steps: [[0, 0.35], [1, 2.4]],
+    move: t => ({ x: 22 * Math.sin(Math.min(t, 0.35) / 0.35 * Math.PI / 2) - 22 * smooth(clamp01((t - 0.35) / 0.6)) + 22,
+                  rot: t > 0.35 ? 0.03 * Math.sin(t * 7) : 0 }),
+    flash: t => t < 0.12,
+    events: [[0, s => s.cameras.main.shake(150, 0.006)]] },
+  sleep: { mode: 'pingpong', fps: 0.45, blend: 1,
+    move: t => { const s = Math.sin(t * 2 * Math.PI / 3.2); return { sy: 1 + 0.03 * s, sx: 1 + 0.008 * s }; } },
+  wake: { mode: 'timeline', steps: [[0, 1.3]],
+    move: t => ({ y: -20 * bump(t, 0.1, 0.45), sy: 1 - 0.06 * bump(t, 0, 0.12) + 0.05 * bump(t, 0.12, 0.45), sx: 1 + 0.05 * bump(t, 0, 0.12) }) },
+};
+
+// Stylised ocean: two drifting noise layers + bright caustic bands, lighter near the island.
+const [IX, IY] = [ISLAND.x, H - ISLAND.y];  // fragCoord has y up
+const OCEAN_FRAG = `
+precision mediump float;
+uniform float time;
+uniform vec2 resolution;
+varying vec2 fragCoord;
+float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float noise(vec2 p) {
+  vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);
+}
+void main() {
+  float t = time * 0.5;
+  vec2 p = fragCoord * vec2(1.0, 1.7) / 150.0;      // squashed vertically for the isometric view
+  float n = noise(p + vec2(t * 0.35, t * 0.12)) * 0.6 + noise(p * 2.3 - vec2(t * 0.25, -t * 0.3)) * 0.4;
+  float bands = smoothstep(0.9, 0.995, 1.0 - abs(n * 2.0 - 1.0));
+  float sparkle = pow(noise(p * 5.0 + vec2(-t, t * 0.7)), 14.0) * 2.0;
+  vec2 d = (fragCoord - vec2(${IX.toFixed(1)}, ${IY.toFixed(1)})) / vec2(560.0, 400.0);
+  float r = length(d);
+  vec3 deep = vec3(0.05, 0.33, 0.58), mid = vec3(0.10, 0.55, 0.78), shallow = vec3(0.22, 0.78, 0.90);
+  vec3 col = mix(shallow, mid, smoothstep(0.75, 1.05, r));
+  col = mix(col, deep, smoothstep(1.05, 1.9, r));
+  col += bands * mix(0.22, 0.1, smoothstep(0.8, 1.6, r)) + sparkle * 0.3;
+  gl_FragColor = vec4(col, 1.0);
+}`;
+
+let manifest, scene, speed = 1, auto = true, grassPoly;
+const dragon = { key: 'idle', t: 0, dir: -1, x: 0, y: 0, firedEvents: 0, target: null, rest: 1.5, nextStep: 0, flipSign: 1,
+  alt: 0, flight: null };
+
+class Demo extends Phaser.Scene {
+  preload() {
+    this.load.image('island', 'sprites/island.png');
+    for (const sp of SPECIES) for (const b of rigs[sp].bones) this.load.image(`rig_${sp}_${b.name}`, `dragons/${sp}/${b.name}.png`);
+    for (const [key, m] of Object.entries(manifest)) {
+      this.load.spritesheet(key, 'sprites/' + m.file, { frameWidth: m.frameWidth, frameHeight: m.frameHeight });
+    }
+  }
+
+  create() {
+    scene = this;
+    this.add.shader(new Phaser.Display.BaseShader('ocean', OCEAN_FRAG), W / 2, H / 2, W, H).setDepth(0);
+    makeTextures(this);
+
+    // shoreline waves: white copies of the island outline that swell outward and fade
+    for (let k = 0; k < 3; k++) {
+      const ring = this.add.image(ISLAND.x, ISLAND.y, 'island').setTintFill(0xffffff).setAlpha(0).setDepth(1);
+      this.tweens.add({ targets: ring, scale: { from: ISLAND.scale * 1.0, to: ISLAND.scale * 1.07 },
+        alpha: { from: 0.45, to: 0 }, duration: 3600, delay: k * 1200, repeat: -1, ease: 'Sine.easeOut' });
+    }
+    this.island = this.add.image(ISLAND.x, ISLAND.y, 'island').setScale(ISLAND.scale).setDepth(2);
+    // gentle bob, as if the island rides the swell
+    this.tweens.add({ targets: this.island, y: ISLAND.y + 3, duration: 2400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+
+    grassPoly = new Phaser.Geom.Polygon(GRASS.map(toWorld).flat());
+    this.time.addEvent({ delay: 260, loop: true, callback: riverSparkle });
+
+    // dragon: root sits on the feet; flipping/scaling it keeps the feet in place
+    [dragon.x, dragon.y] = toWorld([800, 520]);
+    dragon.root = this.add.container(dragon.x, dragon.y).setDepth(5);
+    dragon.contact = this.add.ellipse(0, 0, 150, 30, 0x0b2a12, 0.3);
+    dragon.shadow = this.add.sprite(0, 0, 'idle').setTintFill(0x0b2a12);
+    dragon.body = this.add.container(0, 0);
+    dragon.a = this.add.sprite(0, 0, 'idle');
+    dragon.b = this.add.sprite(0, 0, 'idle');
+    dragon.body.add([dragon.a, dragon.b]);
+    setSpecies(state.dragon.species);
+    dragon.root.add([dragon.contact, dragon.shadow, dragon.body]);
+    play('idle');
+
+    GameUI.init();
+    this.input.on('pointerdown', p => {
+      if (GameUI.onCanvasPointer(p)) return;
+      const fly = p.event.shiftKey || dragon.key === 'fly';
+      if (grassPoly.contains(p.worldX, p.worldY)) fly ? flyTo(p.worldX, p.worldY) : walkTo(p.worldX, p.worldY);
+      else if (!this.island.getBounds().contains(p.worldX, p.worldY) || !opaqueAt(p.worldX, p.worldY)) splash(p.worldX, p.worldY);
+    });
+  }
+
+  update(_, dtMs) {
+    const dt = dtMs / 1000 * speed;
+    const d = dragon, cfg = MOTION[d.key];
+    d.t += dt;
+
+    if (d.key === 'walk' && d.target) {
+      const dx = d.target[0] - d.x, dy = d.target[1] - d.y, dist = Math.hypot(dx, dy);
+      const step = WALK_SPEED * depthScale(d.y) * dt;
+      if (dist <= step) { d.target = null; play('idle'); d.rest = Phaser.Math.FloatBetween(1.5, 4); }
+      else {
+        d.x += dx / dist * step; d.y += dy / dist * step;
+        if (Math.abs(dx) > 30 && Math.sign(dx) !== d.dir) turn(Math.sign(dx));
+        d.nextStep -= dt;
+        if (d.nextStep <= 0) { footDust(); d.nextStep = 0.3; }
+      }
+    }
+    updateFlight(dt);
+    if (auto) think(dt);
+
+    const rigged = RIG_KEYS.has(d.key);
+    d.rig.visible = rigged;
+    d.a.setVisible(!rigged); d.b.setVisible(!rigged); d.shadow.setVisible(!rigged);
+    if (rigged) d.rig.update(dt, d.key);
+    if (d.key === 'sleep' && d.rig.sleep > 0.9 && (d.nextZ -= dt) <= 0) { sleepZ(); d.nextZ = 1.4; }
+    const { i, j, f, done } = framePosition(cfg, d.key, d.t);
+    // keep both frames fully opaque around the midpoint so the body never looks see-through
+    d.a.setFrame(i).setAlpha(Math.min(1, 2 * (1 - f)));
+    d.b.setFrame(j).setAlpha(Math.min(1, 2 * f));
+
+    (cfg.events || []).forEach(([at, fn], k) => {
+      if (d.t >= at && !(d.firedEvents & (1 << k))) { d.firedEvents |= 1 << k; fn(scene); }
+    });
+
+    // the rig animates itself; procedural sprite motion only applies to sprite actions
+    const mv = { x: 0, y: 0, rot: 0, sx: 1, sy: 1, ...(cfg.move && !rigged ? cfg.move(d.t) : {}) };
+    if (d.flight && d.flight.phase === 'takeoff') mv.sy *= 1 - 0.1 * bump(d.flight.t, 0, 0.3);  // crouch to spring up
+    mv.y -= d.alt;
+    if (d.turnT !== undefined && d.turnT < 0.22) {  // grow back to full width after turning
+      d.turnT += dt;
+      mv.sx *= 0.7 + 0.3 * smooth(clamp01(d.turnT / 0.22));
+    }
+    d.body.setPosition(mv.x, mv.y).setRotation(mv.rot).setScale(mv.sx, mv.sy);
+
+    // cast shadow: the current pose flattened onto the ground, falling down-right like the island's rocks
+    const lift = Math.max(0, -mv.y), fade = 1 - Math.min(0.75, lift / 150);
+    d.shadow.setFrame(f < 0.5 ? i : j).setPosition(mv.x + 14 * d.flipSign, 0)
+      .setScale(mv.sx * (1 - lift / 400), -0.32 * mv.sy).setAlpha(0.26 * fade);
+    d.contact.setPosition(mv.x, 0).setScale(1 - lift / 250).setAlpha(fade);
+
+    d.flipSign = d.dir > 0 ? -1 : 1;
+    const s = DRAGON_SCALE * depthScale(d.y);
+    d.root.setPosition(d.x, d.y + (this.island.y - ISLAND.y)).setScale(d.flipSign * s, s);
+
+    const flash = cfg.flash && cfg.flash(d.t);
+    [d.a, d.b].forEach(sp => flash ? sp.setTintFill(0xffffff) : sp.clearTint());
+
+    if (done) play('idle');
+    GameUI.tick();
+  }
+}
+
+// Take off -> cruise to the target -> land. Height lives in dragon.alt and is drawn as a body
+// offset, so the shadow stays on the ground (and shrinks) while the dragon is up.
+function updateFlight(dt) {
+  const d = dragon, F = d.flight;
+  if (!F || d.key !== 'fly') {
+    d.flight = null;
+    d.alt = Math.max(0, d.alt - 260 * dt);  // another action while airborne: drop down
+    return;
+  }
+  F.t += dt;
+  if (F.phase === 'takeoff') {
+    d.alt = FLY_ALT * smooth(clamp01((F.t - 0.15) / (TAKEOFF_S - 0.15)));
+    if (F.t >= TAKEOFF_S) F.phase = 'cruise';
+  }
+  if (F.phase !== 'land' && F.t > 0.35) {
+    const dx = F.target[0] - d.x, dy = F.target[1] - d.y, dist = Math.hypot(dx, dy);
+    const step = FLY_SPEED * depthScale(d.y) * dt;
+    if (dist <= step) { d.x = F.target[0]; d.y = F.target[1]; F.phase = 'land'; F.landAt = F.t; F.from = d.alt; }
+    else {
+      d.x += dx / dist * step; d.y += dy / dist * step;
+      if (Math.abs(dx) > 30 && Math.sign(dx) !== d.dir) turn(Math.sign(dx));
+    }
+  }
+  if (F.phase === 'land') {
+    const u = clamp01((F.t - F.landAt) / LAND_S);
+    d.alt = F.from * (1 - smooth(u));
+    if (u >= 1) {
+      d.alt = 0; d.flight = null;
+      dustRing();
+      play('idle');
+      d.rest = Phaser.Math.FloatBetween(1.5, 4);
+    }
+  }
+}
+
+function flyTo(x, y) {
+  const d = dragon;
+  if (Math.abs(x - d.x) > 10) turn(Math.sign(x - d.x));
+  if (d.key === 'fly' && d.flight) {   // already up: just change course (or take off again if landing)
+    d.flight.target = [x, y];
+    if (d.flight.phase === 'land') { d.flight.phase = 'cruise'; d.alt = Math.max(d.alt, 1); }
+    return;
+  }
+  d.flight = { phase: 'takeoff', t: 0, target: [x, y] };
+  play('fly');
+  dustRing();
+}
+
+// a far spot on the grass, so a flight is worth it
+function farGrassPoint() {
+  const b = Phaser.Geom.Polygon.GetAABB(grassPoly);
+  for (let tries = 0; tries < 200; tries++) {
+    const x = Phaser.Math.FloatBetween(b.x, b.right), y = Phaser.Math.FloatBetween(b.y, b.bottom);
+    if (grassPoly.contains(x, y) && Math.hypot(x - dragon.x, y - dragon.y) > 260) return [x, y];
+  }
+  return randomGrassPoint();
+}
+
+// dust/grass blown outward by the wings on take-off and landing
+function dustRing() {
+  const d = dragon, s = DRAGON_SCALE * depthScale(d.y);
+  for (let k = 0; k < 10; k++) {
+    const a = (k / 10) * Math.PI * 2;
+    const p = scene.add.image(d.x + Math.cos(a) * 20 * s, d.y + Math.sin(a) * 6 * s, 'puff')
+      .setTint(0xe6f2c8).setAlpha(0.6).setScale(0.9 * s).setDepth(4);
+    scene.tweens.add({ targets: p, x: p.x + Math.cos(a) * 90 * s, y: p.y + Math.sin(a) * 26 * s - 6 * s,
+      scale: 2.4 * s, alpha: 0, duration: 750, ease: 'Sine.easeOut', onComplete: () => p.destroy() });
+  }
+}
+
+// farther up the island = smaller
+function depthScale(y) {
+  const top = toWorld([0, 185])[1], bottom = toWorld([0, 840])[1];
+  return 0.93 + 0.12 * clamp01((y - top) / (bottom - top));
+}
+
+// Wander: rest, then mostly stroll somewhere, sometimes nap or show off.
+function think(dt) {
+  const d = dragon;
+  if (GameUI.busy) return;  // stay put while the player is in a menu
+  if (d.key === 'sleep' && d.t > d.sleepFor) { play('idle'); d.rest = Phaser.Math.FloatBetween(3, 6); return; }
+  if (d.key !== 'idle') return;
+  d.rest -= dt;
+  if (d.rest > 0) return;
+  // random pick, random pause before the next one (idle in between)
+  const r = Math.random();
+  if (r < 0.55) walkTo(...randomGrassPoint());
+  else if (r < 0.8) flyTo(...farGrassPoint());
+  else play('sleep');
+  d.rest = Phaser.Math.FloatBetween(2, 8);
+}
+
+// straight path must stay on the grass (the stream cuts a notch into the top-left)
+function pathOnGrass(x0, y0, x1, y1) {
+  for (let k = 1; k <= 12; k++) {
+    if (!grassPoly.contains(x0 + (x1 - x0) * k / 12, y0 + (y1 - y0) * k / 12)) return false;
+  }
+  return true;
+}
+
+function randomGrassPoint() {
+  const b = Phaser.Geom.Polygon.GetAABB(grassPoly);
+  for (let tries = 0; tries < 200; tries++) {
+    const x = Phaser.Math.FloatBetween(b.x, b.right), y = Phaser.Math.FloatBetween(b.y, b.bottom);
+    if (Math.hypot(x - dragon.x, y - dragon.y) > 120 && pathOnGrass(dragon.x, dragon.y, x, y)) return [x, y];
+  }
+  return [dragon.x, dragon.y];
+}
+
+// Turn around: the new facing appears at once while the old one fades out on top,
+// with a small squash so it reads as a body turn instead of a mirror flip.
+function turn(dir) {
+  const d = dragon;
+  if (dir === d.dir) return;
+  const s = d.root.scaleY, a = d.a;
+  d.dir = dir;
+  d.turnT = 0;
+  if (RIG_KEYS.has(d.key)) return;   // the rig just flips with a squash; no sprite to ghost
+  const ghost = scene.add.sprite(d.root.x + d.body.x * d.root.scaleX, d.root.y + d.body.y * s, a.texture.key, a.frame.name)
+    .setOrigin(a.originX, a.originY).setScale(d.root.scaleX * d.body.scaleX, s * d.body.scaleY).setDepth(5.5);
+  scene.tweens.add({ targets: ghost, alpha: 0, scaleX: ghost.scaleX * 0.6, duration: 200 / speed, ease: 'Sine.easeIn', onComplete: () => ghost.destroy() });
+}
+
+function walkTo(x, y) {
+  if (!pathOnGrass(dragon.x, dragon.y, x, y)) {
+    // go round via the island centre instead of cutting across the stream
+    const [cx, cy] = toWorld([840, 560]);
+    if (!pathOnGrass(cx, cy, x, y)) return;
+    dragon.waypoint = [x, y]; x = cx; y = cy;
+  } else dragon.waypoint = null;
+  dragon.target = [x, y];
+  if (Math.abs(x - dragon.x) > 10) turn(Math.sign(x - dragon.x));
+  if (dragon.key !== 'walk') play('walk');
+}
+
+function framePosition(cfg, key, t) {
+  const n = manifest[key].frames;
+  if (cfg.mode === 'timeline') {
+    const steps = cfg.steps, blend = 0.14;
+    let acc = 0;
+    for (let k = 0; k < steps.length; k++) {
+      const [frame, dur] = steps[k];
+      if (t < acc + dur) {
+        const next = steps[k + 1] ? steps[k + 1][0] : frame;
+        return { i: frame, j: next, f: smooth(clamp01((t - acc - (dur - blend)) / blend)), done: false };
+      }
+      acc += dur;
+    }
+    const last = steps[steps.length - 1][0];
+    return { i: last, j: last, f: 0, done: true };
+  }
+  const pos = t * cfg.fps, blend = cfg.blend ?? 1;
+  const k = Math.floor(pos), f = blend ? smooth(clamp01((pos - k - (1 - blend)) / blend)) : 0;
+  if (cfg.mode === 'once') {
+    if (pos >= n - 1) return { i: n - 1, j: n - 1, f: 0, done: pos >= n };
+    return { i: k, j: k + 1, f, done: false };
+  }
+  if (cfg.mode === 'pingpong' && n > 1) {
+    const period = 2 * (n - 1), at = x => { const m = x % period; return m < n ? m : period - m; };
+    return { i: at(k), j: at(k + 1), f, done: false };
+  }
+  return { i: k % n, j: (k + 1) % n, f, done: false };
+}
+
+function play(key) {
+  const d = dragon;
+  if (key === 'idle' && d.waypoint) { const w = d.waypoint; d.waypoint = null; return walkTo(...w); }
+  if (d.started && !RIG_KEYS.has(d.key)) {
+    // fade the outgoing sprite pose over the incoming one
+    const ghost = scene.add.sprite(d.a.x, d.a.y, d.a.texture.key, d.a.frame.name).setOrigin(d.a.originX, d.a.originY);
+    d.body.add(ghost);
+    scene.tweens.add({ targets: ghost, alpha: 0, duration: TRANSITION_MS / speed, onComplete: () => ghost.destroy() });
+  }
+  d.started = true;
+  if (key === 'fly' && !d.flight) return flyTo(...farGrassPoint());
+  if (key !== 'walk') d.target = d.waypoint = null;
+  if (key === 'walk' && !d.target) {
+    d.target = randomGrassPoint();
+    if (Math.abs(d.target[0] - d.x) > 10) turn(Math.sign(d.target[0] - d.x));
+  }
+  if (key === 'sleep') { d.sleepFor = Phaser.Math.FloatBetween(6, 15); d.nextZ = 1.2; }
+  const m = manifest[key];
+  d.key = key; d.t = 0; d.firedEvents = 0;
+  [d.a, d.b, d.shadow].forEach(s => s.setTexture(key, 0).setOrigin(m.originX, m.originY));
+  d.shadow.setTintFill(0x0b2a12);
+  renderUI();
+}
+
+function makeTextures(s) {
+  const g = s.make.graphics({ add: false });
+  g.fillStyle(0xffffff).fillRect(5, 0, 2, 12).fillRect(0, 5, 12, 2).fillCircle(6, 6, 2);
+  g.generateTexture('spark', 12, 12); g.clear();
+  g.fillStyle(0xffffff).fillCircle(8, 8, 8);
+  g.generateTexture('puff', 16, 16); g.destroy();
+}
+
+function riverSparkle() {
+  const [x0, y0, x1, y1] = Phaser.Utils.Array.GetRandom(RIVER);
+  const [x, y] = toWorld([Phaser.Math.Between(x0, x1), Phaser.Math.Between(y0, y1)]);
+  if (!opaqueAt(x, y) || grassPoly.contains(x, y)) return;
+  const c = scene.textures.getPixel(...toImage(x, y), 'island');
+  if (!c || c.blue < 180 || c.red > 150) return;  // only on water-coloured pixels
+  const sp = scene.add.image(x, y + (scene.island.y - ISLAND.y), 'spark').setDepth(3).setScale(0).setBlendMode(Phaser.BlendModes.ADD);
+  scene.tweens.add({ targets: sp, scale: Phaser.Math.FloatBetween(0.5, 0.9), angle: 45, duration: 350, yoyo: true, onComplete: () => sp.destroy() });
+}
+
+const toImage = (x, y) => [Math.round((x - ISLAND.x) / ISLAND.scale + ISLAND.w / 2), Math.round((y - ISLAND.y) / ISLAND.scale + ISLAND.h / 2)];
+function opaqueAt(x, y) {
+  const [px, py] = toImage(x, y);
+  if (px < 0 || py < 0 || px >= ISLAND.w || py >= ISLAND.h) return false;
+  return scene.textures.getPixelAlpha(px, py, 'island') > 200;
+}
+
+function splash(x, y) {
+  for (let k = 0; k < 3; k++) {
+    const ring = scene.add.ellipse(x, y, 40, 16).setStrokeStyle(2, 0xffffff, 0.8).setDepth(1).setScale(0.2);
+    scene.tweens.add({ targets: ring, scale: 2.2 + k * 0.6, alpha: 0, duration: 1200, delay: k * 180, ease: 'Sine.easeOut', onComplete: () => ring.destroy() });
+  }
+}
+
+function footDust() {
+  const d = dragon, s = DRAGON_SCALE * depthScale(d.y);
+  for (let k = 0; k < 3; k++) {
+    const p = scene.add.image(d.x + Phaser.Math.Between(-30, 30) * s, d.y + Phaser.Math.Between(-4, 4) * s, 'puff')
+      .setTint(0xe6f2c8).setAlpha(0.55).setScale(0.4 * s * 2).setDepth(4);
+    scene.tweens.add({ targets: p, y: p.y - 10 * s, x: p.x - d.dir * 14 * s, scale: 1.3 * s * 2, alpha: 0,
+      duration: 650, ease: 'Sine.easeOut', onComplete: () => p.destroy() });
+  }
+}
+
+// x/y are relative to the dragon's feet; effects follow the dragon
+function spawnFx(key, x, y, scale = 1) {
+  const fx = scene.add.image(x, y, key).setScale(scale * 0.5).setAlpha(0);
+  dragon.root.add(fx);
+  scene.tweens.add({ targets: fx, alpha: 1, scale: scale * 1.1, duration: 180 / speed, yoyo: true, hold: 220 / speed, onComplete: () => fx.destroy() });
+}
+
+// swap the rig on the island for another species (keeps position, facing and current action)
+function setSpecies(species) {
+  if (dragon.rig) dragon.rig.destroy();
+  dragon.species = species;
+  dragon.rig = new DragonRig(scene, rigs[species], dragon.body, species);
+}
+
+// a "z" drifting up from the sleeping dragon's head
+function sleepZ() {
+  const p = dragon.rig.headWorld();
+  const z = scene.add.text(p.x, p.y, 'z', { fontFamily: 'system-ui, sans-serif', fontSize: '18px', fontStyle: 'bold',
+    color: '#dff4ff', stroke: '#16354f', strokeThickness: 4 }).setOrigin(0.5).setDepth(20).setAlpha(0);
+  scene.tweens.add({ targets: z, alpha: { from: 0, to: 0.95 }, duration: 400, yoyo: true, hold: 900 });
+  scene.tweens.add({ targets: z, x: z.x - 18 * dragon.flipSign, y: z.y - 46, scale: 1.5, duration: 1700, ease: 'Sine.easeOut', onComplete: () => z.destroy() });
+}
+
+function spawnSwirl() {
+  ['fx_0', 'fx_2', 'fx_3'].forEach((key, k) => {
+    const fx = scene.add.image(0, -90, key).setScale(1.3).setAlpha(0).setBlendMode(Phaser.BlendModes.ADD);
+    dragon.root.add(fx);
+    scene.tweens.add({ targets: fx, alpha: { from: 0, to: 0.8 }, duration: 200 / speed, delay: k * 120 / speed, yoyo: true, hold: 700 / speed });
+    scene.tweens.add({ targets: fx, rotation: Math.PI * 2 * (k % 2 ? -1 : 1), duration: 1400 / speed, delay: k * 120 / speed, onComplete: () => fx.destroy() });
+  });
+}
+
+function renderUI() {
+  const ui = document.getElementById('ui');
+  ui.innerHTML = '';
+  for (const a of ACTIONS) {
+    const b = document.createElement('button');
+    b.textContent = a; b.className = a === dragon.key ? 'on' : '';
+    b.onclick = () => play(a);
+    ui.append(b);
+  }
+  ui.append(Object.assign(document.createElement('span'), { className: 'sep' }));
+  const autoBtn = document.createElement('button');
+  autoBtn.textContent = 'tự đi'; autoBtn.className = auto ? 'on' : '';
+  autoBtn.onclick = () => { auto = !auto; renderUI(); };
+  ui.append(autoBtn);
+  const lab = document.createElement('label');
+  lab.innerHTML = `tốc độ <input type="range" min="0.25" max="2" step="0.25" value="${speed}"> ${speed}x`;
+  lab.querySelector('input').oninput = e => { speed = +e.target.value; renderUI(); };
+  ui.append(lab);
+}
+
+Promise.all(['sprites/manifest.json', ...SPECIES.map(sp => `dragons/${sp}/rig.json`)]
+  .map(u => fetch(u).then(r => r.json()))).then(([m, ...rigList]) => {
+  manifest = m;
+  SPECIES.forEach((sp, i) => { rigs[sp] = rigList[i]; });
+  // feet must not slide: ground speed = rig stride x scales / walk cycle length
+  WALK_SPEED = DragonRig.walkSpeed(DRAGON_SCALE);
+  new Phaser.Game({
+    type: Phaser.WEBGL, width: W, height: H, parent: 'game', backgroundColor: '#0d4f7a', scene: Demo,
+    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+  });
+});
+</script>
+</body>
+</html>

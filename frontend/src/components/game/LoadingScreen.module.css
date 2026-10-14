@@ -1,0 +1,12 @@
+.screen { position: absolute; inset: 0; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+  padding: 4% 16px 3%; background: #87c6ef url('/ui/loading_bg.jpg') center / cover no-repeat; transition: opacity .6s ease; }
+.fade { opacity: 0; pointer-events: none; }
+.logo { width: min(34%, 360px); filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .35)); animation: float 3s ease-in-out infinite; }
+@keyframes float { 50% { transform: translateY(-8px); } }
+.bottom { width: min(70%, 760px); display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.bar { position: relative; width: 100%; aspect-ratio: 2089 / 348; }
+.frame { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.track { position: absolute; overflow: hidden; border-radius: 999px; }
+.fill { height: 100%; background: url('/ui/loading_fill.png') left center / auto 100% no-repeat; border-radius: 999px; transition: width .25s ease-out; }
+.percent { margin: 0; color: #fff; font-weight: 800; font-size: 18px; text-shadow: 0 2px 4px rgba(0, 40, 80, .8); }
+.tip { margin: 0; padding: 6px 14px; border-radius: 999px; background: rgba(10, 30, 60, .55); color: #eaf6ff; font-size: 14px; text-align: center; }

@@ -1,0 +1,81 @@
+.page { background: radial-gradient(1200px 600px at 50% -10%, #12345a 0%, transparent 70%), #0b1424; }
+
+/* ---- hero -------------------------------------------------------------------------------- */
+.hero { position: relative; min-height: min(78vh, 720px); display: flex; align-items: center; justify-content: center;
+  background: url('/ui/loading_bg.jpg') center / cover no-repeat; overflow: hidden; }
+.hero::after { content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(11, 20, 36, .05) 40%, rgba(11, 20, 36, .7) 80%, #0b1424 100%); }
+.heroInner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 48px 16px 64px; text-align: center; }
+.heroLogo { width: min(420px, 72vw); filter: drop-shadow(0 10px 24px rgba(0, 0, 0, .45)); animation: float 3.2s ease-in-out infinite; }
+@keyframes float { 50% { transform: translateY(-10px); } }
+.tagline { max-width: 560px; font-size: 18px; font-weight: 600; color: #fff; text-shadow: 0 2px 8px rgba(0, 20, 50, .9); }
+.heroActions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.playBtn { display: inline-flex; align-items: center; padding: 14px 34px; border-radius: 999px; font-size: 18px; font-weight: 800; color: #3a2400;
+  text-decoration: none; background: linear-gradient(#ffe08a, #f2c14e 45%, #c48a22); border: 2px solid #8a5d14;
+  box-shadow: 0 6px 0 #7a4f0f, 0 10px 24px rgba(0, 0, 0, .35); transition: transform .12s, box-shadow .12s; }
+.playBtn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #7a4f0f, 0 14px 28px rgba(0, 0, 0, .4); }
+.playBtn:active { transform: translateY(3px); box-shadow: 0 3px 0 #7a4f0f; }
+.ghostBtn { display: inline-flex; align-items: center; padding: 14px 26px; border-radius: 999px; font-weight: 700; color: #fff; text-decoration: none;
+  background: rgba(10, 30, 60, .55); border: 2px solid rgba(255, 255, 255, .5); backdrop-filter: blur(4px); }
+.ghostBtn:hover { background: rgba(10, 30, 60, .75); }
+
+/* ---- sections ---------------------------------------------------------------------------- */
+.section { padding: 56px 0 8px; scroll-margin-top: 72px; }
+.title { font-size: 30px; font-weight: 800; text-align: center; color: #f2c14e; letter-spacing: .5px; }
+.subtitle { margin: 4px 0 28px; text-align: center; color: #9fb4cc; }
+
+.dragons { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.dragonCard { --el: #3fa9ff; display: flex; flex-direction: column; border-radius: 18px; overflow: hidden; background: #12223a;
+  border: 1px solid rgba(255, 255, 255, .08); box-shadow: 0 10px 30px rgba(0, 0, 0, .3); transition: transform .2s, border-color .2s; }
+.dragonCard:hover { transform: translateY(-4px); border-color: var(--el); }
+.ice { --el: #3fa9ff; } .dark { --el: #7dde62; } .light { --el: #ffd36b; } .water { --el: #ff8a3d; }
+.dragonArt { height: 210px; display: flex; padding: 14px; overflow: hidden;
+  background: radial-gradient(circle at 50% 70%, color-mix(in srgb, var(--el) 45%, transparent), transparent 70%), #0e1a2d; }
+.dragonArt img { width: 100%; height: 100%; min-height: 0; object-fit: contain; filter: drop-shadow(0 8px 10px rgba(0, 0, 0, .5)); }
+.dragonBody { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 8px; }
+.dragonBody h3 { font-size: 22px; font-weight: 800; }
+.dragonBody p { color: #b9c8da; font-size: 14px; }
+.tags { display: flex; gap: 6px; }
+.tags span { padding: 1px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: color-mix(in srgb, var(--el) 30%, #12223a); }
+.tags .rarity { background: #6b3fa0; }
+.skillList { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 4px; }
+.skillList li { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; text-align: center; line-height: 1.2; color: #d6e2f0; }
+.skillList img { width: 100%; aspect-ratio: 1.35; object-fit: contain; }
+
+.islands { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.islandCard { padding: 16px; border-radius: 18px; background: linear-gradient(180deg, #16426a, #12223a 60%); border: 1px solid rgba(255, 255, 255, .08); }
+.islandCard > img { width: 100%; aspect-ratio: 1.45; object-fit: contain; filter: drop-shadow(0 12px 14px rgba(0, 0, 0, .45)); transition: transform .3s; }
+.islandCard:hover > img { transform: translateY(-6px) scale(1.02); }
+.islandCard h3 { margin-top: 8px; font-size: 20px; font-weight: 800; }
+.islandCard p { color: #b9c8da; font-size: 14px; }
+.owner { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding: 3px 12px 3px 4px; border-radius: 999px;
+  background: rgba(0, 0, 0, .25); font-size: 13px; font-weight: 700; }
+.owner img { width: 40px; height: 28px; object-fit: contain; }
+
+.buildings { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.buildingCard { padding: 16px 18px; border-radius: 18px; background: #12223a; border: 1px solid rgba(255, 255, 255, .08); }
+.buildingLevels { display: flex; align-items: flex-end; justify-content: center; gap: 6px; height: 150px; }
+.buildingLevels img { height: 60%; object-fit: contain; }
+.buildingLevels img:nth-child(2) { height: 80%; }
+.buildingLevels img:nth-child(3) { height: 100%; }
+.buildingCard h3 { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 18px; font-weight: 800; }
+.buildingCard h3 img { width: 30px; height: 30px; object-fit: contain; }
+.buildingCard p { color: #b9c8da; font-size: 14px; }
+.buildingCard em { color: #f2c14e; font-style: normal; }
+
+.features { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.feature { padding: 18px; border-radius: 16px; text-align: center; background: rgba(255, 255, 255, .03); border: 1px solid rgba(255, 255, 255, .06); }
+.feature img { width: 64px; height: 64px; margin: 0 auto 8px; }
+.feature h3 { font-weight: 800; }
+.feature p { color: #9fb4cc; font-size: 14px; }
+
+.cta { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; justify-content: center; margin: 56px 0; padding: 24px 32px; border-radius: 22px;
+  background: linear-gradient(120deg, #1b4f86, #12223a); border: 2px solid #b8862a; }
+.cta > img { width: 120px; }
+.cta h2 { font-size: 24px; font-weight: 800; }
+.cta p { color: #b9c8da; }
+
+@media (max-width: 640px) {
+  .title { font-size: 24px; }
+  .cta { text-align: center; }
+}

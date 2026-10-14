@@ -1,0 +1,68 @@
+/* HUD over the island: gold-rimmed navy, matching the icon set. Only the controls catch the pointer. */
+.hud { position: absolute; inset: 0; z-index: 10; pointer-events: none; color: #eef5ff; font: 14px system-ui, sans-serif; }
+.hud button { font: inherit; color: inherit; cursor: pointer; pointer-events: auto; }
+.hud img { display: block; user-select: none; }
+
+.top { position: absolute; top: 10px; left: 12px; right: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.player, .pill, .islandNav { display: flex; align-items: center; gap: 8px; background: rgba(14, 32, 58, .9); border: 2px solid #b8862a;
+  border-radius: 999px; box-shadow: 0 3px 10px rgba(0, 0, 0, .35); }
+.player { padding: 3px 14px 3px 3px; }
+.player img { width: 42px; height: 42px; }
+.player span { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2; }
+.player small { font-size: 11px; color: #9fb4cc; }
+.islandNav { padding: 4px 6px; font-weight: 700; }
+.islandNav span { min-width: 120px; text-align: center; color: #f2c14e; }
+.islandNav button { width: 28px; height: 28px; border-radius: 50%; border: 0; background: #1f4677; }
+.wallet { display: flex; gap: 8px; }
+.pill { padding: 3px 12px 3px 3px; min-width: 104px; transition: transform .15s; }
+.pill img { width: 30px; height: 30px; object-fit: contain; }
+.pill b { flex: 1; text-align: right; font-variant-numeric: tabular-nums; }
+.fullBtn { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; border: 2px solid #b8862a; background: rgba(14, 32, 58, .9);
+  font-size: 18px; box-shadow: 0 3px 10px rgba(0, 0, 0, .35); }
+.fullBtn:hover { border-color: #ffe08a; }
+.bump { transform: scale(1.12); border-color: #ffe08a; }
+
+.dragons { position: absolute; left: 12px; top: 72px; display: flex; flex-direction: column; gap: 6px; }
+.dragon { display: flex; align-items: center; gap: 6px; padding: 3px 10px 3px 3px; border-radius: 12px; border: 2px solid #2c4f7c;
+  background: rgba(14, 32, 58, .85); text-align: left; }
+.dragon img { width: 56px; height: 40px; object-fit: contain; }
+.dragon span { display: flex; flex-direction: column; font-weight: 700; font-size: 13px; line-height: 1.2; }
+.dragon small { font-weight: 400; font-size: 11px; color: #9fb4cc; }
+.on { border-color: #f2c14e; background: rgba(27, 58, 99, .95); }
+
+.side { position: absolute; right: 10px; top: 72px; display: flex; flex-direction: column; gap: 4px; }
+.bottom { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); display: flex; gap: 2px; padding: 6px 10px;
+  background: rgba(10, 24, 44, .78); border: 2px solid #b8862a; border-radius: 18px; }
+.menuBtn { display: flex; flex-direction: column; align-items: center; width: 64px; padding: 0; border: 0; background: none; transition: transform .12s; }
+.menuBtn img { width: 52px; height: 52px; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .45)); }
+.menuBtn span { font-size: 11px; font-weight: 700; text-shadow: 0 1px 2px #000, 0 0 4px #000; white-space: nowrap; }
+.menuBtn:hover { transform: translateY(-2px) scale(1.06); }
+
+.skills { position: absolute; left: 12px; bottom: 10px; padding: 8px 10px; border-radius: 14px; background: rgba(14, 32, 58, .88); border: 2px solid #b8862a; }
+.skillHead { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+.skillHead small { color: #9fb4cc; font-size: 11px; }
+.cmds { margin-left: auto; display: flex; gap: 4px; }
+.cmds button { width: 28px; height: 28px; border-radius: 8px; border: 1px solid #2f5068; background: #1f3445; }
+.skillRow { display: flex; gap: 6px; }
+.skill { display: flex; flex-direction: column; align-items: center; width: 70px; padding: 0; border: 0; background: none; }
+.skill img { width: 60px; height: 44px; object-fit: contain; border-radius: 8px; transition: transform .12s; }
+.skill span { font-size: 10px; line-height: 1.2; text-align: center; margin-top: 2px; }
+.skill:hover:not(:disabled) img { transform: scale(1.08); }
+.passive { opacity: .75; cursor: default !important; }
+
+.devHint { position: absolute; left: 50%; top: 64px; transform: translateX(-50%); margin: 0; font-size: 11px; opacity: .6; text-shadow: 0 1px 2px #000; }
+
+.modal { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; background: rgba(4, 10, 20, .55); pointer-events: auto; }
+.sheet { width: min(420px, 100%); border-radius: 16px; background: rgba(14, 32, 58, .96); border: 2px solid #f2c14e; box-shadow: 0 10px 40px rgba(0, 0, 0, .6); }
+.sheet header { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid #b8862a; }
+.sheet header img { width: 40px; height: 40px; }
+.sheet h2 { flex: 1; margin: 0; font-size: 18px; color: #f2c14e; }
+.sheet header button { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #b8862a; background: none; }
+.sheet p { margin: 0; padding: 24px 16px; text-align: center; color: #9fb4cc; }
+
+@media (max-width: 900px) {
+  .dragons span, .player span { display: none; }
+  .menuBtn { width: 48px; } .menuBtn img { width: 40px; height: 40px; }
+  .skills { bottom: 86px; }
+  .pill { min-width: 80px; }
+}
