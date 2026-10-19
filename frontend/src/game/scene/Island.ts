@@ -4,12 +4,16 @@ import {
   BUILDING_SCALE, PRODUCES, PRODUCTION,
 } from '../config/economy';
 import {
-  clamp01, islandCentre,
+  islandCentre,
   type Point, type IslandDef, type Resource,
 } from '../config/world';
 import type { BuildingType } from '../config/islands';
 import type { IslandScene } from './IslandScene';
 import { gameEvents, getEggLevel } from '../bridge';
+import {
+  closestFree, depthScale as calcDepthScale, detour, nearPoint,
+  pathFree as geoPathFree, randomPoint as geoRandomPoint,
+} from './islandGeometry';
 
 export const islandKey = (id: string) => `island_${id}`;
 export const buildingKey = (type: BuildingType, level: number) => `building_${type}_${level}`;
@@ -20,7 +24,7 @@ export const LAMP_KEY = 'prop_lamp';
 export const grassKey = (n: number) => `prop_grass_${n}`;
 /** lamp art layout (shares of the image): foot of the post, lantern centre; height = world px */
 const LAMP = { foot: [0.37, 0.98], lantern: [0.769, 0.52], height: 78 };
-const NEST_SCALE = 0.26, EGG_SCALE = 0.26;   // world px per image px (nest.png 480 wide, eggs 320 tall)
+const NEST_SCALE = 0.26, EGG_SCALE = 0.26;
 
 interface Building {
   type: BuildingType;
@@ -208,7 +212,7 @@ export class Island {
   }
 
   /** Farther up the island = smaller. */
-  depthScale(y: number) { return 0.93 + 0.12 * clamp01((y - this.top) / (this.bottom - this.top)); }
+  depthScale(y: number) { return calcDepthScale(y, this.top, this.bottom); }
 
   contains(x: number, y: number) { return this.walk.contains(x, y); }
 
@@ -221,55 +225,24 @@ export class Island {
   }
 
   pathFree(x0: number, y0: number, x1: number, y1: number) {
-    for (let k = 1; k <= 16; k++) {
-      if (!this.free(x0 + (x1 - x0) * k / 16, y0 + (y1 - y0) * k / 16)) return false;
-    }
-    return true;
+    return geoPathFree(x0, y0, x1, y1, (x: number, y: number) => this.free(x, y));
   }
 
   randomPoint(from: Point, minDist: number, needPath: boolean): Point {
-    const b = Phaser.Geom.Polygon.GetAABB(this.walk);
-    for (let tries = 0; tries < 300; tries++) {
-      const x = Phaser.Math.FloatBetween(b.x, b.right), y = Phaser.Math.FloatBetween(b.y, b.bottom);
-      if (Math.hypot(x - from[0], y - from[1]) < minDist || !this.free(x, y)) continue;
-      if (!needPath || this.pathFree(from[0], from[1], x, y)) return [x, y];
-    }
-    return from;
+    return geoRandomPoint(from, minDist, needPath, this.walk, (x: number, y: number) => this.free(x, y), (x0: number, y0: number, x1: number, y1: number) => this.pathFree(x0, y0, x1, y1));
   }
 
   detour(from: Point, to: Point): Point | null {
-    let best: Point | null = null, bestLen = Infinity;
-    const b = Phaser.Geom.Polygon.GetAABB(this.walk);
-    for (let gx = b.x; gx <= b.right; gx += 30) {
-      for (let gy = b.y; gy <= b.bottom; gy += 20) {
-        if (!this.free(gx, gy)) continue;
-        const len = Math.hypot(gx - from[0], gy - from[1]) + Math.hypot(to[0] - gx, to[1] - gy);
-        if (len < bestLen && this.pathFree(from[0], from[1], gx, gy) && this.pathFree(gx, gy, to[0], to[1])) {
-          best = [gx, gy]; bestLen = len;
-        }
-      }
-    }
-    return best;
+    return detour(from, to, this.walk, (x: number, y: number) => this.free(x, y), (x0: number, y0: number, x1: number, y1: number) => this.pathFree(x0, y0, x1, y1));
   }
 
   /** Nearest free ground to `at` (spiral search) - for targets that land on a building. */
   closestFree(at: Point): Point | null {
-    if (this.free(at[0], at[1])) return at;
-    for (let r = 20; r <= 300; r += 20) {
-      for (let k = 0; k < 16; k++) {
-        const a = (k / 16) * Math.PI * 2, x = at[0] + Math.cos(a) * r, y = at[1] + Math.sin(a) * r * 0.6;
-        if (this.free(x, y)) return [x, y];
-      }
-    }
-    return null;
+    return closestFree(at, (x: number, y: number) => this.free(x, y));
   }
 
   nearPoint(at: Point, dx: number): Point {
-    for (const k of [1, 0.7, 0.45, -0.7, -1]) {
-      const p: Point = [at[0] + dx * k, at[1] + 8];
-      if (this.free(...p, 0)) return p;
-    }
-    return [at[0] + dx, at[1]];
+    return nearPoint(at, dx, (x: number, y: number) => this.free(x, y));
   }
 
   opaqueAt(x: number, y: number) {
