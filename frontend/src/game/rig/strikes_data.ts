@@ -1,5 +1,5 @@
 // Per-species attack pose data: dur, hit, t (keyframe timestamps) and per-channel arrays.
-import type { SpeciesId } from '../../config/species';
+import type { SpeciesId } from '../config/species';
 import type { StrikeSet } from './types';
 
 type StrikeSetFactory = () => StrikeSet;
