@@ -4,7 +4,7 @@ import type { SkillDef } from './types';
 const dmg = (scale: number) => `-${Math.round((180 + Math.random() * 40) * scale)}`;
 const HEAL = '#7dffa0';
 
-export const TUAN_LONG_SKILLS: SkillDef[] = [
+export const STAG_DRAGON_SKILLS: SkillDef[] = [
   { type: 'passive', name: 'Linh Giác', desc: 'Đầu mỗi lượt, đồng đội ít máu nhất hồi 5% Sinh lực tối đa.' },
   {
     type: 'basic', name: 'Húc Sừng', desc: '80% Công, 30% khả năng xoá 1 hiệu ứng tốt của mục tiêu.', anim: 'attack', target: 'enemy',

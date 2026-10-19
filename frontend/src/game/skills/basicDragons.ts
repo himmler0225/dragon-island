@@ -6,7 +6,7 @@ const dmg = (scale: number) => `-${Math.round((150 + Math.random() * 40) * scale
 const FIRE = 0xff6a1a, EMBER = '#ffab5a';
 const SAND = 0xd9a45a, ROCK = '#e8c48a';
 
-export const RONG_LUA_DO_SKILLS: SkillDef[] = [
+export const FIRE_DRAGON_SKILLS: SkillDef[] = [
   { type: 'passive', name: 'Tâm Hỏa', desc: 'Mỗi lần đánh trúng mục tiêu đang Thiêu Đốt: +10% Công trong 2 lượt.' },
   {
     type: 'basic', name: 'Cắn Lửa', desc: 'Lao tới cắn bằng hàm răng rực lửa: 100% Công lên 1 địch, 30% Thiêu Đốt.',
@@ -34,7 +34,7 @@ export const RONG_LUA_DO_SKILLS: SkillDef[] = [
   },
 ];
 
-export const RONG_DAT_NAU_SKILLS: SkillDef[] = [
+export const EARTH_DRAGON_SKILLS: SkillDef[] = [
   { type: 'passive', name: 'Giáp Đá', desc: 'Giảm 15% sát thương nhận vào; khi dưới 30% Sinh lực, giảm thêm 15%.' },
   {
     type: 'basic', name: 'Hàm Đá', desc: 'Ngoạm bằng hàm răng đá: 110% Công lên 1 địch.',
@@ -65,7 +65,7 @@ export const RONG_DAT_NAU_SKILLS: SkillDef[] = [
 const LEAF = 0x8fdc3a, GROW = '#c6f08a', HEAL = '#7dff9a';
 const ICE = 0x7fe0ff, FROST = '#bff0ff';
 
-export const RONG_CAY_XANH_LA_SKILLS: SkillDef[] = [
+export const FOREST_DRAGON_SKILLS: SkillDef[] = [
   { type: 'passive', name: 'Sức Sống Rừng', desc: 'Mỗi lượt hồi 3% Sinh lực.' },
   {
     type: 'basic', name: 'Quất Đuôi Lá', desc: 'Quất đuôi lá sắc như dao: 100% Công lên 1 địch.',
@@ -93,7 +93,7 @@ export const RONG_CAY_XANH_LA_SKILLS: SkillDef[] = [
   },
 ];
 
-export const RONG_BANG_XANH_BIEN_SKILLS: SkillDef[] = [
+export const ICE_DRAGON_SKILLS: SkillDef[] = [
   { type: 'passive', name: 'Giáp Pha Lê', desc: 'Kẻ đánh thường vào Rồng Băng bị giảm 10% Tốc 1 lượt.' },
   {
     type: 'basic', name: 'Hơi Lạnh', desc: 'Phun hơi lạnh: 100% Công lên 1 địch, 20% Đóng Băng.',

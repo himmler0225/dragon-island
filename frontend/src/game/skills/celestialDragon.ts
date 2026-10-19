@@ -7,7 +7,7 @@ import type { SkillDef } from './types';
 const dmg = (scale: number) => `-${Math.round((180 + Math.random() * 40) * scale)}`;
 const HEAL = '#7dffa0';
 
-export const THAN_LONG_SKILLS: SkillDef[] = [
+export const CELESTIAL_DRAGON_SKILLS: SkillDef[] = [
   { type: 'passive', name: 'Thánh Quang Hộ Thể', desc: 'Đầu trận toàn đội nhận Lá Chắn 10% Sinh lực tối đa; Thần Long miễn hiệu ứng khống chế lượt đầu.' },
   {
     // dives and snaps with jaws of light, healing sparkles flow back into it

@@ -5,7 +5,7 @@ import { spitDragonHead } from './helpers';
 
 const dmg = (scale: number) => `-${Math.round((180 + Math.random() * 40) * scale)}`;
 
-export const KI_LAN_SKILLS: SkillDef[] = [
+export const QILIN_SKILLS: SkillDef[] = [
   { type: 'passive', name: 'Kim Lân Hộ Thể', desc: 'Lân hỏa hộ thân: kẻ đánh thường vào Kì Lân bị Thiêu Đốt 1 lượt (30% Công); miễn nhiễm Thiêu Đốt.' },
   {
     // one heavy claw, then the target keeps burning for two ticks

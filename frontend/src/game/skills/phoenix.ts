@@ -127,5 +127,5 @@ function phoenixSkills(el: Element): SkillDef[] {
   ];
 }
 
-export const PHUONG_HOANG_LUA_SKILLS = phoenixSkills({ kind: 'fire', passive: ['Niết Bàn', 'Lần đầu bị hạ: tái sinh từ tro lửa với 40% Sinh lực, gây 50% Công lên toàn bộ địch xung quanh.'], basic: 'Hỏa Phượng Trảo', skill: 'Hỏa Dực Phong', text: '#ffb066', name: 'Phượng Hỏa Thiên Vũ', status: 'Thiêu Đốt' });
-export const PHUONG_HOANG_BANG_SKILLS = phoenixSkills({ kind: 'ice', passive: ['Băng Tâm Hộ Thể', 'Nhận Lá Chắn Băng 15% Sinh lực mỗi 2 lượt; kẻ đánh thường vào Phượng Hoàng Băng bị giảm 15% Tốc.'], basic: 'Băng Phượng Trảo', skill: 'Băng Dực Phong', text: '#bfe9ff', name: 'Phượng Băng Thiên Vũ', status: 'Đóng Băng' });
+export const FIRE_PHOENIX_SKILLS = phoenixSkills({ kind: 'fire', passive: ['Niết Bàn', 'Lần đầu bị hạ: tái sinh từ tro lửa với 40% Sinh lực, gây 50% Công lên toàn bộ địch xung quanh.'], basic: 'Hỏa Phượng Trảo', skill: 'Hỏa Dực Phong', text: '#ffb066', name: 'Phượng Hỏa Thiên Vũ', status: 'Thiêu Đốt' });
+export const ICE_PHOENIX_SKILLS = phoenixSkills({ kind: 'ice', passive: ['Băng Tâm Hộ Thể', 'Nhận Lá Chắn Băng 15% Sinh lực mỗi 2 lượt; kẻ đánh thường vào Phượng Hoàng Băng bị giảm 15% Tốc.'], basic: 'Băng Phượng Trảo', skill: 'Băng Dực Phong', text: '#bfe9ff', name: 'Phượng Băng Thiên Vũ', status: 'Đóng Băng' });

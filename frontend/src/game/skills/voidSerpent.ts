@@ -14,7 +14,7 @@ const beside = (ts: { feet(): Spot }[], dx = 0, dy = 0): Spot => {
   return { x: x + 260 + dx, y: y - 150 + dy };
 };
 
-export const TU_XA_LONG_SKILLS: SkillDef[] = [
+export const VOID_SERPENT_SKILLS: SkillDef[] = [
   { type: 'passive', name: 'Hư Không Xà Ảnh', desc: 'Không đứng trên sân đấu nên không bị chọn làm mục tiêu; đầu trận toàn đội +10% Tốc.' },
   {
     type: 'basic', name: 'Xà Ảnh Đoạt Hồn', desc: 'Cổng thời gian mở cạnh 1 địch, đầu rồng phóng ngang ra cắn: 120% Công, hút 1 lượt năng lượng.',

@@ -4,7 +4,7 @@ import type { SkillDef } from './types';
 
 const dmg = (scale: number) => `-${Math.round((180 + Math.random() * 40) * scale)}`;
 
-export const HAC_LONG_SKILLS: SkillDef[] = [
+export const BLACK_DRAGON_SKILLS: SkillDef[] = [
   { type: 'passive', name: 'Cuồng Nộ', desc: 'Khi Sinh lực dưới 50%: +40% Tốc độ và +25% tỉ lệ chí mạng trong 2 lượt (1 lần/trận).' },
   {
     // three quick rakes in a row from the dive, each at a steeper angle, dark mist after the last

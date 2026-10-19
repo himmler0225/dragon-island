@@ -5,7 +5,7 @@ import type { SkillDef } from './types';
 const dmg = (scale: number) => `-${Math.round((180 + Math.random() * 40) * scale)}`;
 const HEAL = '#7dffa0';
 
-export const RONG_XUONG_SKILLS: SkillDef[] = [
+export const BONE_DRAGON_SKILLS: SkillDef[] = [
   { type: 'passive', name: 'Bất Tử Cốt', desc: 'Lần đầu bị hạ: đứng dậy với 30% Sinh lực và Lá Chắn 15% Sinh lực tối đa.' },
   {
     type: 'basic', name: 'Cắn Xương', desc: 'Chúi tới táp mạnh: 100% Công, hút 30% sát thương gây ra.', anim: 'attack', target: 'enemy',

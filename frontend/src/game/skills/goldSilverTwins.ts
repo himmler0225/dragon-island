@@ -75,13 +75,13 @@ function twinSkills(look: Look): SkillDef[] {
   ];
 }
 
-export const RONG_VANG_SKILLS = twinSkills({
+export const GOLD_DRAGON_SKILLS = twinSkills({
   text: '#ffe08a',
   names: ['Kim Long Giáp', 'Song Trảo Kim', 'Hống Long Quang', 'Thiên Long Giáng'],
   passive: 'Kim quang: đòn đánh thường có 25% xuyên giáp; khi Rồng Bạc cùng đội, +10% Công cả hai.',
 });
 
-export const RONG_BAC_SKILLS = twinSkills({
+export const SILVER_DRAGON_SKILLS = twinSkills({
   text: '#d8f0ff',
   names: ['Ngân Nguyệt Giáp', 'Song Trảo Ngân', 'Nguyệt Long Quang', 'Nguyệt Long Giáng'],
   passive: 'Ánh trăng: đầu mỗi lượt hồi 4% Sinh lực; khi Rồng Vàng cùng đội, +10% Tốc cả hai.',

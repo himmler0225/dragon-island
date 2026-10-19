@@ -4,7 +4,7 @@ import type { SkillDef } from './types';
 
 const dmg = (scale: number) => `-${Math.round((180 + Math.random() * 40) * scale)}`;
 
-export const HAI_LONG_SKILLS: SkillDef[] = [
+export const SEA_DRAGON_SKILLS: SkillDef[] = [
   { type: 'passive', name: 'Long Vương Hộ Hải', desc: 'Toàn đội +10% Sinh lực tối đa; Hải Long hồi 8% Sinh lực mỗi lượt khi đang cưỡi mây.' },
   {
     type: 'basic', name: 'Thủy Châu', desc: 'Khạc ra một viên thủy châu: 110% Công lên 1 mục tiêu, gây Ướt.', anim: 'attack', target: 'enemy',

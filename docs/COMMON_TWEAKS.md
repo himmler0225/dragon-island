@@ -134,7 +134,7 @@ export const PRODUCTION: Record<Resource, { every: number[]; amount: number[] }>
 
 ## Chỉnh dáng ghép một con rồng (layout rig)
 
-File: `tools/rig_configs/<id>.py` (Rồng Vàng + Rồng Bạc dùng chung `rong_vang.py`).
+File: `tools/rig_configs/<id>.py` (Gold Dragon + Silver Dragon share `gold_dragon.py`).
 Toạ độ là pixel của layout (gần bằng pixel ảnh `parts/body.png`). **x tăng = sang phải (về phía đuôi), y tăng = xuống dưới.**
 
 | Muốn | Sửa | Ví dụ |
@@ -170,7 +170,7 @@ Mẹo: mở `frontend/public/dragons/<id>/portrait.png` để xem nhanh dáng đ
 | Đuôi lắc nhiều/ít | `tools/rig_configs/<id>.py` | `motion["tailWave"]` (hệ số từng khúc; khúc đầu = 0 thì khúc đó đứng yên theo thân, như thân sau Hải Long) |
 | Bay ngóc đầu | `tools/rig_configs/<id>.py` | `motion["flyPitch"]` |
 | Tư thế đòn đánh | `frontend/src/game/rig/strikes.ts` | `STRIKES.<id>` (Vàng/Bạc: `TWIN_DRAGON`) |
-| Tên/mô tả/hiệu ứng chiêu | `frontend/src/game/skills/<id>.ts` | Vàng/Bạc: `rong_vang.ts` |
+| Tên/mô tả/hiệu ứng chiêu | `frontend/src/game/skills/<id>.ts` | Vàng/Bạc: `goldSilverTwins.ts` |
 | Hệ, độ hiếm, tên hiển thị | `frontend/src/game/config/species.ts` | `SPECIES_INFO` |
 | Rồng đứng ở đảo nào, chỗ nào | `frontend/src/game/config/islands.ts` | `dragon` / `guests` |
 | Zoom mặc định | `frontend/src/game/scene/IslandScene.ts` | `ZOOM_IN` |
