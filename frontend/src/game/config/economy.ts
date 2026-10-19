@@ -22,6 +22,16 @@ export const PRODUCTION: Record<Resource, { every: number[]; amount: number[] }>
 };
 
 export const DRAGON_SCALE = 0.68;
+
+/** Hunger (0 starving .. 100 full). Falls over time; under HUNGRY a dragon shows a food bubble and
+ *  slows down, at 0 it lies down and waits to be fed. Numbers are placeholders to tune. */
+export const HUNGER = {
+  full: 100,
+  perMinute: 1.5,     // ~1 h from full to starving
+  hungry: 35,         // food bubble + slower steps below this
+  starving: 0,        // lies down, will not wander
+  meal: 40,           // one food drop restores this much
+};
 export const FLY_SPEED = 95;   // px/s
 export const FLY_ALT = 90;     // cruising height above the ground, px
 export const TAKEOFF_S = 0.8;

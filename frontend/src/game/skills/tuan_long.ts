@@ -8,10 +8,12 @@ export const TUAN_LONG_SKILLS: SkillDef[] = [
   { type: 'passive', name: 'Linh Giác', desc: 'Đầu mỗi lượt, đồng đội ít máu nhất hồi 5% Sinh lực tối đa.' },
   {
     type: 'basic', name: 'Húc Sừng', desc: '80% Công, 30% khả năng xoá 1 hiệu ứng tốt của mục tiêu.', anim: 'attack', target: 'enemy',
-    run: ({ self, targets: [t], fx }) => {
-      fx(1, t.chest(), { scale: 0.5, dur: 400, flipX: self.facing < 0 });
-      fx(2, t.chest(), { scale: 0.4, dur: 450 });
-      t.hurt(); t.text(dmg(0.8));
+    // antler charge: a streak of light from Tuấn Long to the target, the hit knocks it back
+    run: async ({ self, targets: [t], fx, projectile }) => {
+      await projectile(1, self.chest(), t.chest(), { dur: 260, scale: 0.4, flipX: self.facing < 0, rotate: false });
+      fx(2, t.chest(), { scale: 0.45, dur: 450 });
+      t.hurt(); t.push?.(70 * self.facing); t.text(dmg(0.8));
+      if (Math.random() < 0.3) t.text('Xoá buff', '#bfe9ff');
     },
   },
   {

@@ -9,10 +9,18 @@ import {
 } from '../config/world';
 import type { BuildingType } from '../config/islands';
 import type { IslandScene } from './IslandScene';
+import { gameEvents, getEggLevel } from '../bridge';
 
 export const islandKey = (id: string) => `island_${id}`;
 export const buildingKey = (type: BuildingType, level: number) => `building_${type}_${level}`;
 export const resourceKey = (r: Resource) => `res_${r}`;
+export const NEST_KEY = 'egg_nest';
+export const eggKey = (level: number) => `egg_${level}`;
+export const LAMP_KEY = 'prop_lamp';
+export const grassKey = (n: number) => `prop_grass_${n}`;
+/** lamp art layout (shares of the image): foot of the post, lantern centre; height = world px */
+const LAMP = { foot: [0.37, 0.98], lantern: [0.769, 0.52], height: 78 };
+const NEST_SCALE = 0.26, EGG_SCALE = 0.26;   // world px per image px (nest.png 480 wide, eggs 320 tall)
 
 interface Building {
   type: BuildingType;
@@ -35,6 +43,10 @@ export class Island {
   private top: number;
   private bottom: number;
   readonly buildings: Building[] = [];
+  private mask?: { w: number; sx: number; sy: number; a: Uint8ClampedArray };
+  /** things dragons walk around besides buildings (the egg nest) */
+  private blockers: { x: number; y: number; rx: number; ry: number }[] = [];
+  private nest?: { img: Phaser.GameObjects.Image; egg: Phaser.GameObjects.Image; glow: Phaser.GameObjects.Image; x: number; y: number };
 
   constructor(private scene: IslandScene, readonly def: IslandDef, readonly index: number) {
     [this.cx, this.cy] = islandCentre(index);
@@ -60,7 +72,8 @@ export class Island {
     for (const b of def.buildings) {
       const [x, y] = this.toWorld(b.at);
       const img = scene.add.image(x, y, buildingKey(b.type, b.level)).setOrigin(0.5, 0.97).setScale(BUILDING_SCALE);
-      const rx = img.displayWidth * 0.4, ry = rx * 0.45;
+      // footprint: most of the base, so dragons (whose bodies are wide) never stand on the building
+      const rx = img.displayWidth * 0.5, ry = rx * 0.55;
       const res = PRODUCES[b.type];
       const bubble = scene.add.image(x, y - img.displayHeight - 10, resourceKey(res)).setScale(0.32).setDepth(25).setVisible(false);
       scene.tweens.add({ targets: bubble, y: bubble.y - 8, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
@@ -70,12 +83,99 @@ export class Island {
       bubble.setInteractive({ useHandCursor: true }).on('pointerup', () => this.collect(building));
       this.buildings.push(building);
     }
+    if (def.nest) this.createNest(def.nest);
+    this.createLamps();
+    this.createGrass();
+  }
+
+  /** Lamps around the edge of the walkable ground; their glow fades in as the island gets dark. */
+  private lamps: { post: Phaser.GameObjects.Image; glow: Phaser.GameObjects.Image; halo: Phaser.GameObjects.Image; x: number; y: number; phase: number }[] = [];
+  private createLamps() {
+    const { scene, def } = this;
+    const pts = def.walk.map(p => this.toWorld(p));
+    const cx = pts.reduce((s, p) => s + p[0], 0) / pts.length, cy = pts.reduce((s, p) => s + p[1], 0) / pts.length;
+    // every other corner of the walk area, pulled 12% toward the middle so the lamps stand on grass
+    pts.filter((_, k) => k % 2 === 1).forEach(([px, py], k) => {
+      const x = px + (cx - px) * 0.12, y = py + (cy - py) * 0.12;
+      if (!this.free(x, y, 10)) return;
+      // props/lamp.png (tools/slice_props.py): origin on the foot of the post
+      const post = scene.add.image(x, y, LAMP_KEY).setOrigin(LAMP.foot[0], LAMP.foot[1]).setScale(LAMP.height / 300);
+      // light sits above the day/night tint (depth 900) so it really brightens the dark island
+      const halo = scene.add.image(x, y, 'glow').setTint(0xffb860).setBlendMode(Phaser.BlendModes.ADD).setDepth(901).setScale(4.5).setAlpha(0);
+      const glow = scene.add.image(x, y, 'glow').setTint(0xffe6a0).setBlendMode(Phaser.BlendModes.ADD).setDepth(902).setScale(1.2).setAlpha(0);
+      this.lamps.push({ post, glow, halo, x, y, phase: k * 1.7 });
+      this.blockers.push({ x, y, rx: 10, ry: 5 });
+    });
+  }
+
+  /** Grass tufts scattered on the walkable ground (props/grass_1..6.png: upright -> flat -> springing
+   *  back). A dragon standing on one flattens it; when it leaves, the tuft springs back up. */
+  private tufts: { img: Phaser.GameObjects.Image; x: number; y: number; f: number; t: number }[] = [];
+  private createGrass() {
+    if (this.def.id === 'desert') return;   // sand: no grass
+    for (let k = 0; k < 26; k++) {
+      const [x, y] = this.randomPoint([this.cx, this.cy], 0, false);
+      if (!this.free(x, y, 20) || this.tufts.some(t => Math.hypot(t.x - x, t.y - y) < 60)) continue;
+      const img = this.scene.add.image(x, y, grassKey(1)).setOrigin(0.5, 0.95).setScale(0.32 * this.depthScale(y));
+      this.tufts.push({ img, x, y, f: 0, t: Math.random() });
+    }
+  }
+
+  /** feet: ground positions of the dragons standing / walking on this island */
+  stepGrass(feet: { x: number; y: number }[], dt: number) {
+    for (const g of this.tufts) {
+      const pressed = feet.some(p => Math.abs(p.x - g.x) < 42 && Math.abs(p.y - (g.y + this.bob)) < 22);
+      g.t += dt;
+      // pressed: run to the flat frame (3) and stay; free: frames 4, 5 then back to upright (0)
+      if (g.t >= 0.07) {
+        g.t = 0;
+        if (pressed) g.f = Math.min(3, g.f + 1);
+        else if (g.f > 0) g.f = g.f >= 5 ? 0 : Math.max(4, g.f + 1);
+      }
+      g.img.setTexture(grassKey(g.f + 1)).setY(g.y + this.bob).setDepth(5 + g.y / 1000 - 0.0005);
+    }
+  }
+
+  /** The breeding nest: the current egg sits in it, glowing; tapping it opens Lai Rồng. */
+  private createNest(at: Point) {
+    const { scene } = this;
+    const [x, y] = this.toWorld(at);
+    const img = scene.add.image(x, y, NEST_KEY).setOrigin(0.5, 0.95).setScale(NEST_SCALE);
+    // the egg stands in the nest's hollow (about a third down the nest image)
+    const glow = scene.add.image(x, 0, 'glow').setScale(1.7).setAlpha(0.35).setBlendMode(Phaser.BlendModes.ADD);
+    const egg = scene.add.image(x, 0, eggKey(getEggLevel())).setOrigin(0.5, 0.9).setScale(EGG_SCALE);
+    this.nest = { img, egg, glow, x, y };
+    scene.tweens.add({ targets: glow, alpha: 0.5, scale: 1.9, duration: 2200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    const open = () => { if (!scene.dragging) gameEvents.emit('open', 'breed'); };
+    for (const o of [img, egg]) o.setInteractive({ pixelPerfect: true, useHandCursor: true }).on('pointerup', open);
+    const off = gameEvents.on('egg', level => {
+      egg.setTexture(eggKey(level));
+      scene.tweens.add({ targets: egg, scaleX: EGG_SCALE * 1.25, scaleY: EGG_SCALE * 1.25, duration: 160, yoyo: true, ease: 'Quad.easeOut' });
+    });
+    scene.events.once(Phaser.Scenes.Events.DESTROY, off);
+    this.blockers.push({ x, y, rx: img.displayWidth * 0.42, ry: img.displayWidth * 0.2 });
   }
 
   /** How far the island has bobbed from rest; everything standing on it moves with it. */
   get bob() { return this.img.y - this.cy; }
 
   update(dt: number) {
+    const night = this.scene.night, now = this.scene.time.now / 1000;
+    for (const l of this.lamps) {
+      const y = l.y + this.bob, flicker = 0.9 + 0.1 * Math.sin(now * 7 + l.phase) * Math.sin(now * 3.1 + l.phase);
+      const k = l.post.scaleX;   // the lantern hanging from the post's arm
+      const lx = l.x + (LAMP.lantern[0] - LAMP.foot[0]) * l.post.width * k, ly = y + (LAMP.lantern[1] - LAMP.foot[1]) * l.post.height * k;
+      l.post.setY(y).setDepth(5 + l.y / 1000);
+      l.halo.setPosition(lx, ly + 30).setAlpha(0.32 * night * flicker);
+      l.glow.setPosition(lx, ly).setAlpha((0.15 + 0.6 * night) * flicker);
+    }
+    if (this.nest) {
+      const n = this.nest, d = 5 + n.y / 1000, top = n.y + this.bob - n.img.displayHeight * 0.55;
+      const rock = Math.sin(this.scene.time.now / 1300) * 0.025;   // the egg rocks very slightly, alive inside
+      n.img.setY(n.y + this.bob).setDepth(d);
+      n.egg.setY(top).setRotation(rock).setDepth(d + 0.0001);
+      n.glow.setPosition(n.x, top - n.egg.displayHeight * 0.45).setDepth(d - 0.0001);
+    }
     for (const b of this.buildings) {
       b.img.setY(b.y + this.bob).setDepth(5 + b.y / 1000);
       if (b.ready) continue;
@@ -112,9 +212,9 @@ export class Island {
 
   contains(x: number, y: number) { return this.walk.contains(x, y); }
 
-  free(x: number, y: number, margin = 18) {
+  free(x: number, y: number, margin = 34) {
     if (!this.walk.contains(x, y)) return false;
-    return this.buildings.every(b => {
+    return [...this.buildings, ...this.blockers].every(b => {
       const dx = (x - b.x) / (b.rx + margin), dy = (y - (b.y - b.ry * 0.5)) / (b.ry + margin * 0.5);
       return dx * dx + dy * dy > 1;
     });
@@ -152,6 +252,18 @@ export class Island {
     return best;
   }
 
+  /** Nearest free ground to `at` (spiral search) - for targets that land on a building. */
+  closestFree(at: Point): Point | null {
+    if (this.free(at[0], at[1])) return at;
+    for (let r = 20; r <= 300; r += 20) {
+      for (let k = 0; k < 16; k++) {
+        const a = (k / 16) * Math.PI * 2, x = at[0] + Math.cos(a) * r, y = at[1] + Math.sin(a) * r * 0.6;
+        if (this.free(x, y)) return [x, y];
+      }
+    }
+    return null;
+  }
+
   nearPoint(at: Point, dx: number): Point {
     for (const k of [1, 0.7, 0.45, -0.7, -1]) {
       const p: Point = [at[0] + dx * k, at[1] + 8];
@@ -163,7 +275,15 @@ export class Island {
   opaqueAt(x: number, y: number) {
     const [px, py] = this.toImage(x, y);
     if (px < 0 || py < 0 || px >= this.def.w || py >= this.def.h) return false;
-    return (this.scene.textures.getPixelAlpha(px, py, islandKey(this.def.id)) ?? 0) > 200;
+    if (!this.mask) {   // read the island art's alpha once (getPixelAlpha redraws it every call: slow)
+      const src = this.scene.textures.get(islandKey(this.def.id)).getSourceImage() as HTMLImageElement;
+      const c = document.createElement('canvas'); c.width = src.width; c.height = src.height;
+      const g = c.getContext('2d', { willReadFrequently: true })!; g.drawImage(src, 0, 0);
+      const d = g.getImageData(0, 0, c.width, c.height).data;
+      this.mask = { w: c.width, sx: c.width / this.def.w, sy: c.height / this.def.h, a: d };
+    }
+    const m = this.mask;
+    return (m.a[(Math.floor(py * m.sy) * m.w + Math.floor(px * m.sx)) * 4 + 3] ?? 0) > 200;
   }
 
   private waterSparkle() {

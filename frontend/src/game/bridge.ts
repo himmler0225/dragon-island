@@ -19,6 +19,18 @@ export interface IslandApi {
   setAutoWander(on: boolean): void;
   /** Pan the camera to an island (index into ISLANDS). */
   focusIsland(index: number): void;
+  /** Ids of the combo skills (Hợp Kích) this dragon can use now (its partner is on the same island). */
+  combos(id: SpeciesId): string[];
+  /** false for wingless walkers (the HUD hides the fly button) */
+  canFly(id: SpeciesId): boolean;
+  /** Both dragons of the combo strike together. */
+  useCombo(comboId: string): void;
+  /** Send the food boat to this dragon's island (hungry dragons there walk to the food). */
+  callBoat(id: SpeciesId): void;
+  /** Current hunger 0..100 of every dragon. */
+  hunger(): Partial<Record<SpeciesId, number>>;
+  /** Stop the island's game loop (no update, no drawing) while the battle screen covers it. */
+  setPaused(on: boolean): void;
 }
 
 type Events = {
@@ -28,6 +40,14 @@ type Events = {
   action: { id: SpeciesId; action: DragonAction };
   island: number;
   collect: { resource: Resource; amount: number };
+  /** the egg in the nest changed level (1..10) */
+  egg: number;
+  /** the island asks the HUD to open a panel (tapping the nest opens Lai Rồng) */
+  open: 'breed';
+  /** island clock (Ho Chi Minh City time) and how dark it is (0 day .. 1 night) */
+  sky: { hour: number; night: number; weather: 'clear' | 'cloudy' | 'rain' };
+  /** a dragon's hunger changed level (full / hungry / starving) or it was fed */
+  hunger: { id: SpeciesId; hunger: number; level: 'full' | 'hungry' | 'starving' };
 };
 
 type Listener<T> = (payload: T) => void;
@@ -50,3 +70,9 @@ let api: IslandApi | null = null;
 export const setIslandApi = (a: IslandApi | null) => { api = a; };
 /** The running island, or null before the scene has started. */
 export const island = () => api;
+
+// Level of the breeding egg, shared by the Lai Rồng panel and the nest on the island.
+// Mock state for now: belongs to the player's save on the server later.
+let eggLevel = 1;
+export const getEggLevel = () => eggLevel;
+export const setEggLevel = (level: number) => { eggLevel = level; gameEvents.emit('egg', level); };

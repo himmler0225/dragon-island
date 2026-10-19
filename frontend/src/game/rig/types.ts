@@ -19,7 +19,8 @@ export interface Strike { dur: number; hit: number; t: number[]; [ch: string]: n
 
 /** Species that fight from the air: they take off when they attack and hover this high (body px)
  *  until a few seconds after their last move. Their `air` tracks are relative to the hover. */
-export const COMBAT_HOVER: Partial<Record<SpeciesId, number>> = { hac_long: 95 };
+// these fight in the air (like Hắc Long): they rise before every move and hover until it is over
+export const COMBAT_HOVER: Partial<Record<SpeciesId, number>> = { hac_long: 95, than_long: 95, phuong_hoang_lua: 95, phuong_hoang_bang: 95 };
 
 type StrikeSet = Record<StrikeKind, Strike>;
 export type { StrikeSet };
@@ -36,6 +37,26 @@ export interface RigData {
     flyPitch?: number;
     tailWave?: number[];
     hindKnee?: 'back';
+    /** upright biped: the fore limbs are arms that hang from the chest and sway (never touch the ground) */
+    foreArms?: boolean;
+    /** walks only (no wings): fly commands become walks */
+    noFly?: boolean;
+    /** chibi legs drawn as one solid piece: each swings whole from the hip and rises when stepping (no knee) */
+    rigidLegs?: boolean;
+    /** own walk stride in rig px (default RIG.stride) - short-legged chibis take small steps */
+    stride?: number;
+    /** flight: angle back from straight down at which [fore, hind] legs hang (default [0.35, 1.05]) */
+    flyHang?: [number, number];
+    /** px it hovers, wings beating, while resting idle (winged dragons that rest in the air) */
+    idleHover?: number;
+    /** how far a swinging paw tips (default 0.55 rad); less keeps a drawn ankle closed */
+    swingTilt?: number;
+    /** legless serpent: crawling is a travelling wave down the body, locked to the gait */
+    slither?: boolean;
+    /** standing: far foot offset [fore, hind] in rig px (+ = toward the tail) so the far legs show beside the near ones */
+    stance?: [number, number];
+    /** rest offset of each hand [near, far] in rig px, so the two arms are held apart instead of overlapping */
+    armPose?: [[number, number], [number, number]];
   };
   bones: {
     name: string;

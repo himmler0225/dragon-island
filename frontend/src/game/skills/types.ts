@@ -26,6 +26,25 @@ export interface FxOpts {
   tint?: number;
 }
 
+/** Options for SkillCtx.rift. */
+export interface RiftOpts {
+  scale?: number;
+  tint?: number;
+  /** ms the fire takes to sweep from the first enemy to the last */
+  dur?: number;
+  /** dart down and bite the first target instead of breathing fire */
+  bite?: boolean;
+}
+
+/** Options for SkillCtx.elementRain. */
+export interface ElementRainOpts {
+  tint: number;                 // main colour of the pieces and bursts
+  core?: number;                // bright core colour (default white)
+  shape: 'feather' | 'shard';   // flame feathers (fire) or ice shards (ice)
+  waves?: number;               // default 3
+  perTarget?: number;           // pieces per target per wave, default 3
+}
+
 export interface SkillActor {
   readonly id: SpeciesId;
   chest(): Spot;
@@ -45,7 +64,15 @@ export interface SkillCtx {
   fx(n: number, at: Spot, opts?: FxOpts): void;
   /** Fly effect n from `from` to `to`, pointed along the way; resolves on arrival. */
   projectile(n: number, from: Spot, to: Spot, opts?: { dur?: number; scale?: number; tint?: number; rotate?: boolean; flipX?: boolean }): Promise<void>;
+  /** Effect n stretched into a straight beam from `from` to `to`; resolves when it reaches full length. */
+  beam(n: number, from: Spot, to: Spot, opts?: { dur?: number; width?: number; tint?: number }): Promise<void>;
+  /** Elemental rain: pieces appear and hover above every target, then dive down in waves; `onHit`
+   *  runs on each impact. Resolves when the last wave has landed. */
+  elementRain(targets: SkillActor[], onHit: (t: SkillActor) => void, opts: ElementRainOpts): Promise<void>;
   wait(ms: number): Promise<void>;
+  /** A time rift opens at `at`; this dragon's head reaches out and breathes fire across `targets`
+   *  (or bites the first with `bite`); `onHit` runs as each one is reached. Resolves when it closes. */
+  rift(at: Spot, targets: SkillActor[], onHit: (t: SkillActor) => void, opts?: RiftOpts): Promise<void>;
   shake(ms: number, intensity: number): void;
   /** Giant jaws open over `at` and snap shut; resolves at the snap. */
   bite(at: Spot, opts?: { scale?: number; tint?: number }): Promise<void>;

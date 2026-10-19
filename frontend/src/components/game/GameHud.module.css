@@ -22,7 +22,8 @@
 .fullBtn:hover { border-color: #ffe08a; }
 .bump { transform: scale(1.12); border-color: #ffe08a; }
 
-.dragons { position: absolute; left: 12px; top: 72px; display: flex; flex-direction: column; gap: 6px; }
+.dragons { position: absolute; left: 12px; top: 72px; bottom: 190px; display: flex; flex-direction: column; gap: 6px;
+  overflow-y: auto; scrollbar-width: thin; padding-right: 4px; pointer-events: auto; }   /* many dragons: scrolls above the skills panel */
 .dragon { display: flex; align-items: center; gap: 6px; padding: 3px 10px 3px 3px; border-radius: 12px; border: 2px solid #2c4f7c;
   background: rgba(14, 32, 58, .85); text-align: left; }
 .dragon img { width: 56px; height: 40px; object-fit: contain; }
@@ -66,3 +67,22 @@
   .skills { bottom: 86px; }
   .pill { min-width: 80px; }
 }
+
+/* Hợp Kích: a strip under the skills, the two dragons' portraits split diagonally */
+.combo { display: flex; align-items: center; gap: 8px; width: 100%; margin-top: 6px; padding: 4px 8px; border-radius: 10px; cursor: pointer;
+  background: linear-gradient(90deg, rgba(60, 24, 90, .9), rgba(110, 86, 20, .9)); border: 1px solid #ffe27a; color: #fff4c8; text-align: left; }
+.combo:hover { box-shadow: 0 0 10px rgba(200, 140, 255, .7); }
+.combo small { color: #d9a6ff; font-weight: 800; font-size: 10px; text-transform: uppercase; }
+.combo b { font-size: 13px; }
+.comboIcon { position: relative; flex: none; width: 30px; height: 30px; border-radius: 8px; overflow: hidden; border: 1px solid #ffe27a; }
+.comboIcon img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 15% 25%; }
+.comboIcon img:first-child { clip-path: polygon(0 0, 100% 0, 0 100%); }
+.comboIcon img:last-child { clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+
+/* island clock under the island name (Ho Chi Minh City time) */
+.clock { display: block; text-align: center; font-size: 11px; font-weight: 600; color: #cfe3ff; }
+
+/* hunger bar under each dragon's name (green -> red when hungry) */
+.hungerBar { display: block; width: 70px; height: 4px; margin-top: 2px; border-radius: 2px; background: rgba(0, 0, 0, .4); overflow: hidden; }
+.hungerBar b { display: block; height: 100%; background: #7dd87d; transition: width .4s; }
+.hungerBar b[data-low] { background: #e8584f; }

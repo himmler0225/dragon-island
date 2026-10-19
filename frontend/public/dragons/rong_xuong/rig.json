@@ -1,11 +1,20 @@
 {
  "name": "R\u1ed3ng X\u01b0\u01a1ng",
- "height": 416,
+ "height": 450,
  "motion": {
   "sleepTail": [
    0.06,
    0.08,
    0.1
+  ],
+  "stance": [
+   0,
+   -70
+  ],
+  "idleHover": 70,
+  "flyHang": [
+   0.35,
+   0.35
   ]
  },
  "bones": [
@@ -13,20 +22,20 @@
    "name": "wing_far",
    "parent": "torso",
    "joint": [
-    -45.62,
-    -254.39
+    -53.18,
+    -261.41
    ],
    "origin": [
-    0.599,
-    0.936
+    0.5985,
+    0.9329
    ]
   },
   {
    "name": "cap_hind_far_lower",
    "parent": null,
    "joint": [
-    93.85,
-    -130.72
+    73.11,
+    -113.04
    ],
    "origin": [
     0.5,
@@ -41,8 +50,8 @@
    "name": "cap_hind_far_upper",
    "parent": null,
    "joint": [
-    98.52,
-    -191.45
+    77.89,
+    -152.25
    ],
    "origin": [
     0.5,
@@ -57,20 +66,20 @@
    "name": "hind_far_upper",
    "parent": "torso",
    "joint": [
-    98.52,
-    -191.45
+    77.89,
+    -152.25
    ],
    "origin": [
-    0.5736,
-    0.3087
+    0.5731,
+    0.3079
    ]
   },
   {
    "name": "cap_hind_far_paw",
    "parent": null,
    "joint": [
-    97.11,
-    -71.14
+    79.19,
+    -68.51
    ],
    "origin": [
     0.5,
@@ -85,27 +94,27 @@
    "name": "hind_far_lower",
    "parent": "hind_far_upper",
    "joint": [
-    93.85,
-    -130.72
+    73.11,
+    -113.04
    ],
    "origin": [
-    0.3156,
-    0.1177
+    0.3138,
+    0.1168
    ]
   },
   {
    "name": "hind_far_paw",
    "parent": "hind_far_lower",
    "joint": [
-    97.11,
-    -71.14
+    79.19,
+    -68.51
    ],
    "origin": [
-    0.6665,
+    0.6855,
     0.0988
    ],
    "toe": [
-    16.24,
+    -1.35,
     0.0
    ]
   },
@@ -113,8 +122,8 @@
    "name": "cap_tail_tip",
    "parent": null,
    "joint": [
-    190.22,
-    -186.74
+    221.74,
+    -182.53
    ],
    "origin": [
     0.5,
@@ -129,20 +138,20 @@
    "name": "tail_tip",
    "parent": "tail_mid",
    "joint": [
-    190.22,
-    -186.74
+    221.74,
+    -182.53
    ],
    "origin": [
-    0.1254,
-    0.8625
+    0.1243,
+    0.8631
    ]
   },
   {
    "name": "cap_tail_mid",
    "parent": null,
    "joint": [
-    143.82,
-    -182.87
+    167.66,
+    -178.03
    ],
    "origin": [
     0.5,
@@ -157,20 +166,20 @@
    "name": "tail_mid",
    "parent": "tail_base",
    "joint": [
-    143.82,
-    -182.87
+    167.66,
+    -178.03
    ],
    "origin": [
-    0.135,
-    0.5087
+    0.1358,
+    0.5122
    ]
   },
   {
    "name": "cap_tail_base",
    "parent": null,
    "joint": [
-    83.9,
-    -200.27
+    97.8,
+    -198.31
    ],
    "origin": [
     0.5,
@@ -185,20 +194,20 @@
    "name": "tail_base",
    "parent": "torso",
    "joint": [
-    83.9,
-    -200.27
+    97.8,
+    -198.31
    ],
    "origin": [
-    0.09,
-    0.2288
+    0.0901,
+    0.2253
    ]
   },
   {
    "name": "cap_hind_near_upper",
    "parent": null,
    "joint": [
-    56.49,
-    -199.94
+    74.55,
+    -160.43
    ],
    "origin": [
     0.5,
@@ -213,8 +222,8 @@
    "name": "cap_head",
    "parent": null,
    "joint": [
-    -76.55,
-    -221.53
+    -89.24,
+    -223.1
    ],
    "origin": [
     0.5,
@@ -230,19 +239,19 @@
    "parent": null,
    "joint": [
     0.0,
-    -204.13
+    -202.81
    ],
    "origin": [
-    0.5006,
-    0.5419
+    0.4994,
+    0.5427
    ]
   },
   {
    "name": "cap_hind_near_lower",
    "parent": null,
    "joint": [
-    46.9,
-    -135.16
+    64.85,
+    -117.32
    ],
    "origin": [
     0.5,
@@ -257,20 +266,20 @@
    "name": "hind_near_upper",
    "parent": "torso",
    "joint": [
-    56.49,
-    -199.94
+    74.55,
+    -160.43
    ],
    "origin": [
-    0.5876,
-    0.3074
+    0.5916,
+    0.3093
    ]
   },
   {
    "name": "cap_hind_near_paw",
    "parent": null,
    "joint": [
-    49.97,
-    -72.03
+    70.88,
+    -69.36
    ],
    "origin": [
     0.5,
@@ -285,27 +294,27 @@
    "name": "hind_near_lower",
    "parent": "hind_near_upper",
    "joint": [
-    46.9,
-    -135.16
+    64.85,
+    -117.32
    ],
    "origin": [
-    0.314,
-    0.1127
+    0.3091,
+    0.1117
    ]
   },
   {
    "name": "hind_near_paw",
    "parent": "hind_near_lower",
    "joint": [
-    49.97,
-    -72.03
+    70.88,
+    -69.36
    ],
    "origin": [
-    0.6701,
+    0.6928,
     0.0976
    ],
    "toe": [
-    -34.02,
+    -12.62,
     0.0
    ]
   },
@@ -313,36 +322,36 @@
    "name": "jaw",
    "parent": "head",
    "joint": [
-    -139.18,
-    -220.37
+    -162.25,
+    -221.74
    ],
    "origin": [
-    0.8909,
-    0.1894
+    0.893,
+    0.1865
    ]
   },
   {
    "name": "head",
    "parent": "torso",
    "joint": [
-    -76.55,
-    -221.53
+    -89.24,
+    -223.1
    ],
    "origin": [
-    0.9229,
-    0.7732
+    0.9222,
+    0.7695
    ]
   },
   {
    "name": "wing_near",
    "parent": "torso",
    "joint": [
-    -6.96,
-    -248.59
+    -8.11,
+    -254.64
    ],
    "origin": [
     0.0401,
-    0.8629
+    0.8597
    ]
   }
  ]

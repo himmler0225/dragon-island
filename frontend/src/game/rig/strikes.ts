@@ -2,6 +2,81 @@
 import type { SpeciesId } from '../config/species';
 import type { Strike, StrikeSet } from './types';
 
+const CHIBI: StrikeSet = {
+  attack: {
+    dur: 0.7, hit: 0.5, t: [0, 0.3, 0.5, 0.75, 1],
+    rear: [0, 0.15, -0.12, -0.04, 0], lunge: [0, 10, -36, -12, 0], head: [0, 0.3, -0.3, -0.1, 0],
+    jaw: [0, 0.6, 0.2, 0.1, 0], wings: [0, 0.4, 0.2, 0.1, 0],
+  },
+  cast: {
+    dur: 1.1, hit: 0.5, t: [0, 0.35, 0.55, 0.8, 1],
+    rear: [0, 0.3, -0.1, -0.05, 0], head: [0, 0.5, -0.25, -0.1, 0], lunge: [0, 6, -18, -8, 0],
+    wings: [0, 1, 0.6, 0.3, 0], spread: [0, 0.8, 0.6, 0.3, 0], stretch: [0, 0, 0.4, 0.2, 0],
+  },
+  ultimate: {
+    dur: 1.6, hit: 0.62, t: [0, 0.3, 0.5, 0.62, 0.8, 1],
+    air: [0, 30, 45, -6, 0, 0], rear: [0, 0.3, 0.35, -0.2, -0.05, 0], head: [0, 0.5, 0.55, -0.25, -0.05, 0],
+    wings: [0, 1, 1, 0.4, 0.2, 0], spread: [0, 0.8, 1, 0.5, 0.2, 0], lunge: [0, 6, 8, -24, -8, 0], lift: [0, 0, 0, 8, 4, 0],
+  },
+};
+
+// Rồng Vàng / Rồng Bạc: the same upright dragon - claws, a light breath, and a diving stamp
+const TWIN_DRAGON: StrikeSet = {
+  // Song Trảo: lean in and rake the claws down, jaws snapping
+  attack: {
+    dur: 0.85, hit: 0.5, t: [0, 0.3, 0.5, 0.75, 1],
+    rear: [0, 0.2, -0.15, -0.05, 0], lunge: [0, 12, -40, -14, 0], head: [0, 0.25, -0.25, -0.08, 0],
+    jaw: [0, 0.7, 0.4, 0.15, 0], claw: [0, 0.6, 1, 0.3, 0], wings: [0, 0.4, 0.2, 0.1, 0],
+  },
+  // Long Quang: stand tall with the wings thrown wide, head back, then thrust forward and breathe
+  cast: {
+    dur: 1.3, hit: 0.55, t: [0, 0.35, 0.55, 0.8, 1],
+    rear: [0, 0.3, -0.12, -0.06, 0], spread: [0, 1, 0.8, 0.4, 0], wings: [0, 1.1, 0.6, 0.3, 0],
+    head: [0, 0.5, -0.3, -0.15, 0], jaw: [0, 0.5, 1.2, 0.8, 0], lunge: [0, 8, -20, -10, 0], stretch: [0, 0, 0.5, 0.3, 0],
+  },
+  // Thiên Long Giáng: beat up high, hang a beat, dive and stamp both feet
+  ultimate: {
+    dur: 2.1, hit: 0.72, t: [0, 0.3, 0.55, 0.72, 0.86, 1],
+    air: [0, 60, 75, -10, 0, 0], flap: [0, 1, 1, 0.4, 0, 0], spread: [0, 0.8, 1, 0.6, 0.2, 0],
+    rear: [0, 0.3, 0.35, -0.25, -0.1, 0], head: [0, 0.5, 0.55, -0.3, -0.1, 0], jaw: [0, 0.4, 1, 1, 0.3, 0],
+    lunge: [0, 10, 12, -40, -16, 0], stretch: [0, 0.3, 0.2, 0, 0.4, 0], lift: [0, 0, 0, 10, 6, 0],
+  },
+};
+
+// Phượng Hoàng Lửa / Băng main skill (ultimate), step by step:
+//   0.00-0.14 thu cánh: crouch low, wings folded in (spread < 0)
+//   0.14-0.30 ngước đầu: head up to the sky, chest out (rear), wings start to open
+//   0.30-0.46 vỗ cánh: wings raised high (wings, spread) ...
+//   0.46-0.56 ... and beaten down hard, lifting it off the ground (air) - the hit: objects are summoned
+//   0.56-0.85 mưa tấn công: it hangs in the air, wings half open, while the objects rain down
+//   0.85-1.00 kết thúc: lands and folds back to rest
+// attack / cast reuse Hắc Long's until the phoenix gets its own basic moves.
+const PHOENIX: StrikeSet = {
+  // Phượng Trảo: from the hover it pulls up, then dives with the talons out and pulls back up
+  attack: {
+    dur: 1.0, hit: 0.5, t: [0, 0.3, 0.5, 0.7, 1],
+    air: [0, 25, -40, -10, 0], flap: [0, 1, 0.3, 0.8, 0], lunge: [0, 12, -55, -20, 0],
+    rear: [0, 0.25, -0.35, -0.1, 0], head: [0, 0.3, -0.4, -0.1, 0], claw: [0, 0.3, 1, 0.4, 0],
+    stretch: [0, 0, 1, 0.5, 0], wings: [0, 0.8, -0.6, 0.2, 0],
+  },
+  // Phượng Dực Phong: both wings thrown wide behind, then one huge sweep forward
+  cast: {
+    dur: 1.4, hit: 0.55, t: [0, 0.35, 0.5, 0.58, 0.8, 1],
+    spread: [0, 1, 1, 0.3, 0.2, 0], wings: [0, 1.3, 1.4, -1.2, -0.5, 0], rear: [0, 0.3, 0.32, -0.2, -0.1, 0],
+    head: [0, 0.35, 0.4, -0.2, -0.1, 0], lunge: [0, 14, 16, -24, -10, 0], air: [0, 10, 14, 4, 0, 0],
+  },
+  ultimate: {
+    dur: 3.2, hit: 0.52, t: [0, 0.14, 0.3, 0.46, 0.56, 0.72, 0.85, 1],
+    lift:   [0, -14, 4, 6, 0, 0, 0, 0],
+    rear:   [0, -0.12, 0.4, 0.35, -0.05, 0.05, 0, 0],
+    head:   [0, -0.15, 0.6, 0.5, 0.05, 0.15, 0, 0],
+    wings:  [0, -0.5, 0.5, 1.4, -1.1, 0.3, 0.2, 0],
+    spread: [0, -0.8, 0.3, 1, 0.6, 0.5, 0.2, 0],
+    air:    [0, 0, 0, 10, 45, 50, 30, 0],
+    flap:   [0, 0, 0, 0, 0.6, 0.8, 0.4, 0],
+  },
+};
+
 export const STRIKES: Record<SpeciesId, StrikeSet> = {
   // Kì Lân: sturdy beast — claw swipes, and a head-thrust that spits a golden dragon head
   ki_lan: {
@@ -114,6 +189,23 @@ export const STRIKES: Record<SpeciesId, StrikeSet> = {
       rear: [0, 0.2, 0.25, 0.2, 0], jaw: [0, 0.2, 0.6, 0.2, 0], wings: [0, 1, 1, 1, 0],
     },
   },
+  // Thần Long moves exactly like Hắc Long (same rig)
+  get than_long() { return STRIKES.hac_long; },
+  phuong_hoang_lua: PHOENIX,
+  phuong_hoang_bang: PHOENIX,
+  // Tử Xà Long: stays back; it rears up, head high, while its rift does the work
+  tu_xa_long: {
+    attack: { dur: 0.9, hit: 0.35, t: [0, 0.35, 0.7, 1], rear: [0, 0.18, 0.12, 0], head: [0, 0.35, 0.25, 0], jaw: [0, 0.6, 0.3, 0] },
+    cast: { dur: 1.2, hit: 0.3, t: [0, 0.3, 0.75, 1], rear: [0, 0.25, 0.2, 0], head: [0, 0.5, 0.4, 0], jaw: [0, 1, 0.7, 0] },
+    ultimate: { dur: 1.6, hit: 0.3, t: [0, 0.3, 0.8, 1], rear: [0, 0.32, 0.28, 0], head: [0, 0.6, 0.5, 0], jaw: [0, 1.2, 0.9, 0] },
+  },
+  rong_vang: TWIN_DRAGON,
+  rong_bac: TWIN_DRAGON,
+  // Rồng Lửa / Rồng Đất (chibi): a headlong lunge-bite, a rear-up roar, and a hop that stamps down
+  rong_lua_do: CHIBI,
+  rong_dat_nau: CHIBI,
+  rong_cay_xanh_la: CHIBI,
+  rong_bang_xanh_bien: CHIBI,
 };
 
 export const smoothstep = (u: number) => u * u * (3 - 2 * u);

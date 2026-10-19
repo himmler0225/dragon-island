@@ -129,3 +129,48 @@ export const PRODUCTION: Record<Resource, { every: number[]; amount: number[] }>
 | Export height của rig (game dùng 0.5×) | `tools/build_rig.py` | `TARGET_HEIGHT = 416` |
 | Scale ảnh legs → layout px | `tools/rig_configs/<id>.py` | `leg_scale` |
 | Độ tối chân/cánh far | `tools/rig_configs/<id>.py` | `far_shade`, `wing_far_shade` |
+
+---
+
+## Chỉnh dáng ghép một con rồng (layout rig)
+
+File: `tools/rig_configs/<id>.py` (Rồng Vàng + Rồng Bạc dùng chung `rong_vang.py`).
+Toạ độ là pixel của layout (gần bằng pixel ảnh `parts/body.png`). **x tăng = sang phải (về phía đuôi), y tăng = xuống dưới.**
+
+| Muốn | Sửa | Ví dụ |
+|---|---|---|
+| Dời một mảnh (đầu, thân, cánh, khúc đuôi) | `body["<mảnh>"]["at"]` **và** `joints["<mảnh>"]` cùng một lượng | đuôi thấp xuống 30: cộng 30 vào y của `at` + `joints` của `tail_base`, `tail_mid`, `tail_tip` |
+| Xoay sẵn một mảnh | `body["<mảnh>"]["rot"]` (độ, + = xuôi chiều kim đồng hồ) | cánh xa `rot=-30` |
+| To/nhỏ một mảnh | `body["<mảnh>"]["scale"]` | đầu Kì Lân `scale=0.85` |
+| Chỗ nối lộ mép cắt | `body["<mảnh>"]["fade"]=(x0, x1)` (x trong ảnh gốc): mờ dần đầu mảnh | thân trước Hải Long |
+| Mờ dần đáy một mảnh (theo chiều dọc) | `body["<mảnh>"]["fade_y"]=(y0, y1)` (toạ độ layout) | ít dùng: trên nền game phần mờ trông như trong suốt |
+| Thay một mảnh bằng ảnh vẽ lại riêng | `body["<mảnh>"] = dict(src_img=<đường dẫn png>, img_scale=k, at=(x, y))` (at = góc trên-trái) | thân giữa Hải Long `body_mid.png` |
+| Cắt bỏ một vùng trên mảnh | `body["<mảnh>"]["drop"]=[(x0,y0,x1,y1)]` (toạ độ ảnh gốc) | chốt ngực Rồng Vàng |
+| Điểm xoay của mảnh | `joints["<mảnh>"]` | cổ, bản lề hàm |
+| Cả con to/nhỏ trên đảo | `size=1.2` ở đầu config (mặc định mọi con cùng diện tích thân: `TARGET_BODY` trong `tools/build_rig.py`) | Hải Long 1.2, Rồng Xương 0.88 |
+| Chân to/nhỏ | `leg_scale` + chỉnh `ground` (mặt đất) để hông không lệch | Rồng Vàng 0.6 / ground 1325 |
+| Khớp chân hở | `leg_pull=(gối, cổ chân)`: số càng lớn các đoạn càng chồng sâu | `(70, 60)` |
+| Dời chân trái/phải | `legs["<chân>"]["x"]` | |
+| Tay (rồng đứng 2 chân) | `legs["fore_*"]`: `top` (độ cao vai), `scale` (cỡ riêng), `x` | |
+| Tư thế tay khi nghỉ | `motion["armPose"] = [[x, y] tay gần, [x, y] tay xa]`, số âm = ra trước/lên trên | |
+| Độ tối phía xa | `far_shade` (chân/tay), `wing_far_shade` (cánh) | 0.8 |
+
+Sau khi sửa luôn build lại rồi reload trang:
+```bash
+.venv/bin/python tools/build_rig.py <id>        # Rồng Vàng/Bạc: chạy cho cả rong_vang và rong_bac
+```
+Mẹo: mở `frontend/public/dragons/<id>/portrait.png` để xem nhanh dáng đứng sau khi build.
+
+## Chỉnh chuyển động (code game)
+
+| Muốn | File | Chỗ |
+|---|---|---|
+| Bước dài/ngắn, nhấc chân cao/thấp, tốc độ | `frontend/src/game/rig/tuning.ts` | `RIG.stride` (sải bước chung cho mọi rồng, px rig), `RIG.lift` (tỉ lệ chiều dài chân); `RIG.cycle` = giây mỗi nhịp |
+| Tay đung đưa mạnh/nhẹ | `frontend/src/game/rig/DragonRig.ts` | khối `if (arm)`: `(4 + 10 * W)` = biên độ ngang |
+| Đuôi lắc nhiều/ít | `tools/rig_configs/<id>.py` | `motion["tailWave"]` (hệ số từng khúc; khúc đầu = 0 thì khúc đó đứng yên theo thân, như thân sau Hải Long) |
+| Bay ngóc đầu | `tools/rig_configs/<id>.py` | `motion["flyPitch"]` |
+| Tư thế đòn đánh | `frontend/src/game/rig/strikes.ts` | `STRIKES.<id>` (Vàng/Bạc: `TWIN_DRAGON`) |
+| Tên/mô tả/hiệu ứng chiêu | `frontend/src/game/skills/<id>.ts` | Vàng/Bạc: `rong_vang.ts` |
+| Hệ, độ hiếm, tên hiển thị | `frontend/src/game/config/species.ts` | `SPECIES_INFO` |
+| Rồng đứng ở đảo nào, chỗ nào | `frontend/src/game/config/islands.ts` | `dragon` / `guests` |
+| Zoom mặc định | `frontend/src/game/scene/IslandScene.ts` | `ZOOM_IN` |

@@ -7,11 +7,15 @@ const dmg = (scale: number) => `-${Math.round((180 + Math.random() * 40) * scale
 export const HAC_LONG_SKILLS: SkillDef[] = [
   { type: 'passive', name: 'Cuồng Nộ', desc: 'Khi Sinh lực dưới 50%: +40% Tốc độ và +25% tỉ lệ chí mạng trong 2 lượt (1 lần/trận).' },
   {
-    type: 'basic', name: 'Vuốt Rồng', desc: 'Bay lên rồi bổ nhào, cào 110% Công vào 1 mục tiêu.', anim: 'attack', target: 'enemy',
-    run: ({ self, targets: [t], fx }) => {
-      fx(1, t.chest(), { scale: 0.6, dur: 450, flipX: self.facing < 0 });
+    // three quick rakes in a row from the dive, each at a steeper angle, dark mist after the last
+    type: 'basic', name: 'Vuốt Rồng', desc: 'Bay lên rồi bổ nhào, cào liên tiếp 3 nhát: mỗi nhát 40% Công vào 1 mục tiêu.', anim: 'attack', target: 'enemy',
+    run: async ({ self, targets: [t], fx, wait }) => {
+      for (const [k, a] of [-0.35, 0, 0.35].entries()) {
+        fx(1, { x: t.chest().x + (k - 1) * 10, y: t.chest().y }, { scale: 0.42 + k * 0.06, dur: 300, flipX: self.facing < 0, angle: a });
+        t.hurt(); t.text(dmg(0.4));
+        await wait(110);
+      }
       fx(2, t.chest(), { scale: 0.42, dur: 420 });
-      t.hurt(); t.text(dmg(1.1));
     },
   },
   {

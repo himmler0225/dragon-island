@@ -12,6 +12,16 @@ const DRAGON_BLURB: Record<SpeciesId, string> = {
   hac_long: "Sát thủ bầu trời. Luôn chiến đấu trên không, bổ nhào xé toạc đối thủ và đoạt mệnh kẻ yếu.",
   rong_xuong: "Bộ xương rồng sống lại nhờ ngọn lửa xanh trong lồng ngực. Hứng đòn, hút máu và hồi sinh.",
   tuan_long: "Linh thú sừng băng bảo hộ cả đội: dựng lá chắn, giải hiệu ứng xấu và hồi sinh đồng đội.",
+  rong_vang: "Rồng lông vũ giáp vàng đứng thẳng như chiến binh. Cào chéo bằng song trảo và phun luồng sáng mặt trời.",
+  phuong_hoang_lua: "Phượng hoàng lửa giáp vàng: đi bốn chân, sải đôi cánh lông vũ rực cháy bay lượn khắp đảo.",
+  phuong_hoang_bang: "Song sinh băng giá của Phượng Hoàng Lửa: lông vũ bạc lấp lánh như sương, bay lượn trong gió lạnh.",
+  rong_cay_xanh_la: "Rồng rừng mảnh mai mang bờm lá thu, đứng bằng hai chân. Quất đuôi lá, gọi dây leo trói chân và hồi máu cho cả đội.",
+  rong_bang_xanh_bien: "Rồng con băng với đôi cánh pha lê. Phun hơi lạnh, bắn mảnh băng và gọi mưa pha lê làm đóng băng kẻ địch.",
+  rong_lua_do: "Rồng con lửa đỏ nghịch ngợm. Cắn bằng hàm răng rực lửa, khạc cầu lửa và gọi mưa lông vũ lửa thiêu đốt cả đội hình địch.",
+  rong_dat_nau: "Rồng đất giáp đá như khủng long nhỏ, không biết bay nhưng lì đòn. Dậm chân gây địa chấn và gọi mưa đá làm choáng kẻ địch.",
+  tu_xa_long: "Xà long tím của hư không. Không bao giờ đứng trên sân đấu: xé cổng thời gian trên trời, ló đầu ra phun lửa tím xuống cả đội hình địch.",
+  than_long: "Song sinh ánh sáng của Hắc Long: cùng thân hình, cùng lối đánh trên không, nhưng mang thánh quang hồi phục cả đội.",
+  rong_bac: "Song sinh ánh trăng của Rồng Vàng. Cùng chiêu thức nhưng mang sức mạnh ánh bạc, hồi phục dưới trăng.",
 };
 const ELEMENT_CLASS: Record<string, string> = { Băng: styles.ice, Ám: styles.dark, Quang: styles.light, Thủy: styles.water };
 

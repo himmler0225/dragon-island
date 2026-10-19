@@ -6,13 +6,18 @@ import { spitDragonHead } from './helpers';
 const dmg = (scale: number) => `-${Math.round((180 + Math.random() * 40) * scale)}`;
 
 export const KI_LAN_SKILLS: SkillDef[] = [
-  { type: 'passive', name: 'Kim Lân Hộ Thể', desc: 'Giáp vàng: giảm 15% sát thương nhận vào; mỗi lần bị đánh +5% Công (tối đa 5 lần).' },
+  { type: 'passive', name: 'Kim Lân Hộ Thể', desc: 'Lân hỏa hộ thân: kẻ đánh thường vào Kì Lân bị Thiêu Đốt 1 lượt (30% Công); miễn nhiễm Thiêu Đốt.' },
   {
-    type: 'basic', name: 'Lân Trảo', desc: '100% Công lên 1 mục tiêu.', anim: 'attack', target: 'enemy',
-    run: ({ targets: [t], fx }) => {
+    // one heavy claw, then the target keeps burning for two ticks
+    type: 'basic', name: 'Lân Trảo', desc: '80% Công lên 1 mục tiêu và Thiêu Đốt: thêm 2 lần 20% Công.', anim: 'attack', target: 'enemy',
+    run: async ({ targets: [t], fx, wait }) => {
       fx(4, t.chest(), { scale: 0.45, dur: 420 });
-      fx(5, t.chest(), { scale: 0.4, dur: 500 });
-      t.hurt(); t.text(dmg(1));
+      t.hurt(); t.text(dmg(0.8)); t.text('Thiêu Đốt', '#ff9a3c');
+      for (let k = 0; k < 2; k++) {
+        await wait(450);
+        fx(5, t.head(), { scale: 0.3, dur: 380 });
+        t.text(dmg(0.2), '#ff9a3c');
+      }
     },
   },
   {

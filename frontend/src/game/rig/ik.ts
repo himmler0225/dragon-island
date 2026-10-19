@@ -3,7 +3,9 @@ import type { Vec } from './types';
 import type { Leg } from './DragonRig';
 
 /** Solve a two-bone leg: write joint positions and rotations into `L` given `hip` and `target`. */
-export function solveLeg(L: Leg, hip: Vec, target: Vec, pawTilt: number, bend: number): void {
+/** `follow` (0..1): the paw turns with the shin instead of staying level, so it keeps the drawn,
+ *  stretched-out line of the leg (flight) rather than folding against it. */
+export function solveLeg(L: Leg, hip: Vec, target: Vec, pawTilt: number, bend: number, follow = 0): void {
   let dx = target[0] - hip[0], dy = target[1] - hip[1];
   let d = Math.hypot(dx, dy);
   const max = L.len1 + L.len2 - 0.01;
@@ -19,5 +21,5 @@ export function solveLeg(L: Leg, hip: Vec, target: Vec, pawTilt: number, bend: n
   const ax = hip[0] + dx, ay = hip[1] + dy;
   L.up.pos = [hip[0], hip[1]]; L.up.rot = a1 - L.rest1;
   L.lo.pos = [kx, ky]; L.lo.rot = Math.atan2(ay - ky, ax - kx) - L.rest2;
-  L.paw.pos = [ax, ay]; L.paw.rot = pawTilt;
+  L.paw.pos = [ax, ay]; L.paw.rot = pawTilt + follow * L.lo.rot;
 }

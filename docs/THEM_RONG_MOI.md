@@ -88,6 +88,8 @@ Tọa độ joint trong layout px. Joint là điểm xương xoay quanh:
     col=N,        # cột trong legs.png (0=fore_near, 1=hind_near, 2=fore_far, 3=hind_far)
     x=layout_x,  # left edge trong layout px
     parent="tail_base",  # tùy: chân sau gắn vào đuôi thay vì torso
+    scale=0.85,  # tùy: tỷ lệ riêng của chi này (nhân với leg_scale), vd tay ngắn hơn chân
+    top=700,     # tùy: y đỉnh chi trong layout -> chi treo từ đó thay vì đứng trên mặt đất (tay)
 )
 ```
 
@@ -102,6 +104,7 @@ motion={
     "flyPitch": 0.2,                # độ nghiêng khi bay (hướng mũi lên)
     "tailWave": [a0, a1, a2, a3],  # độ sóng đuôi khi bơi (hải long)
     "hindKnee": "back",              # đầu gối chân sau quay về sau (kì lân)
+    "foreArms": True,                # rồng đứng 2 chân: chi trước là tay, treo ở ngực và đung đưa (rồng vàng/bạc)
 }
 ```
 

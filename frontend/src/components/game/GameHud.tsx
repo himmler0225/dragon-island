@@ -4,20 +4,24 @@
 import { useEffect, useState } from 'react';
 import { gameEvents, island, type DragonAction, type DragonCommand } from '@/game/bridge';
 import { ISLANDS, RESOURCE_NAME, type Resource } from '@/game/config';
-import { SKILLS, skillIconUrl, type SkillSlot } from '@/game/skills';
+import { COMBOS, SKILLS, skillIconUrl, type SkillSlot } from '@/game/skills';
 import { SPECIES, SPECIES_INFO, portraitUrl, type SpeciesId } from '@/game/config';
+import BattleScreen from './BattleScreen';
+import BreedPanel from './BreedPanel';
 import styles from './GameHud.module.css';
 
-type MenuId = 'quest' | 'achievement' | 'ranking' | 'mail' | 'gift' | 'bag' | 'shop' | 'cards' | 'battle' | 'map' | 'friends' | 'settings' | 'profile';
+type MenuId = 'breed' | 'quest' | 'achievement' | 'ranking' | 'mail' | 'gift' | 'bag' | 'shop' | 'cards' | 'battle' | 'map' | 'friends' | 'settings' | 'profile';
 const SIDE: [MenuId, string][] = [['quest', 'Nhiệm vụ'], ['achievement', 'Thành tựu'], ['ranking', 'Xếp hạng'], ['mail', 'Thư'], ['gift', 'Quà']];
-const BOTTOM: [MenuId, string][] = [['bag', 'Túi'], ['shop', 'Cửa hàng'], ['cards', 'Từ điển'], ['battle', 'Chiến đấu'], ['map', 'Bản đồ'], ['friends', 'Bạn bè'], ['settings', 'Cài đặt']];
+const BOTTOM: [MenuId, string][] = [['breed', 'Lai rồng'], ['bag', 'Túi'], ['shop', 'Cửa hàng'], ['cards', 'Từ điển'], ['battle', 'Chiến đấu'], ['map', 'Bản đồ'], ['friends', 'Bạn bè'], ['settings', 'Cài đặt']];
 const LABEL = Object.fromEntries([...SIDE, ...BOTTOM, ['profile', 'Hồ sơ']]) as Record<MenuId, string>;
 const COMMANDS: [DragonCommand, string][] = [['walk', '🚶'], ['fly', '🪽'], ['sleep', '💤']];
 const ACTION_LABEL: Record<DragonAction, string> = { idle: 'đứng', walk: 'đi dạo', fly: 'bay', sleep: 'ngủ', strike: 'ra đòn' };
 
+// menus without their own icon art yet borrow one (breed -> egg icon when drawn: public/ui/breed.png)
+const ICON_ALIAS: Record<string, string> = { breed: 'chest' };
 const Icon = ({ name }: { name: string }) => (
   // eslint-disable-next-line @next/next/no-img-element
-  <img src={`/ui/${name}.png`} alt="" draggable={false} />
+  <img src={`/ui/${ICON_ALIAS[name] ?? name}.png`} alt="" draggable={false} />
 );
 
 export default function GameHud({ dev = false }: { dev?: boolean }) {
@@ -29,12 +33,17 @@ export default function GameHud({ dev = false }: { dev?: boolean }) {
   const [panel, setPanel] = useState<MenuId | null>(null);
   const [bump, setBump] = useState<Resource | null>(null);
   const [full, setFull] = useState(false);
+  const [sky, setSky] = useState<{ hour: number; night: number; weather: 'clear' | 'cloudy' | 'rain' } | null>(null);
+  const [hunger, setHunger] = useState<Partial<Record<SpeciesId, number>>>({});
 
   useEffect(() => {
     const offs = [
       gameEvents.on('ready', () => setReady(true)),
       gameEvents.on('select', setSelected),
       gameEvents.on('island', setFocused),
+      gameEvents.on('open', setPanel),
+      gameEvents.on('sky', setSky),
+      gameEvents.on('hunger', ({ id, hunger: h }) => setHunger(m => ({ ...m, [id]: h }))),
       gameEvents.on('action', ({ id, action }) => setActions(a => ({ ...a, [id]: action }))),
       gameEvents.on('collect', ({ resource, amount }) => {
         setWallet(w => ({ ...w, [resource]: w[resource] + amount }));
@@ -42,10 +51,12 @@ export default function GameHud({ dev = false }: { dev?: boolean }) {
       }),
     ];
     const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setPanel(null); };
+    // hunger falls slowly: refresh the bars every 10 s
+    const poll = window.setInterval(() => { const h = island()?.hunger(); if (h) setHunger(h); }, 10000);
     const fs = () => setFull(document.fullscreenElement !== null);
     window.addEventListener('keydown', esc);
     document.addEventListener('fullscreenchange', fs);
-    return () => { offs.forEach(off => off()); window.removeEventListener('keydown', esc); document.removeEventListener('fullscreenchange', fs); };
+    return () => { window.clearInterval(poll); offs.forEach(off => off()); window.removeEventListener('keydown', esc); document.removeEventListener('fullscreenchange', fs); };
   }, []);
 
   useEffect(() => {
@@ -74,7 +85,11 @@ export default function GameHud({ dev = false }: { dev?: boolean }) {
         </button>
         <div className={styles.islandNav}>
           <button onClick={() => go(-1)} aria-label="Đảo trước">◀</button>
-          <span>{ISLANDS[focused].name}</span>
+          <span>{ISLANDS[focused].name}
+            {sky && <small className={styles.clock} title="Giờ trên đảo (giờ TP.HCM)">
+              {sky.weather === 'rain' ? '🌧️' : sky.weather === 'cloudy' ? '☁️' : sky.night > 0.5 ? '🌙' : sky.hour >= 16.5 || sky.hour < 7 ? '🌇' : '☀️'} {String(Math.floor(sky.hour)).padStart(2, '0')}:{String(Math.round((sky.hour % 1) * 60) % 60).padStart(2, '0')}
+            </small>}
+          </span>
           <button onClick={() => go(1)} aria-label="Đảo sau">▶</button>
         </div>
         <div className={styles.wallet}>
@@ -100,7 +115,9 @@ export default function GameHud({ dev = false }: { dev?: boolean }) {
           <button key={id} className={`${styles.dragon} ${id === selected ? styles.on : ''}`} onClick={() => api?.select(id)}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={portraitUrl(id)} alt="" />
-            <span>{SPECIES_INFO[id].name}<small>{ACTION_LABEL[actions[id] ?? 'idle']}</small></span>
+            <span>{SPECIES_INFO[id].name}<small>{(hunger[id] ?? 100) < 35 ? '🍖 đói' : ACTION_LABEL[actions[id] ?? 'idle']}</small>
+              <i className={styles.hungerBar}><b style={{ width: `${Math.round(hunger[id] ?? 100)}%` }} data-low={(hunger[id] ?? 100) < 35 || undefined} /></i>
+            </span>
           </button>
         ))}
       </div>
@@ -119,7 +136,8 @@ export default function GameHud({ dev = false }: { dev?: boolean }) {
         <div className={styles.skillHead}>
           <b>{info.name}</b><small>{info.element} · {info.rarity}</small>
           <span className={styles.cmds}>
-            {COMMANDS.map(([cmd, emoji]) => (
+            <button title="Gọi thuyền thức ăn" onClick={() => api?.callBoat(selected)}>⛵</button>
+            {COMMANDS.filter(([cmd]) => cmd !== 'fly' || api?.canFly(selected) !== false).map(([cmd, emoji]) => (
               <button key={cmd} title={cmd} onClick={() => api?.command(selected, cmd)}>{emoji}</button>
             ))}
           </span>
@@ -135,6 +153,16 @@ export default function GameHud({ dev = false }: { dev?: boolean }) {
             </button>
           ))}
         </div>
+        {/* Hợp Kích: shown while the partner dragon is on the same island */}
+        {(api?.combos(selected) ?? []).map(id => COMBOS.find(c => c.id === id)!).map(c => (
+          <button key={c.id} className={styles.combo} title={c.desc} onClick={() => api?.useCombo(c.id)}>
+            <span className={styles.comboIcon}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {c.pair.map(p => <img key={p} src={portraitUrl(p)} alt="" />)}
+            </span>
+            <small>Hợp Kích</small><b>{c.name}</b>
+          </button>
+        ))}
       </div>
 
       {/* bottom: main menu */}
@@ -148,7 +176,10 @@ export default function GameHud({ dev = false }: { dev?: boolean }) {
 
       {dev && <p className={styles.devHint}>dev: kéo ngang đổi đảo · Shift+bấm để bay · bấm công trình để thu</p>}
 
-      {panel && (
+      {panel === 'breed' && <BreedPanel onClose={() => setPanel(null)} />}
+      {panel === 'battle' && <BattleScreen onClose={() => setPanel(null)} />}
+
+      {panel && panel !== 'breed' && panel !== 'battle' && (
         <div className={styles.modal} onClick={e => { if (e.target === e.currentTarget) setPanel(null); }}>
           <div className={styles.sheet}>
             <header>

@@ -92,6 +92,7 @@ tools/
   build_rig.py       cắt parts/body.png + parts/legs.png → public/dragons/<id>/
   slice_skills.py    cắt skills/icons.png + skills/vfx.png → public/dragons/<id>/skills/
   slice_cloud.py     cắt cloud.png → public/dragons/<id>/cloud*.png
+  slice_eggs.py      cắt eggs/eggs.png (10 cấp trứng) + eggs/nest.png → public/eggs/
   slice_world.py     cắt islands/ + buildings/ + resources.png
   slice_ui.py        logo + loading screen
   slice_hud_icons.py cắt hud_icons.png → public/ui/

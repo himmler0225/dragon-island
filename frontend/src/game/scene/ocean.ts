@@ -10,6 +10,7 @@ export function oceanFrag(width: number, height: number, centres: Point[]) {
   return `
 precision mediump float;
 uniform float time;
+uniform float night;   // 0 day .. 1 night (dayNight.ts)
 uniform vec2 resolution;
 varying vec2 fragCoord;
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -29,6 +30,8 @@ void main() {
   vec3 col = mix(shallow, mid, smoothstep(0.75, 1.05, r));
   col = mix(col, deep, smoothstep(1.05, 1.9, r));
   col += bands * mix(0.22, 0.1, smoothstep(0.8, 1.6, r)) + sparkle * 0.3;
+  // night: deep navy water, caustics fade, a few moonlit glints stay
+  col = mix(col, col * vec3(0.4, 0.52, 0.8) + vec3(0.0, 0.03, 0.08), night) + sparkle * 0.15 * night;
   gl_FragColor = vec4(col, 1.0);
 }`;
 }

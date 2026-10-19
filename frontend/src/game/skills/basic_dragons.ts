@@ -1,0 +1,122 @@
+// The basic chibi dragons: Rồng Lửa (fire), Rồng Đất (earth), Rồng Rừng (forest), Rồng Băng (ice). No vfx.png yet: their moves use the
+// code-drawn effects (bite, orb, gust, elementRain, splash).
+import type { SkillDef } from './types';
+
+const dmg = (scale: number) => `-${Math.round((150 + Math.random() * 40) * scale)}`;
+const FIRE = 0xff6a1a, EMBER = '#ffab5a';
+const SAND = 0xd9a45a, ROCK = '#e8c48a';
+
+export const RONG_LUA_DO_SKILLS: SkillDef[] = [
+  { type: 'passive', name: 'Tâm Hỏa', desc: 'Mỗi lần đánh trúng mục tiêu đang Thiêu Đốt: +10% Công trong 2 lượt.' },
+  {
+    type: 'basic', name: 'Cắn Lửa', desc: 'Lao tới cắn bằng hàm răng rực lửa: 100% Công lên 1 địch, 30% Thiêu Đốt.',
+    anim: 'attack', target: 'enemy',
+    run: async ({ targets: [t], bite }) => {
+      await bite(t.chest(), { scale: 0.55, tint: FIRE });
+      t.hurt(); t.text(dmg(1));
+    },
+  },
+  {
+    type: 'skill', name: 'Cầu Lửa', desc: 'Khạc một quả cầu lửa vào 1 địch: 140% Công, Thiêu Đốt 2 lượt.',
+    anim: 'cast', target: 'enemy',
+    run: async ({ self, targets: [t], orb }) => {
+      await orb(self.mouth(), t.chest(), { tint: FIRE, scale: 1.1, dur: 380 });
+      t.hurt(); t.text(dmg(1.4)); t.text('Thiêu Đốt', EMBER);
+    },
+  },
+  {
+    type: 'ultimate', name: 'Mưa Hỏa Vũ', desc: 'Vỗ cánh gọi mưa lông vũ lửa xuống toàn bộ địch: 3 đợt 70% Công, Thiêu Đốt 2 lượt.',
+    anim: 'ultimate', target: 'enemies',
+    run: async ({ targets, elementRain }) => {
+      await elementRain(targets, t => { t.hurt(); t.text(dmg(0.7)); }, { tint: FIRE, core: 0xfff2a0, shape: 'feather', waves: 3, perTarget: 2 });
+      targets.forEach(t => t.text('Thiêu Đốt', EMBER));
+    },
+  },
+];
+
+export const RONG_DAT_NAU_SKILLS: SkillDef[] = [
+  { type: 'passive', name: 'Giáp Đá', desc: 'Giảm 15% sát thương nhận vào; khi dưới 30% Sinh lực, giảm thêm 15%.' },
+  {
+    type: 'basic', name: 'Hàm Đá', desc: 'Ngoạm bằng hàm răng đá: 110% Công lên 1 địch.',
+    anim: 'attack', target: 'enemy',
+    run: async ({ targets: [t], bite }) => {
+      await bite(t.chest(), { scale: 0.6, tint: SAND });
+      t.hurt(); t.text(dmg(1.1));
+    },
+  },
+  {
+    type: 'skill', name: 'Địa Chấn', desc: 'Dậm chân tạo sóng chấn động lan qua toàn bộ địch: 80% Công, 25% Choáng 1 lượt.',
+    anim: 'cast', target: 'enemies',
+    run: async ({ self, targets, gust }) => {
+      await gust(self.feet(), self.facing, { reach: 520, scale: 1.1, tint: SAND });
+      targets.forEach(t => { t.hurt(); t.text(dmg(0.8)); if (Math.random() < 0.25) t.text('Choáng', ROCK); });
+    },
+  },
+  {
+    type: 'ultimate', name: 'Thiên Thạch Đá', desc: 'Gầm vang gọi mưa đá rơi xuống toàn bộ địch: 3 đợt 75% Công, Choáng 1 lượt.',
+    anim: 'ultimate', target: 'enemies',
+    run: async ({ targets, elementRain, splash }) => {
+      await elementRain(targets, t => { t.hurt(); t.text(dmg(0.75)); }, { tint: SAND, core: 0xfff0d0, shape: 'shard', waves: 3, perTarget: 2 });
+      targets.forEach(t => { splash(t.feet(), { scale: 0.6 }); t.text('Choáng', ROCK); });
+    },
+  },
+];
+
+const LEAF = 0x8fdc3a, GROW = '#c6f08a', HEAL = '#7dff9a';
+const ICE = 0x7fe0ff, FROST = '#bff0ff';
+
+export const RONG_CAY_XANH_LA_SKILLS: SkillDef[] = [
+  { type: 'passive', name: 'Sức Sống Rừng', desc: 'Mỗi lượt hồi 3% Sinh lực.' },
+  {
+    type: 'basic', name: 'Quất Đuôi Lá', desc: 'Quất đuôi lá sắc như dao: 100% Công lên 1 địch.',
+    anim: 'attack', target: 'enemy',
+    run: async ({ self, targets: [t], gust }) => {
+      await gust(self.chest(), self.facing, { reach: 160, scale: 0.6, tint: LEAF });
+      t.hurt(); t.text(dmg(1));
+    },
+  },
+  {
+    type: 'skill', name: 'Dây Leo Trói', desc: 'Bắn hạt giống nảy dây leo trói 1 địch: 120% Công, 30% Choáng 1 lượt.',
+    anim: 'cast', target: 'enemy',
+    run: async ({ self, targets: [t], orb }) => {
+      await orb(self.mouth(), t.chest(), { tint: LEAF, scale: 0.9, dur: 360 });
+      t.hurt(); t.text(dmg(1.2)); if (Math.random() < 0.3) t.text('Choáng', GROW);
+    },
+  },
+  {
+    type: 'ultimate', name: 'Mưa Lá Thu', desc: 'Gọi mưa lá thu xuống toàn bộ địch: 3 đợt 60% Công; toàn đội hồi 15% Sinh lực.',
+    anim: 'ultimate', target: 'enemies',
+    run: async ({ self, targets, elementRain }) => {
+      await elementRain(targets, t => { t.hurt(); t.text(dmg(0.6)); }, { tint: 0xffa53a, core: 0xfff0a0, shape: 'feather', waves: 3, perTarget: 2 });
+      self.text('+15%', HEAL);
+    },
+  },
+];
+
+export const RONG_BANG_XANH_BIEN_SKILLS: SkillDef[] = [
+  { type: 'passive', name: 'Giáp Pha Lê', desc: 'Kẻ đánh thường vào Rồng Băng bị giảm 10% Tốc 1 lượt.' },
+  {
+    type: 'basic', name: 'Hơi Lạnh', desc: 'Phun hơi lạnh: 100% Công lên 1 địch, 20% Đóng Băng.',
+    anim: 'attack', target: 'enemy',
+    run: async ({ self, targets: [t], orb }) => {
+      await orb(self.mouth(), t.chest(), { tint: ICE, scale: 0.7, dur: 300 });
+      t.hurt(); t.text(dmg(1));
+    },
+  },
+  {
+    type: 'skill', name: 'Mảnh Băng', desc: 'Bắn chùm mảnh băng xuyên qua toàn bộ địch: 80% Công, giảm Tốc.',
+    anim: 'cast', target: 'enemies',
+    run: async ({ self, targets, gust }) => {
+      await gust(self.chest(), self.facing, { reach: 520, scale: 0.9, tint: ICE });
+      targets.forEach(t => { t.hurt(); t.text(dmg(0.8)); t.text('-Tốc', FROST); });
+    },
+  },
+  {
+    type: 'ultimate', name: 'Mưa Pha Lê', desc: 'Gọi mưa pha lê băng xuống toàn bộ địch: 3 đợt 70% Công, Đóng Băng 1 lượt.',
+    anim: 'ultimate', target: 'enemies',
+    run: async ({ targets, elementRain }) => {
+      await elementRain(targets, t => { t.hurt(); t.text(dmg(0.7)); }, { tint: ICE, core: 0xffffff, shape: 'shard', waves: 3, perTarget: 2 });
+      targets.forEach(t => t.text('Đóng Băng', FROST));
+    },
+  },
+];
