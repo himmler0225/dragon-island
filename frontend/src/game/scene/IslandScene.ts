@@ -5,6 +5,7 @@ import type { Point } from '../config/world';
 import type { Resource } from '../config/world';
 import { gameEvents, setIslandApi, type DragonCommand, type IslandApi } from '../bridge';
 import { Dragon } from './Dragon';
+import { SpotTarget } from './SpotTarget';
 import { Island, LAMP_KEY, grassKey, NEST_KEY, buildingKey, eggKey, islandKey, resourceKey } from './Island';
 import { oceanFrag } from './ocean';
 import { DayNight, hcmHour } from './dayNight';
@@ -25,15 +26,7 @@ const PAD_X = W, PAD_Y = H / 2;
 // art's outer ring of sea and cliffs is what gets cropped
 const ZOOM_IN = 1.25;
 
-/** Stand-in target in front of a dragon when no other dragon is on its island. */
-class SpotTarget implements SkillActor {
-  constructor(private scene: IslandScene, readonly id: SpeciesId, private at: Point, private island: Island) {}
-  feet() { return { x: this.at[0], y: this.at[1] + this.island.bob }; }
-  chest() { return { x: this.at[0], y: this.at[1] + this.island.bob - 45 }; }
-  head() { return { x: this.at[0], y: this.at[1] + this.island.bob - 95 }; }
-  hurt() {}
-  text(text: string, color?: string) { this.scene.combat.floatText(this.at[0], this.chest().y - 40, text, color); }
-}
+
 
 export class IslandScene extends Phaser.Scene {
   readonly combat: CombatFx;
