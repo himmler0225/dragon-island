@@ -5,8 +5,10 @@
 // CSS egg until it is drawn).
 import { useEffect, useMemo, useState } from 'react';
 import { getEggLevel, setEggLevel as syncEggLevel } from '@/game/bridge';
-import { BLESS_COST, EGG_LEVELS, MAX_STARS, STAR_BONUS, bracketOdds, rollStars } from '@/game/config/breeding';
+import { BLESS_COST, EGG_LEVELS, STAR_BONUS, bracketOdds, rollStars } from '@/game/config/breeding';
 import { SPECIES, SPECIES_INFO, portraitUrl, type SpeciesId } from '@/game/config';
+import { Egg } from './Egg';
+import { StarRing } from './StarRing';
 import styles from './BreedPanel.module.css';
 
 interface OwnedDragon { uid: number; species: SpeciesId; stars: number }
@@ -17,33 +19,6 @@ const OWNED: OwnedDragon[] = Array.from({ length: 21 }, (_, i) => ({
 }));
 const PAGE = 5;
 const RARE_LABEL: Record<string, string> = { SSR: 'Cực hiếm', SR: 'Hiếm', R: 'Thường' };
-const STAR_COLORS = ['#7dd87d', '#5ec8f2', '#6f8cff', '#b06dff', '#ff6fb5', '#ffb347', '#ffe066'];
-
-function Egg({ level }: { level: number }) {
-  const [broken, setBroken] = useState(false);
-  if (broken) return <div className={styles.cssEgg} data-level={level} />;
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img className={styles.eggImg} src={`/eggs/egg_${level}.png`} alt="" onError={() => setBroken(true)} />;
-}
-
-/** 29 stars on an arc around the egg; lit up to the egg's cap (or the hatched result). */
-function StarRing({ lit, cap }: { lit: number; cap: number }) {
-  return (
-    <div className={styles.ring}>
-      {Array.from({ length: MAX_STARS }, (_, i) => {
-        const a = (-200 + (i / (MAX_STARS - 1)) * 220) * (Math.PI / 180);   // arc around the right side
-        const on = i < lit, avail = i < cap;
-        return (
-          <span key={i} className={styles.star}
-            style={{
-              left: `${50 + 47 * Math.cos(a)}%`, top: `${50 + 47 * Math.sin(a)}%`,
-              color: on ? STAR_COLORS[Math.floor((i / MAX_STARS) * STAR_COLORS.length)] : avail ? '#6d6040' : '#2d3135',
-            }}>★</span>
-        );
-      })}
-    </div>
-  );
-}
 
 export default function BreedPanel({ onClose }: { onClose: () => void }) {
   const [stone, setStone] = useState(37034);
