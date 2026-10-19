@@ -11,27 +11,10 @@ import { useEffect, useRef, useState } from 'react';
 import type { BattleApi } from '@/game/battle/createBattle';
 import { island } from '@/game/bridge';
 import { SPECIES, SPECIES_INFO, portraitUrl, type SpeciesId } from '@/game/config';
+import {
+  ALLY_BUFFS, ENEMY_BUFFS, fmt, MANA_MAX, MANA_PER_S, SUMMON_COST, STARS, TIPS, TIME, WAVES,
+} from './battleScreenData';
 import styles from './BattleScreen.module.css';
-
-const MANA_MAX = 150, MANA_PER_S = 25, TIME = 180;
-// shown while the field loads
-const TIPS = [
-  'Bấm vào thẻ rồng để chọn con sẽ ra trận tiếp theo.',
-  'Hắc Long nguyền rủa mọi kẻ trúng đòn: mất máu liên tục trong 4 giây.',
-  'Rồng Xương và Long Vương đánh từ xa, hãy để chúng đứng sau.',
-  'Rồng bị Đóng Băng đứng im, không thể đánh trả.',
-  'Tuyệt kỹ hồi mỗi 9 giây, rồng sẽ tự tung khi sẵn sàng.',
-];
-const SUMMON_COST = 15;   // mana for one dragon: a full bar summons 10 in a row, then ~1 every 0.6 s
-const STARS = (id: SpeciesId) => 18 + (id.length * 7) % 12;
-const ALLY_BUFFS = [['🔥', 'Công +'], ['❤️', 'Sinh lực +'], ['🐉', 'Cuồng nộ'], ['💠', 'Lá chắn']];
-const ENEMY_BUFFS = [['🌀', 'Lốc nước'], ['🛡️', 'Giáp +'], ['🐉', 'Cuồng nộ'], ['❤️', 'Sinh lực +'], ['🗡️', 'Tốc +']];
-// enemy waves (placeholder): which dragon and how many
-const WAVES: [SpeciesId, number][] = [['hac_long', 15], ['tuan_long', 1], ['hai_long', 1], ['ki_lan', 3], ['rong_xuong', 1],
-  ['phuong_hoang_lua', 10], ['tu_xa_long', 1], ['rong_vang', 22], ['phuong_hoang_bang', 2], ['than_long', 1], ['rong_bac', 11], ['hac_long', 2]];
-
-const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
-
 export default function BattleScreen({ onClose }: { onClose: () => void }) {
   const team = SPECIES.slice(0, 9);
   const [mana, setMana] = useState(MANA_MAX);   // starts full so the first dragons come out at once
