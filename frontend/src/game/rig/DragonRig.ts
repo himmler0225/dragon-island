@@ -5,6 +5,9 @@ import { solveLeg } from './ik';
 import { track, smoothstep, STRIKES } from './strikes';
 import { rigTextureKey, type RigData, type Strike, type StrikeKind, type Vec, type LegName } from './types';
 import type { SpeciesId } from '../config/species';
+import { alphaAt } from './alphaMask';
+import { MOUTH_OPEN, makeLids, updateLids } from './eyelids';
+import { applyPose } from './pose';
 
 type Bone = {
   name: string;
@@ -29,40 +32,8 @@ export interface Leg {
   phase: number;
 }
 
-/** Alpha masks of the rig textures, read once per texture: scene.textures.getPixelAlpha redraws the
- *  frame into a canvas on every call, which made tapping a dragon stutter. */
-const ALPHA = new Map<string, { w: number; data: Uint8ClampedArray }>();
-function pixels(scene: Phaser.Scene, key: string) {
-  let m = ALPHA.get(key);
-  if (!m) {
-    const src = scene.textures.get(key).getSourceImage() as HTMLImageElement | HTMLCanvasElement;
-    const c = document.createElement('canvas');
-    c.width = src.width; c.height = src.height;
-    const g = c.getContext('2d', { willReadFrequently: true })!;
-    g.drawImage(src, 0, 0);
-    m = { w: c.width, data: g.getImageData(0, 0, c.width, c.height).data };
-    ALPHA.set(key, m);
-  }
-  return m;
-}
-function alphaAt(scene: Phaser.Scene, key: string, x: number, y: number) {
-  const m = pixels(scene, key);
-  return m.data[(y * m.w + x) * 4 + 3] ?? 0;
-}
 
-/** Eyes on each species' head.png, as shares of the image: centre, half-size, tilt (radians).
- *  Used for eyelids that close when the dragon sleeps and blink now and then. Species not listed
- *  have no eyelids (Rồng Xương is a skull; Hắc Long, Thần Long, Kì Lân, Rồng Vàng/Bạc left as drawn). */
-/** How far the mouth interior pieces are drawn open (rad), see tools/rig_jaw.py. */
-const MOUTH_OPEN = 0.6;
 
-const EYES: Partial<Record<SpeciesId, { x: number; y: number; rx: number; ry: number; tilt?: number }[]>> = {
-  tuan_long: [{ x: 0.155, y: 0.645, rx: 0.045, ry: 0.034 }],
-  tu_xa_long: [{ x: 0.335, y: 0.48, rx: 0.058, ry: 0.062 }],
-  // (the phoenix heads were redrawn with a separate beak, tools/rig_jaw.py: eyes re-measured)
-  phuong_hoang_lua: [{ x: 0.318, y: 0.484, rx: 0.071, ry: 0.067 }],
-  phuong_hoang_bang: [{ x: 0.347, y: 0.481, rx: 0.073, ry: 0.072 }],
-};
 
 export class DragonRig {
   readonly container: Phaser.GameObjects.Container;
@@ -100,7 +71,8 @@ export class DragonRig {
       if (p) b.offset = [b.joint[0] - p.joint[0], b.joint[1] - p.joint[1]];
     }
     const dir = (a: Bone, b: Bone) => Math.atan2(b.joint[1] - a.joint[1], b.joint[0] - a.joint[0]);
-    this.makeLids(scene, species);
+    this.eyeState.lids = this.bones.head ? makeLids(scene, this.bones.head.img, species, this.container) : [];
+    this.eyeState.blinkT = Phaser.Math.FloatBetween(2, 5);
     this.legs = (['fore_near', 'hind_near', 'fore_far', 'hind_far'] as LegName[]).filter(n => this.bones[`${n}_upper`]).map(name => {
       const up = this.bones[`${name}_upper`], lo = this.bones[`${name}_lower`], paw = this.bones[`${name}_paw`];
       return {
@@ -123,56 +95,7 @@ export class DragonRig {
   private lift: { fore: number; hind: number };
 
   /** Eyelids: a skin-coloured lid drawn over each eye, growing down from the top of the eye. */
-  private lids: { img: Phaser.GameObjects.Image; eye: { x: number; y: number; rx: number; ry: number; tilt?: number } }[] = [];
-  private blinkT = Phaser.Math.FloatBetween(2, 5);
-  private makeLids(scene: Phaser.Scene, species: SpeciesId) {
-    const head = this.bones.head?.img;
-    if (!head) return;
-    const px = pixels(scene, head.texture.key), W = head.width, H = head.height;
-    (EYES[species] ?? []).forEach((e, k) => {
-      const key = `lid_${species}_${k}`;
-      const w = Math.max(6, Math.round(2 * e.rx * W)), h = Math.max(4, Math.round(2 * e.ry * H));
-      if (!scene.textures.exists(key)) {
-        // skin colour: average of a few pixels just above the eye
-        let r = 0, g = 0, b = 0, n = 0;
-        for (let dx = -e.rx * 0.6; dx <= e.rx * 0.6; dx += e.rx * 0.3) {
-          const sx = Math.round((e.x + dx) * W), sy = Math.round((e.y - e.ry * 1.9) * H);
-          const o = (sy * px.w + sx) * 4;
-          if ((px.data[o + 3] ?? 0) > 200) { r += px.data[o]; g += px.data[o + 1]; b += px.data[o + 2]; n++; }
-        }
-        const skin = n ? Phaser.Display.Color.GetColor(r / n, g / n, b / n) : 0x888888;
-        const dark = n ? Phaser.Display.Color.GetColor(r / n * 0.35, g / n * 0.35, b / n * 0.35) : 0x222222;
-        const gr = scene.make.graphics({ x: 0, y: 0 }, false);
-        gr.fillStyle(skin, 1).fillEllipse(w / 2 + 1, h / 2 + 1, w, h);
-        gr.lineStyle(Math.max(1.5, h * 0.12), dark, 0.9).beginPath()
-          .arc(w / 2 + 1, h / 2 + 1 - h * 0.1, w * 0.46, Math.PI * 0.12, Math.PI * 0.88, false).strokePath();
-        gr.generateTexture(key, w + 2, h + 2); gr.destroy();
-      }
-      const img = scene.add.image(0, 0, key).setOrigin(0.5, 0).setVisible(false);
-      this.container.add(img);
-      this.container.moveAbove(img, head);
-      this.lids.push({ img, eye: e });
-    });
-  }
-
-  private updateLids(dt: number, Z: number, mode: string) {
-    if (!this.lids.length) return;
-    // blink every few seconds while awake
-    let blink = 0;
-    if ((this.blinkT -= dt) < 0) {
-      blink = Math.sin(Math.PI * Math.min(1, -this.blinkT / 0.18));
-      if (this.blinkT < -0.18) this.blinkT = Phaser.Math.FloatBetween(2.5, 6);
-    }
-    const shut = Math.max(Math.min(1, Z * 1.3), mode === 'sleep' ? Z : 0, blink);
-    const head = this.bones.head.img, W = head.width, H = head.height;
-    const c = Math.cos(head.rotation), s = Math.sin(head.rotation);
-    for (const { img, eye } of this.lids) {
-      const lx = (eye.x - head.originX) * W, ly = (eye.y - eye.ry - head.originY) * H;
-      img.setPosition(head.x + lx * c - ly * s, head.y + lx * s + ly * c)
-        .setRotation(head.rotation + (eye.tilt ?? 0)).setScale(1, shut).setVisible(shut > 0.02);
-    }
-  }
-
+  private eyeState = { lids: [] as ReturnType<typeof import("./eyelids").makeLids>, blinkT: 0 };
   /** Ground speed (screen px/s at root scale 1) that matches the feet, so they never slide. */
   walkSpeed(rootScale: number) { return this.stride * RIG.scale * rootScale / RIG.cycle; }
 
@@ -229,162 +152,12 @@ export class DragonRig {
       }
     }
 
-    const t = this.t, g = this.gait, W = this.walk, F = Math.max(this.fly, A.flap), ground = 1 - F;
+    const t = this.t, g = this.gait, W = this.walk, F = Math.max(this.fly, A.flap);
     const Z = this.sleep * this.sleep * (3 - 2 * this.sleep);
-    const B = this.bones;
-
-    // wing beat 0..1..0 (1 = wings up)
-    const beat = (time: number) => {
-      const fp = (time * RIG.flapRate) % 1;
-      return fp < 0.4 ? 0.5 + 0.5 * Math.cos(Math.PI * fp / 0.4) : 0.5 - 0.5 * Math.cos(Math.PI * (fp - 0.4) / 0.6);
-    };
-    const flapUp = beat(t);
-
-    // torso
-    const breathe = Math.sin(t * 2 * Math.PI / (3 + 2 * Z));
-    const bob = W * 2.5 * Math.cos(4 * Math.PI * g) * ground;
-    const flapLift = F * 7 * (1 - flapUp);
-    B.torso.pos = [B.torso.joint[0] + A.lunge + 12 * hurt,
-      B.torso.joint[1] + breathe * (1.6 + 1.4 * Z) * (1 - W) + bob - flapLift + Z * RIG.lieDown + A.lift];
-    B.torso.rot = 0.012 * breathe * (1 - W) + W * 0.015 * Math.sin(2 * Math.PI * g) - F * 0.1 + Z * 0.04 + A.rear - 0.06 * hurt + F * (this.motion.flyPitch ?? 0);
-
-    // head
-    this.local('head', (this.motion.slither ? -0.06 * W * Math.sin(4 * Math.PI * g + 0.6) : 0) + (0.04 * Math.sin(t * 0.7) * (1 - W) + W * 0.04 * Math.sin(4 * Math.PI * g + 1.2)) * (1 - Z)
-      + F * (0.06 + 0.07 * flapUp + 0.6 * (this.motion.flyPitch ?? 0)) - Z * 0.32 + A.head);
-
-    // crest
-    if (B.crest) {
-      this.local('crest', (0.05 * Math.sin(t * 2.3) + 0.03 * Math.sin(t * 5.1)) * (1 - F) * (1 - Z)
-        + W * 0.07 * Math.sin(4 * Math.PI * g - 0.8) + F * (0.12 + 0.22 * (1 - flapUp)) + Z * 0.18 - 0.12 * A.rear);
-    }
-
-    // jaw
-    if (B.jaw) {
-      const yawn = Math.max(0, Math.sin(Math.PI * Math.min(1, this.sleep * 1.4)));
-      this.local('jaw', -(0.03 * (1 + breathe) * (1 - Z) + 0.45 * yawn * (mode === 'sleep' ? 1 : 0) + F * 0.12 * (1 - flapUp) + 0.5 * A.jaw));
-      // mouth interior (tools/rig_jaw.py): drawn open MOUTH_OPEN rad; its floor follows the jaw while
-      // its roof turns up behind the head, and it fades out as the jaw closes
-      if (B.mouth) {
-        const open = Math.max(0, B.head.rot - B.jaw.rot);
-        this.local('mouth', MOUTH_OPEN - open);
-        B.mouth.img.setAlpha(Math.min(1, Math.max(0, (open - 0.08) / 0.12)));   // not while just breathing (jaw ~0.03-0.06)
-      }
-    }
-
-    // wings
-    const spread = this.motion.wingSpread;
-    // both wings beat together (the far one used to trail behind, which read as lopsided)
-    for (const [k, name, lag, fan] of [[0, 'wing_near', 0, 0], [1, 'wing_far', 0, 0]] as const) {
-      if (!B[name]) continue;
-      const up = beat(t - lag);
-      const rest = 0.03 * breathe * (1 - Z) + W * 0.04 * Math.sin(2 * Math.PI * g) + Z * 0.28;
-      this.local(name, (rest + spread[k] * (1 - Z)) * (1 - F) + F * (0.25 * (1 - up) - 0.1 + fan * up) - 0.35 * A.wings * (1 - F)
-        + A.spread * (k === 0 ? 0.35 : -0.45));
-      B[name].sy = ((1 - F) * (1 - 0.25 * Z) + F * (-0.55 + 1.55 * up)) * (1 + 0.18 * A.spread);
-      B[name].sx = (1 - F * 0.12 * (1 - up)) * (1 + 0.12 * A.spread);
-    }
-
-    // tail
-    const R = this.motion.rideCloud ? F : 0;
-    // tail phase is integrated (speed x dt), not speed x total time: changing the speed (walk -> sleep)
-    // used to jump the phase and flick the tail
-    this.tailPhase += dt * (1.6 + 2.5 * W - 0.8 * Z + 1.4 * R);
-    const idleWave = (k: number, amp: number) => amp * Math.sin(this.tailPhase - k * 0.9);
-    // slither (legless serpents): crawling, a bigger wave runs from the neck to the tail locked to the
-    // gait, so the body pushes the serpent forward instead of the legs
-    const S = this.motion.slither ? W : 0;
-    const wave = (k: number, amp: number) => (1 - S) * idleWave(k, amp) + S * (0.45 * amp + 0.035) * Math.sin(2 * Math.PI * 2 * g - k * 1.2);   // gentle: the bends add up along the chain
-    const curl = this.motion.sleepTail, back = F - R;
-    const one = B.tail_mid ? 0 : 1;
-    const tw = this.motion.tailWave ?? [1, 1, 1, 1];
-    if (B.tail_base) this.local('tail_base', tw[0] * (wave(0, 0.05 + 0.04 * W + 0.06 * R + one * 0.07) - back * 0.15) + Z * curl[0]);
-    if (B.tail_mid) this.local('tail_mid', tw[1] * (wave(1, 0.08 + 0.05 * W + 0.1 * R) - back * 0.1) + Z * curl[1]);
-    if (B.tail_tip) this.local('tail_tip', tw[2] * (wave(2, 0.12 + 0.06 * W + 0.14 * R) + back * 0.1) + Z * curl[2]);
-    if (B.tail_fan) this.local('tail_fan', tw[3] * (wave(3, 0.14 + 0.06 * W + 0.12 * R) + back * 0.08) + Z * curl[2] * 0.5);
-
-    // legs
-    for (const L of this.legs) {
-      const hip = this.place(L.up.name);
-      let [tx, ty] = L.home;
-      let pawTilt = 0;
-      const arm = L.kind === 'fore' && this.motion.foreArms;
-      if (arm) {
-        // arms: walking, each swings against the hind leg on its own side (near arm forward while the
-        // near leg steps back); standing, a slow sway with the breath, the two arms out of step
-        const walkSw = Math.sin(2 * Math.PI * (g + (L.name === 'fore_near' ? 0.5 : 0)));
-        const idleSw = Math.sin(t * 1.7 + (L.name === 'fore_near' ? 0 : 1.3));
-        const sw = W * walkSw + (1 - W) * idleSw;
-        const [px, py] = this.motion.armPose?.[L.name === 'fore_near' ? 0 : 1] ?? [0, 0];
-        tx += px; ty += py;
-        tx += (4 + 10 * W) * sw;
-        ty -= (2 + 4 * W) * Math.max(0, sw);
-        pawTilt += 0.18 * sw;
-      } else {
-        // standing: the far feet stand a little apart from the near ones (both a step toward the tail:
-        // a far hind foot stepped forward wedged under the belly) so all legs show, instead of each far leg hiding behind its near twin
-        if (L.name.endsWith('_far')) tx += (this.motion.stance ?? [48, 40])[L.kind === 'fore' ? 0 : 1] * (1 - W);
-      }
-      if (!arm && W > 0) {
-        const phi = (g - L.phase + 1) % 1, S = this.stride;
-        if (phi < RIG.duty) {
-          tx += (-S / 2 + S * phi / RIG.duty) * W;
-        } else {
-          const u = (phi - RIG.duty) / (1 - RIG.duty), e = u * u * (3 - 2 * u), s = Math.sin(Math.PI * u);
-          tx += (S / 2 - S * e) * W;
-          ty -= this.lift[L.kind] * s * W;
-          pawTilt = -(this.motion.swingTilt ?? 0.55) * s * W;
-        }
-      }
-      if (A.stretch > 0 && L.kind === 'hind') {
-        tx += 30 * A.stretch; pawTilt += 0.25 * A.stretch;
-      }
-      if (A.claw > 0 && L.name === 'fore_near') {
-        tx -= 34 * A.claw; ty -= 26 * A.claw; pawTilt -= 0.6 * A.claw;
-      }
-      if (Z > 0) {
-        const fold = L.kind === 'fore' ? [hip[0] - 32, L.home[1]] : [hip[0] + 4, L.home[1]];
-        tx += (fold[0] - tx) * Z; ty += (fold[1] - ty) * Z;
-      }
-      if (F > 0 && !this.motion.rideCloud) {
-        if (this.motion.flyLegs !== 'tuck') {   // default: legs hang stretched out (no tucking)
-          const reach = (L.kind === 'fore' ? 0.92 : 0.995) * (L.len1 + L.len2), sway = Math.sin(t * 2.4 + L.phase * 2 * Math.PI);
-          const hang = this.motion.flyHang ?? [0.35, 1.05];
-          const a = hang[L.kind === 'fore' ? 0 : 1] + 0.12 * sway;
-          const foot = [hip[0] + reach * Math.sin(a), hip[1] + reach * Math.cos(a)];
-          tx += (foot[0] - tx) * F; ty += (foot[1] - ty) * F;
-          pawTilt += F * 0.08 * sway;   // paws stay stretched in line with the shin (follow below)
-        } else {
-          const tuck = [hip[0] + (L.kind === 'fore' ? 14 : 24), hip[1] + 0.55 * (L.len1 + L.len2)];
-          tx += (tuck[0] - tx) * F; ty += (tuck[1] - ty) * F;
-          pawTilt += F * (L.kind === 'fore' ? 0.9 : 0.6);
-        }
-      }
-      const bend = L.kind === 'hind' && this.motion.hindKnee === 'back' ? 1 : RIG.bend[L.kind];
-      const stretched = F > 0 && !this.motion.rideCloud && this.motion.flyLegs !== 'tuck' ? F : 0;
-      if (this.motion.rigidLegs) {
-        // one solid leg: point it from the hip toward the foot target, and lift the whole leg
-        // instead of bending a knee when the foot comes off the ground
-        const rise = Math.max(0, L.home[1] - ty);
-        const len = Math.hypot(L.home[0] - L.up.joint[0], L.home[1] - L.up.joint[1]);
-        const a = Math.atan2(len, tx - hip[0]);
-        L.up.pos = [hip[0], hip[1] - rise * 0.8];
-        L.up.rot = a - Math.atan2(len, L.home[0] - L.up.joint[0]) - 0.0 + (this.bones.torso.rot);
-        L.lo.pos = L.paw.pos = [tx, ty]; L.lo.rot = L.paw.rot = 0;
-        continue;
-      }
-      solveLeg(L, hip, [tx, ty], pawTilt, bend, stretched);
-    }
-
-    // joint caps
-    for (const b of Object.values(B)) {
-      if (!b.cap) continue;
-      const [pa, ch] = b.cap.map(n => B[n]);
-      b.pos = ch.pos;
-      // halfway along the shorter arc: a plain average flips by 180 degrees when the angles wrap
-      b.rot = pa.rot + Math.atan2(Math.sin(ch.rot - pa.rot), Math.cos(ch.rot - pa.rot)) / 2;
-    }
-    for (const b of Object.values(B)) b.img.setPosition(b.pos[0], b.pos[1]).setRotation(b.rot).setScale(b.sx ?? 1, b.sy ?? 1);
-    this.updateLids(dt, Z, mode);
+    this.tailPhase += dt * (1.6 + 2.5 * W - 0.8 * Z + 1.4 * (this.motion.rideCloud ? F : 0));
+    applyPose(this.bones, this.legs, t, g, W, F, Z, hurt, A, this.motion, this.tailPhase, this.stride, this.lift);
+    for (const b of Object.values(this.bones)) b.img.setPosition(b.pos[0], b.pos[1]).setRotation(b.rot).setScale(b.sx ?? 1, b.sy ?? 1);
+    this.eyeState.blinkT = updateLids(this.eyeState.lids, this.bones.head.img, this.eyeState.blinkT, dt, Z, mode);    this.eyeState.blinkT = updateLids(this.eyeState.lids, this.bones.head.img, this.eyeState.blinkT, dt, Z, mode);
   }
 
   /** FK: bone rotation relative to its parent; position follows the parent's joint. */
