@@ -8,13 +8,15 @@ import { skill, type SkillActor, type SkillDef, type SkillSlot } from '../skills
 import { cloudKey, type SpeciesId } from '../config/species';
 import type { Island } from './Island';
 import type { IslandScene } from './IslandScene';
-import { DRAGON_SCALE, HUNGER, FLY_ALT, FLY_SPEED, LAND_S, TAKEOFF_S } from '../config/economy';
+import { DRAGON_SCALE, HUNGER } from '../config/economy';
 import { bump, clamp01, smooth } from '../config/world';
+import type { DragonFlight } from './Dragon.flight';
+import { advanceFlight } from './Dragon.flight';
 
 /** Width of the riding cloud in body px (the dragon is ~340 long). */
 const CLOUD_W = 470;
 
-interface Flight { phase: 'takeoff' | 'cruise' | 'land'; t: number; target: Point; landAt?: number; from?: number }
+type Flight = DragonFlight;
 
 export class Dragon implements SkillActor {
   x: number;
@@ -293,35 +295,15 @@ export class Dragon implements SkillActor {
   }
 
   private updateFlight(dt: number) {
-    const F = this.flight;
-    if (!F || this.action !== 'fly') {
-      this.alt = Math.max(0, this.alt - 260 * dt);
-      return;
-    }
-    F.t += dt;
-    if (F.phase === 'takeoff') {
-      this.alt = FLY_ALT * smooth(clamp01((F.t - 0.15) / (TAKEOFF_S - 0.15)));
-      if (F.t >= TAKEOFF_S) F.phase = 'cruise';
-    }
-    if (F.phase !== 'land' && F.t > 0.35) {
-      const dx = F.target[0] - this.x, dy = F.target[1] - this.y, dist = Math.hypot(dx, dy);
-      const step = FLY_SPEED * this.island.depthScale(this.y) * dt;
-      if (dist <= step) {
-        [this.x, this.y] = F.target; F.phase = 'land'; F.landAt = F.t; F.from = this.alt;
-      } else {
-        this.x += dx / dist * step; this.y += dy / dist * step;
-        if (Math.abs(dx) > 30 && Math.sign(dx) !== this.dir) this.turn(Math.sign(dx) as 1 | -1);
-      }
-    }
-    if (F.phase === 'land') {
-      const u = clamp01((F.t - F.landAt!) / LAND_S);
-      this.alt = F.from! * (1 - smooth(u));
-      if (u >= 1) {
-        this.alt = 0;
-        this.scene.ambient.dustRing(this);
-        this.setAction('idle');
-        this.rest = Phaser.Math.FloatBetween(2, 8);
-      }
-    }
+    const { alt } = advanceFlight(dt, this.flight, {
+      getX: () => this.x, getY: () => this.y,
+      getAlt: () => this.alt, depthScale: y => this.island.depthScale(y),
+      setAlt: v => { this.alt = v; }, setX: v => { this.x = v; }, setY: v => { this.y = v; },
+      turn: d => this.turn(d), dir: this.dir, action: this.action,
+      setAction: a => this.setAction(a as import('../bridge').DragonAction),
+      dustRing: () => this.scene.ambient.dustRing(this),
+      setRest: v => { this.rest = v; },
+    });
+    this.alt = alt;
   }
 }
