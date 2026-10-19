@@ -1,7 +1,4 @@
-// Thần Long (Thiên) skills: Hắc Long's holy twin - same aerial moves, light instead of shadow.
-// vfx: 1 holy bite flash, 2 healing sparkles, 3 light spear (points DOWN), 4 spear impact,
-//      5 holy sigil (laid on the ground), 6 divine halo, 7 holy wind crescent (points right), 8 blessing column
-// Signature: spears of light falling from the sky onto glowing sigils, a halo behind it, healing.
+// Thần Long skills.
 import type { SkillDef } from './types';
 
 const dmg = (scale: number) => `-${Math.round((180 + Math.random() * 40) * scale)}`;
@@ -10,7 +7,6 @@ const HEAL = '#7dffa0';
 export const CELESTIAL_DRAGON_SKILLS: SkillDef[] = [
   { type: 'passive', name: 'Thánh Quang Hộ Thể', desc: 'Đầu trận toàn đội nhận Lá Chắn 10% Sinh lực tối đa; Thần Long miễn hiệu ứng khống chế lượt đầu.' },
   {
-    // dives and snaps with jaws of light, healing sparkles flow back into it
     type: 'basic', name: 'Thánh Trảo', desc: 'Bổ nhào cắn bằng hàm thánh quang: 100% Công lên 1 mục tiêu, hồi 20% sát thương gây ra.',
     anim: 'attack', target: 'enemy',
     run: async ({ self, targets: [t], fx, bite }) => {
@@ -22,7 +18,6 @@ export const CELESTIAL_DRAGON_SKILLS: SkillDef[] = [
     },
   },
   {
-    // sigils open under every enemy, then a spear of light falls onto each one
     type: 'skill', name: 'Thiên Quang Phán Xét', desc: 'Gọi mưa thương ánh sáng từ trời: 90% Công lên toàn bộ địch, giảm 15% Công 2 lượt.',
     anim: 'cast', target: 'enemies',
     run: async ({ targets, fx, projectile, wait, shake }) => {
@@ -39,7 +34,6 @@ export const CELESTIAL_DRAGON_SKILLS: SkillDef[] = [
     },
   },
   {
-    // soars with a halo behind it, holy wind sweeps both ways, blessing light falls on the team
     type: 'ultimate', name: 'Thần Long Hàng Thế', desc: 'Bay lên dang cánh toả thánh quang: 220% Công toàn bộ địch, hồi 25% Sinh lực toàn đội.',
     anim: 'ultimate', target: 'enemies',
     run: async ({ self, targets, fx, wait, shake }) => {

@@ -1,5 +1,4 @@
-// Kì Lân (Hỏa) skills: spits golden dragon heads that pierce the whole enemy line.
-// vfx: 1 golden dragon head, 2 gold trail, 3 mouth flash, 4 pierce hit, 5 sparks, 6 ground ring, 7 golden swirls, 8 soft glow
+// Kì Lân skills.
 import type { SkillDef } from './types';
 import { spitDragonHead } from './helpers';
 
@@ -8,7 +7,6 @@ const dmg = (scale: number) => `-${Math.round((180 + Math.random() * 40) * scale
 export const QILIN_SKILLS: SkillDef[] = [
   { type: 'passive', name: 'Kim Lân Hộ Thể', desc: 'Lân hỏa hộ thân: kẻ đánh thường vào Kì Lân bị Thiêu Đốt 1 lượt (30% Công); miễn nhiễm Thiêu Đốt.' },
   {
-    // one heavy claw, then the target keeps burning for two ticks
     type: 'basic', name: 'Lân Trảo', desc: '80% Công lên 1 mục tiêu và Thiêu Đốt: thêm 2 lần 20% Công.', anim: 'attack', target: 'enemy',
     run: async ({ targets: [t], fx, wait }) => {
       fx(4, t.chest(), { scale: 0.45, dur: 420 });

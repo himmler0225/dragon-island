@@ -1,6 +1,4 @@
-// Weather on the islands: clear, cloudy (gloomy grey) or rain. Changes every few minutes at random.
-// A grey multiply layer dims the world (on top of the day/night tint), rain streaks fall over the
-// camera view and land as ripples on the sea; lamps light up when it gets gloomy (scene.night).
+// Weather: clear, cloudy or rain. Changes at random intervals.
 import * as Phaser from 'phaser';
 
 export type WeatherKind = 'clear' | 'cloudy' | 'rain';
@@ -10,13 +8,12 @@ const DROPS = 260;
 
 export class Weather {
   kind: WeatherKind = 'clear';
-  /** 0..1, eased toward the current kind's gloom */
   gloom = 0;
-  /** dev: force a kind, e.g. window.__game.scene.getScene('island').weather.set('rain') */
+  /** dev: force a kind */
   private next = 0;
   private layer: Phaser.GameObjects.Rectangle;
   private drops: Phaser.GameObjects.Rectangle[] = [];
-  private rain = 0;   // 0..1 rain strength (eased)
+  private rain = 0;
 
   constructor(private scene: Phaser.Scene, x: number, y: number, w: number, h: number, private onSea: (x: number, y: number) => boolean) {
     this.layer = scene.add.rectangle(x, y, w, h, 0x56606e, 0).setDepth(899).setBlendMode(Phaser.BlendModes.MULTIPLY);
@@ -53,7 +50,7 @@ export class Weather {
       d.y += 900 * dt; d.x += 190 * dt;
       if (d.y >= d.getData('land')) {
         if (Math.random() < 0.08 && this.onSea(d.x, d.y)) this.ripple(d.x, d.y);
-        d.y = view.bottom + 30;   // recycled next frame
+        d.y = view.bottom + 30;
       }
     });
   }

@@ -20,9 +20,6 @@ const VIOLET = 0xb050ff, GOLD = 0xffe27a, HEAL = '#7dffa0';
 
 export const COMBOS: ComboDef[] = [
   {
-    // Âm Dương Long Kích: shadow and light. Both dive; a dark orb and a light orb fly from the two mouths
-    // and meet above the enemies, a spinning sigil opens on the ground, then every enemy is hit twice -
-    // the shadow jaws first, a pillar of light right after. Light heals the team, shadow breaks armour.
     id: 'am_duong_long_kich', name: 'Âm Dương Long Kích', pair: ['hac_long', 'than_long'], anim: 'ultimate',
     desc: 'Hắc Long và Thần Long cùng bổ nhào, bóng tối và thánh quang hợp nhất: 2 đòn 150% Công lên toàn bộ địch, '
       + 'phá 30% Giáp và choáng 1 lượt; toàn đội hồi 20% Sinh lực.',
@@ -30,13 +27,13 @@ export const COMBOS: ComboDef[] = [
       const xs = targets.map(t => t.feet()), n = Math.max(1, xs.length);
       const mid = { x: xs.reduce((s, p) => s + p.x, 0) / n, y: xs.reduce((s, p) => s + p.y, 0) / n };
       const above = { x: mid.x, y: mid.y - 170 };
-      // the two orbs spiral in from both mouths and collide
+      // two orbs fly in and collide
       await Promise.all([
         dark.orb(dark.self.mouth(), above, { tint: VIOLET, scale: 1.3, dur: 520 }),
         light.orb(light.self.mouth(), above, { tint: GOLD, scale: 1.3, dur: 520 }),
       ]);
       dark.shake(700, 0.016);
-      // the shadow sigil and the holy sigil open on the same spot, turning opposite ways
+      // sigils open and spin opposite ways
       dark.fx(4, mid, { scale: 1.1, ground: true, spin: 6, dur: 1800, tint: VIOLET });
       light.fx(5, mid, { scale: 0.75, ground: true, spin: -6, dur: 1800 });
       await dark.wait(250);

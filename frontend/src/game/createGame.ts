@@ -1,5 +1,4 @@
-// Boot Phaser with the island scene. Browser only: import this module dynamically from a
-// Client Component (see components/Island.tsx).
+// Boot Phaser with the island scene.
 import * as Phaser from 'phaser';
 import { H, W } from './config/world';
 import { IslandScene } from './scene/IslandScene';

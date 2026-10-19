@@ -1,8 +1,5 @@
-// The battle field: a transparent Phaser canvas laid over the battle screen's background. Dragons are
-// the same cut-out rigs as on the islands. Browser only: import dynamically.
-// The React BattleScreen owns the rules (mana, statue HP, clock); this moves the dragons, lets them
-// fight whatever enemy comes in reach (HP bars, damage numbers, deaths) and reports when one reaches
-// the other side's statue. Winged dragons (and Hải Long on its cloud) fly across instead of walking.
+// Battle field: transparent Phaser canvas over the battle screen background.
+// Winged dragons fly across; others walk. React owns mana, clock and win/loss.
 import * as Phaser from 'phaser';
 import { DragonRig, rigTextureKey, type RigData } from '../rig';
 import { SPECIES, SPECIES_INFO, cloudKey, cloudUrl, rigUrl, type SpeciesId } from '../config/species';

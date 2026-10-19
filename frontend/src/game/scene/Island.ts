@@ -1,4 +1,4 @@
-// One floating island: its art, shoreline waves, walkable ground, buildings and their production.
+// Island: art, walkable ground, buildings, production, lamps and grass.
 import * as Phaser from 'phaser';
 import {
   BUILDING_SCALE, PRODUCES, PRODUCTION,
@@ -94,7 +94,7 @@ export class Island {
     const { scene, def } = this;
     const pts = def.walk.map(p => this.toWorld(p));
     const cx = pts.reduce((s, p) => s + p[0], 0) / pts.length, cy = pts.reduce((s, p) => s + p[1], 0) / pts.length;
-    // every other corner of the walk area, pulled 12% toward the middle so the lamps stand on grass
+    // every other corner of the walk area, pulled toward the middle so the lamps stand on grass
     pts.filter((_, k) => k % 2 === 1).forEach(([px, py], k) => {
       const x = px + (cx - px) * 0.12, y = py + (cy - py) * 0.12;
       if (!this.free(x, y, 10)) return;
@@ -121,7 +121,7 @@ export class Island {
     }
   }
 
-  /** feet: ground positions of the dragons standing / walking on this island */
+  /** Animate grass tufts when dragons walk over them. `feet`: dragon ground positions. */
   stepGrass(feet: { x: number; y: number }[], dt: number) {
     for (const g of this.tufts) {
       const pressed = feet.some(p => Math.abs(p.x - g.x) < 42 && Math.abs(p.y - (g.y + this.bob)) < 22);

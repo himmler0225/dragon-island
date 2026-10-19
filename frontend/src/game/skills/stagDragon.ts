@@ -1,4 +1,4 @@
-// Tuấn Long (Quang) skills: support, healing.
+// Tuấn Long skills: support, healing.
 import type { SkillDef } from './types';
 
 const dmg = (scale: number) => `-${Math.round((180 + Math.random() * 40) * scale)}`;
@@ -8,7 +8,6 @@ export const STAG_DRAGON_SKILLS: SkillDef[] = [
   { type: 'passive', name: 'Linh Giác', desc: 'Đầu mỗi lượt, đồng đội ít máu nhất hồi 5% Sinh lực tối đa.' },
   {
     type: 'basic', name: 'Húc Sừng', desc: '80% Công, 30% khả năng xoá 1 hiệu ứng tốt của mục tiêu.', anim: 'attack', target: 'enemy',
-    // antler charge: a streak of light from Tuấn Long to the target, the hit knocks it back
     run: async ({ self, targets: [t], fx, projectile }) => {
       await projectile(1, self.chest(), t.chest(), { dur: 260, scale: 0.4, flipX: self.facing < 0, rotate: false });
       fx(2, t.chest(), { scale: 0.45, dur: 450 });

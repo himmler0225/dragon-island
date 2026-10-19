@@ -1,6 +1,4 @@
-// Status effects (Đóng Băng, Thiêu Đốt, Nguyền Rửa): which hit applies which. Pure rules, no Phaser;
-// the look is scene/effects/statusFx.ts. Skills print status words (t.text('Thiêu Đốt')) and some
-// species put a status on their hits by themselves.
+// Status effects (Đóng Băng, Thiêu Đốt, Nguyền Rửa): which hit applies which.
 import type { SpeciesId } from '../config/species';
 
 export type StatusKind = 'freeze' | 'burn' | 'curse';

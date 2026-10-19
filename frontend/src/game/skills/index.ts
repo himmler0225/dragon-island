@@ -1,4 +1,4 @@
-// Public API of the skills/ folder.
+// Skills module exports.
 export * from './types';
 export * from './registry';
 export * from './combos';

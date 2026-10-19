@@ -1,4 +1,4 @@
-// Ambient effects: makeTextures, splash, footDust, cloudPuff, dustRing, sleepZ.
+// Ambient effects: foot dust, cloud puff, dust ring, sleep z, grass step, fish jump, splash.
 // All use this.scene for Phaser objects.
 import type { IslandScene } from '../IslandScene';
 import type { Dragon } from '../Dragon';

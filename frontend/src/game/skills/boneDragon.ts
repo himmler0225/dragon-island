@@ -1,5 +1,4 @@
-// Rồng Xương (Ám) skills: bone wyvern, its wings are weapons.
-// vfx: 1 gust crescent, 2 gust cone, 3 dust/bone burst, 4 bite flash, 5 green life drain, 6 falling bone, 7 ground crack, 8 green ghost fire
+// Rồng Xương skills.
 import type { SkillDef } from './types';
 
 const dmg = (scale: number) => `-${Math.round((180 + Math.random() * 40) * scale)}`;

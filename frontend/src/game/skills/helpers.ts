@@ -1,9 +1,9 @@
-// Shared skill helper functions used by multiple species.
+// Helper functions shared by multiple species.
 import type { SkillCtx } from './types';
 
 const dmg = (scale: number) => `-${Math.round((180 + Math.random() * 40) * scale)}`;
 
-/** A golden dragon head flies from the mouth straight through every target in front, hitting each as it passes. */
+/** A golden dragon head flies through every enemy in front, hitting each as it passes. */
 export async function spitDragonHead(ctx: SkillCtx, scale: number) {
   const { self, targets, fx, projectile, wait } = ctx;
   const dir = self.facing, m = self.mouth();

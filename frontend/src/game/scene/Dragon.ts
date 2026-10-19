@@ -1,5 +1,5 @@
-// One dragon on the island: where it is, what it is doing, and its rig.
-// Movement rules (walk on grass, take off / cruise / land, wander) ported from legacy/index.html.
+// Dragon on the island: position, action, rig, hunger and AI.
+// Movement: walk on grass, take off / cruise / land, wander.
 import * as Phaser from 'phaser';
 import type { Point } from '../config/world';
 import { gameEvents, type DragonAction } from '../bridge';

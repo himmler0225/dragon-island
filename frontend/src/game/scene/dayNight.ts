@@ -1,6 +1,5 @@
-// Day / night cycle on the islands, following the real clock in Ho Chi Minh City (Asia/Ho_Chi_Minh).
-// A multiply-tint layer over the world darkens and colours it (pink dawn, orange dusk, blue night) and
-// the ocean shader gets a `night` uniform that deepens the water. Phaser-free maths + a tiny view.
+// Day / night cycle following Ho Chi Minh City time.
+// A multiply-tint layer darkens and colours the world; the ocean shader gets a `night` uniform.
 import * as Phaser from 'phaser';
 
 /** Keyframes by hour of day: tint colour, tint strength (0..1), water darkness (0..1). */

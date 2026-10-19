@@ -1,5 +1,4 @@
-// The basic chibi dragons: Rồng Lửa (fire), Rồng Đất (earth), Rồng Rừng (forest), Rồng Băng (ice). No vfx.png yet: their moves use the
-// code-drawn effects (bite, orb, gust, elementRain, splash).
+// Basic chibi dragon skills.
 import type { SkillDef } from './types';
 
 const dmg = (scale: number) => `-${Math.round((150 + Math.random() * 40) * scale)}`;

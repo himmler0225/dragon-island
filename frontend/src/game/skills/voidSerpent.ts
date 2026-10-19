@@ -1,6 +1,4 @@
-// Tử Xà Long (Hư Không) skills: it never fights in the line - its attacks come out of time rifts
-// torn open beside the enemy line (ctx.rift: its own head reaches out of the tear).
-// No vfx.png yet: the rift, the purple fire and the embers are code-drawn.
+// Tử Xà Long skills.
 import type { SkillDef, Spot } from './types';
 
 const dmg = (scale: number) => `-${Math.round((180 + Math.random() * 40) * scale)}`;

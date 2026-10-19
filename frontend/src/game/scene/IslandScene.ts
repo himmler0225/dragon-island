@@ -1,5 +1,4 @@
-// The archipelago: ocean, the islands (one per screen, side by side), the dragons on them, and
-// every visual effect. Talks to React only through bridge.ts.
+// The archipelago: ocean, islands, dragons, effects.
 import * as Phaser from 'phaser';
 import { H, ISLANDS, W, islandCentre } from '../config/world';
 import type { Point } from '../config/world';

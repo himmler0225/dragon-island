@@ -1,5 +1,4 @@
-// Hắc Long (Băng) skills: assassin that strikes from the air.
-// vfx: 1 claw slash, 2 dark mist, 3 life drain, 4 ground sigil, 5 purple sparks, 6 jaw flash, 7 ground crack, 8 water ring
+// Hắc Long skills.
 import type { SkillDef } from './types';
 
 const dmg = (scale: number) => `-${Math.round((180 + Math.random() * 40) * scale)}`;
@@ -7,7 +6,6 @@ const dmg = (scale: number) => `-${Math.round((180 + Math.random() * 40) * scale
 export const BLACK_DRAGON_SKILLS: SkillDef[] = [
   { type: 'passive', name: 'Cuồng Nộ', desc: 'Khi Sinh lực dưới 50%: +40% Tốc độ và +25% tỉ lệ chí mạng trong 2 lượt (1 lần/trận).' },
   {
-    // three quick rakes in a row from the dive, each at a steeper angle, dark mist after the last
     type: 'basic', name: 'Vuốt Rồng', desc: 'Bay lên rồi bổ nhào, cào liên tiếp 3 nhát: mỗi nhát 40% Công vào 1 mục tiêu.', anim: 'attack', target: 'enemy',
     run: async ({ self, targets: [t], fx, wait }) => {
       for (const [k, a] of [-0.35, 0, 0.35].entries()) {

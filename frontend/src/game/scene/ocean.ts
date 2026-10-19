@@ -1,4 +1,4 @@
-// Stylised ocean: two drifting noise layers + bright caustic bands, lighter near each island.
+// Stylised ocean: two noise layers + caustic bands, lighter near each island.
 import type { Point } from '../config/world';
 
 /** Fragment shader for a `width` x `height` ocean with shallow water around `centres` (world px). */

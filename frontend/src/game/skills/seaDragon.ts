@@ -1,5 +1,4 @@
-// Hải Long (Thủy) skills: spits water from the mouth, head thrust forward.
-// vfx: 1 water orb, 2 water jet, 3 mouth spray, 4 splash hit, 5 wet mark, 6 dragon pearl, 7 water pillar, 8 foam ring
+// Hải Long skills.
 import type { SkillDef } from './types';
 
 const dmg = (scale: number) => `-${Math.round((180 + Math.random() * 40) * scale)}`;

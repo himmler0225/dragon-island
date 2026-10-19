@@ -1,9 +1,4 @@
-// Rồng Vàng (Kim) and Rồng Bạc (Nguyệt) skills: the same upright feathered dragon in two colours,
-// so one set of moves with its own names; each species' vfx.png gives the colour (gold / silver).
-// vfx: 1 claw X slash, 2 hit spark, 3 mouth charge swirl, 4 light beam (points right), 5 beam impact,
-//      6 light pillar falling, 7 ground shock-wave ring, 8 falling feathers
-// Signature moves (no other dragon has them): an X rake that hits twice, a straight light BEAM from
-// the mouth (charge -> beam -> impacts down the line), and pillars of light with a ground ring.
+// Gold and Silver Dragon skills.
 import type { SkillDef } from './types';
 
 const dmg = (scale: number) => `-${Math.round((180 + Math.random() * 40) * scale)}`;
@@ -19,7 +14,6 @@ function twinSkills(look: Look): SkillDef[] {
   return [
     { type: 'passive', name: passive, desc: look.passive },
     {
-      // Song Trảo: rakes both claws down in an X - two hits, the second one heavier
       type: 'basic', name: basic, desc: 'Lao tới cào chéo bằng hai vuốt: 2 lần 60% Công lên 1 mục tiêu.', anim: 'attack', target: 'enemy',
       run: async ({ self, targets: [t], fx, wait, shake }) => {
         const c = t.chest(), flip = self.facing < 0;
@@ -34,7 +28,6 @@ function twinSkills(look: Look): SkillDef[] {
       },
     },
     {
-      // Long Quang: light gathers in the mouth, then one straight beam scorches every enemy in a line
       type: 'skill', name: skill, desc: 'Tụ sáng trong miệng rồi phun một luồng sáng thẳng: 110% Công lên toàn bộ địch trên đường, giảm 20% Thủ 2 lượt.',
       anim: 'cast', target: 'enemies',
       run: async ({ self, targets, fx, beam, wait, shake }) => {
@@ -53,8 +46,6 @@ function twinSkills(look: Look): SkillDef[] {
       },
     },
     {
-      // Thiên Long Giáng: soars up, dives and stamps - a shock ring spreads, pillars of light fall on
-      // every enemy and feathers drift down
       type: 'ultimate', name: ultimate, desc: 'Vút lên rồi lao xuống đạp đất: cột sáng giáng xuống, 200% Công toàn bộ địch, choáng 1 lượt.',
       anim: 'ultimate', target: 'enemies',
       run: async ({ self, targets, fx, wait, shake }) => {

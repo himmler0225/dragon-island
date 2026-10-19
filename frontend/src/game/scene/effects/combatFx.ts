@@ -1,5 +1,4 @@
-// Combat effects: fx, projectile, bite, gust, boneRain, orb, waterSplash, floatText.
-// All use this.scene for Phaser objects (any scene that ran makeFxTextures and loaded the vfx).
+// Combat effects: fx, projectile, bite, gust, boneRain, orb, splash, floatText.
 import type { Spot, FxOpts } from '../../skills/types';
 import type { SpeciesId } from '../../config/species';
 import { jawKey } from '../../skills/registry';
@@ -8,15 +7,13 @@ import { rigTextureKey, type RigData } from '../../rig';
 import type { SkillActor, RiftOpts, ElementRainOpts } from '../../skills/types';
 
 export class CombatFx {
-  constructor(private scene: Phaser.Scene) {}   // the islands and the battle field
+  constructor(private scene: Phaser.Scene) {}
 
-  /** Peak opacity of the glow images: additive light piles up, so a crowded field (the battle) turns
-   *  it down or the stacked effects wash everything out to white. */
+  /** Peak opacity of the glow images. */
   intensity = 1;
-  /** At most this many glow images at once; further ones are skipped (the moves still land). */
+  /** At most this many glow images at once; further ones are skipped. */
   budget = Infinity;
-  /** ADD on the islands; the battle uses SCREEN: it lightens too, but stacked glows never burn to
-   *  white over the bright battleground */
+  /** ADD on the islands; SCREEN on the battle field: stacked glows never burn to white. */
   blend: Phaser.BlendModes = Phaser.BlendModes.ADD;
   /** Size factor for fx / projectiles (the battle draws them a little smaller). */
   size = 1;

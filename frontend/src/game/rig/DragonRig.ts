@@ -1,7 +1,4 @@
-// Cut-out (skeletal) dragon: pieces and joints from public/dragons/<id>/rig.json (tools/build_rig.py).
-// Forward kinematics for head/wings/tail, 2-bone IK for the legs, a lateral-sequence walk
-// (left hind -> left fore -> right hind -> right fore), breathing, tail sway, wing flap, sleep pose.
-// Rig space: origin on the ground under the body, y up is negative, the dragon faces left.
+// Dragon rig: pieces, joints, IK, walk, flight, breathing and strikes.
 import * as Phaser from 'phaser';
 import { RIG } from './tuning';
 import { solveLeg } from './ik';
