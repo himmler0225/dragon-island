@@ -2,7 +2,7 @@
 import * as Phaser from 'phaser';
 import type { SpeciesId } from '../config/species';
 import { SPECIES, SPECIES_INFO, cloudKey, cloudUrl, rigUrl } from '../config/species';
-import { JAW_SPECIES, NO_VFX, SKILLS, VFX_COUNT, jawKey, jawUrl, vfxKey, vfxUrl } from '../skills/registry';
+import { JAW_SPECIES, NO_VFX, SKILLS, jawKey, jawUrl, vfxKey, vfxNumbers, vfxUrl } from '../skills/registry';
 import type { SkillActor, SkillCtx, SkillSlot } from '../skills/types';
 import { CombatFx } from '../scene/effects/combatFx';
 import { makeFxTextures } from '../scene/effects/ambientFx';
@@ -12,13 +12,15 @@ import { statusFromText } from '../skills/status';
 import { STATUS } from '../skills/status';
 import { DragonRig, type RigData } from '../rig';
 import {
-  ALLY_START, ALLY_STATUE, ANIM, BANNER_GAP, COOLDOWN, CRIT, DIM_S, DROP_H, ENEMY_START, ENEMY_STATUE, FIELD_H, FIELD_W,
-  FLYERS, FLY_SPEED, HIGH, HUE, LANES, MAX_TARGETS, PACE, PRIORITY, RANGED, RANGED_REACH, REACH, SCALE, SPLASH, STATS,
+  ALLY_START, ALLY_STATUE, ANIM, COOLDOWN, CRIT, DIM_S, ENEMY_START, ENEMY_STATUE, FIELD_H, FIELD_W,
+  FLYERS, FLY_BONUS, FLY_REACH, FLY_SPEED, HIGH, HUE, LANES, MAX_TARGETS, PACE, PRIORITY, RANGED, RANGED_REACH, REACH, SCALE, SPLASH, STATS,
   STATUE_GAP, STATUE_H, STATUE_Y,
 } from './constants';
 import type { BattleEvents, Side } from './types';
 import type { Unit } from './units';
 import { CombatScene } from './combat';
+
+const MUSIC_KEY = 'battle_music', MUSIC_VOLUME = 0.45;
 
 class BattleScene extends Phaser.Scene {
   private units: Unit[] = [];
@@ -31,7 +33,6 @@ class BattleScene extends Phaser.Scene {
   private hpBars: Partial<Record<Side, { g: Phaser.GameObjects.Graphics; x: number; y: number; w: number; h: number }>> = {};
   private hp: Record<Side, number> = { ally: 1, enemy: 1 };
   private dimT = 0;
-  private bannerT = -99;
   private dim!: Phaser.GameObjects.Rectangle;
   constructor(private rigs: Record<SpeciesId, RigData>, private events_: BattleEvents) { super('battle'); }
 
@@ -39,17 +40,22 @@ class BattleScene extends Phaser.Scene {
     loadStatusTextures(this.load);
     this.load.on(Phaser.Loader.Events.PROGRESS, (p: number) => this.events_.progress?.(p));
     this.load.image('battle_bg', '/battle/background.jpg');
+    this.load.audio(MUSIC_KEY, '/audio/battle.mp3');   // cut from dragon-island-tools/assets/audio/battle_source.mp4
     for (const k of ['tower_ally', 'tower_enemy', 'hp_frame']) this.load.image(k, `/battle/${k}.png`);
     for (const id of SPECIES) {
       for (const b of this.rigs[id].bones) this.load.image(`rig_${id}_${b.name}`, `/dragons/${id}/${b.name}.png`);
       if (this.rigs[id].motion?.rideCloud) this.load.image(cloudKey(id, 'main'), cloudUrl(id, 'main'));
-      if (SKILLS[id].length && !NO_VFX.includes(id)) for (let n = 1; n <= (VFX_COUNT[id] ?? 8); n++) this.load.image(vfxKey(id, n), vfxUrl(id, n));
+      if (SKILLS[id].length && !NO_VFX.includes(id)) for (const n of vfxNumbers(id)) this.load.image(vfxKey(id, n), vfxUrl(id, n));
       if (JAW_SPECIES.includes(id)) for (const part of ['upper', 'lower'] as const) this.load.image(jawKey(id, part), jawUrl(id, part));
     }
   }
 
   create() {
     makeFxTextures(this);
+    // battle music: loops for the whole fight (Phaser starts it once the browser allows audio)
+    const music = this.sound.add(MUSIC_KEY, { loop: true, volume: MUSIC_VOLUME });
+    music.play();
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => music.destroy());
     this.bg = this.add.image(0, 0, 'battle_bg').setOrigin(0, 1).setDepth(-10);
     for (const side of ['ally', 'enemy'] as const) {
       const x = side === 'ally' ? ALLY_STATUE : ENEMY_STATUE;
@@ -113,8 +119,8 @@ class BattleScene extends Phaser.Scene {
 
   spawn(id: SpeciesId, side: Side) {
     const y = LANES[this.lane[side]++ % LANES.length] + Phaser.Math.Between(-18, 18);
-    const [r0, r1] = RANGED.includes(id) ? RANGED_REACH : REACH;
     const fly = FLYERS.includes(id);
+    const [r0, r1] = RANGED.includes(id) ? RANGED_REACH.map(r => r + (fly ? FLY_BONUS : 0)) : fly ? FLY_REACH : REACH;
     const root = this.add.container(side === 'ally' ? ALLY_START : ENEMY_START, y);
     const shadow = this.add.ellipse(0, 0, 180, 34, 0x2a1a08, fly ? 0.16 : 0.28);
     const body = this.add.container(0, 0);
@@ -137,7 +143,22 @@ class BattleScene extends Phaser.Scene {
       cd: { basic: 0, skill: Phaser.Math.FloatBetween(1, COOLDOWN.skill), ultimate: Phaser.Math.FloatBetween(3, COOLDOWN.ultimate + 2) },
     };
     this.units.push(unit);
-    this.combatH.dive(unit);
+    this.combatH.summon(unit);
+  }
+
+  /** Stomps already puffed, per unit (DragonRig.stomps goes up by one per front-paw landing). */
+  private stompSeen = new WeakMap<Unit, number>();
+
+  /** A front paw landed: a little burst of cloud (or dust) out from under the front feet. */
+  private stompPuff(u: Unit, alt: number) {
+    const dir = u.side === 'ally' ? 1 : -1, x = u.root.x + dir * 70 * SCALE, y = u.y - alt + 6;
+    for (let k = 0; k < 6; k++) {
+      const a = Math.PI * (k / 5), r = Phaser.Math.Between(40, 80);
+      const p = this.add.image(x, y, 'puff').setTint(u.cloud ? 0xf4f6ff : 0xd9c39a).setAlpha(0.8).setDepth(u.root.depth + 0.01)
+        .setScale(Phaser.Math.FloatBetween(1, 1.6));
+      this.tweens.add({ targets: p, x: x + Math.cos(a) * r, y: y - Math.sin(a) * r * 0.3, alpha: 0, scale: p.scale * 1.8,
+        duration: Phaser.Math.Between(350, 520), ease: 'Cubic.easeOut', onComplete: () => p.destroy() });
+    }
   }
 
   private head(u: Unit) { return u.y - u.alt - 150 * SCALE; }
@@ -180,7 +201,7 @@ class BattleScene extends Phaser.Scene {
   private statue(side: Side): SkillActor {
     const x = side === 'ally' ? ENEMY_STATUE : ALLY_STATUE;
     return {
-      id: 'hac_long',
+      id: 'black_dragon',
       feet: () => ({ x, y: 760 }), chest: () => ({ x, y: 640 }), head: () => ({ x, y: 560 }), hurt: () => {},
       text: text => {
         if (!/^-\d+$/.test(text)) return;
@@ -229,8 +250,6 @@ class BattleScene extends Phaser.Scene {
 
   private ultimate(u: Unit, name: string, targets: SkillActor[]) {
     this.dimT = DIM_S;
-    const now = this.time.now / 1000;
-    if (now - this.bannerT > BANNER_GAP) { this.bannerT = now; this.events_.ultimate?.(u.id, name, u.side); }
     const { c, mark } = HUE[u.id];
     this.time.delayedCall(700, () => targets.forEach(t => {
       const f = t.feet();
@@ -251,7 +270,8 @@ class BattleScene extends Phaser.Scene {
       rift: (at, ts, onHit, o) => fx.callRift(u.id, this.rigs[u.id], at, ts, onHit, o),
       elementRain: (ts, onHit, o) => fx.callElementRain(ts, onHit, o),
       wait: ms => new Promise(res => this.time.delayedCall(ms, res)),
-      shake: () => {},
+      // camera shake, damped: the skills ask for up to 0.016, harsh on a small field
+      shake: (ms, intensity) => { this.cameras.main.shake(ms, Math.min(intensity * 0.45, 0.006)); },
       bite: (at, o) => fx.callBite(u.id, at, o),
       gust: (from, dir, o) => fx.callGust(from, dir, o),
       boneRain: (at, o) => fx.callBoneRain(at, o),
@@ -269,8 +289,8 @@ class BattleScene extends Phaser.Scene {
       u.t += dt;
       if (u.drop > 0) {
         u.rig.update(dt, u.fly ? 'fly' : 'idle');
-        u.body.setY(-(u.alt + DROP_H * u.drop) / SCALE);
-        u.shadow.setScale((u.fly ? 0.7 : 1) * (1 - 0.7 * u.drop));
+        u.body.setY(-u.alt / SCALE);
+        u.shadow.setScale((u.fly ? 0.7 : 1) * (1 - u.drop));
         u.root.setDepth(5 + u.y / 1000 + 1);
         continue;
       }
@@ -291,20 +311,23 @@ class BattleScene extends Phaser.Scene {
         const slot = u.busy <= 0 ? PRIORITY.find(k => u.cd[k] <= 0) : undefined;
         if (slot) this.attack(u, foe, slot);
       } else {
-        u.root.x += dir * dt * (u.fly ? FLY_SPEED : u.rig.walkSpeed(SCALE) * PACE);
         moving = true;
       }
+      // walkers speed up and slow down with their walk blend (feet and ground stay in step), and
+      // coast the last bit of it when they stop; flyers glide at a steady speed
+      if (u.fly) { if (moving) u.root.x += dir * dt * FLY_SPEED; }
+      else if (!frozen && (moving || u.rig.walk > 0.02)) u.root.x += dir * dt * u.rig.walkSpeed(SCALE) * PACE * u.rig.walk;
       if (frozen) u.rig.update(0, u.fly ? 'fly' : 'idle');
       else if (u.fly) u.rig.update(dt * (u.busy > 0 ? u.anim : 1), 'fly');
       else u.rig.update(moving ? dt * PACE : dt * (u.busy > 0 ? u.anim : 1), moving ? 'walk' : 'idle');
       const alt = u.fly ? u.alt + 8 * Math.sin(u.t * 2.4) : 0;
+      if (u.rig.stomps !== (this.stompSeen.get(u) ?? 0)) { this.stompSeen.set(u, u.rig.stomps); this.stompPuff(u, alt); }
       u.body.setY(-alt / SCALE - u.rig.air);
       u.body.setX((u.side === 'ally' ? -u.kick : u.kick) / u.root.scaleX);
-      u.cloud?.setY(4 + 3 * Math.sin(u.t * 2.2));
       u.shadow.setScale(u.fly ? 0.7 : 1);
       u.root.setDepth(5 + u.y / 1000 + (u.fly ? 1 : 0));
       u.bar.clear().setDepth(4000);
-      if (u.hp < u.maxHp) {
+      {   // always shown, full or not
         const w = 90, x = u.root.x - w / 2, y = this.head(u) - (u.fly ? 0 : 10);
         u.bar.fillStyle(0x000000, 0.6).fillRoundedRect(x - 2, y - 2, w + 4, 11, 4)
           .fillStyle(u.side === 'ally' ? 0x3dd44f : 0xe8433a, 1).fillRoundedRect(x, y, w * Math.max(0, u.hp / u.maxHp), 7, 3);
@@ -325,6 +348,7 @@ export async function createBattle(parent: HTMLElement, events: BattleEvents): P
     type: Phaser.WEBGL, parent, width: w, height: h, backgroundColor: '#0a0d14', powerPreference: 'high-performance',
     scene, scale: { mode: Phaser.Scale.NONE, zoom: 1 / res },
   });
+  if (process.env.NODE_ENV !== 'production') (window as unknown as { __battle?: Phaser.Game }).__battle = game;
   const watch = new ResizeObserver(() => game.scale.resize(...size()));
   watch.observe(parent);
   await new Promise<void>(res => game.events.once(Phaser.Core.Events.READY, () => res()));

@@ -13,7 +13,7 @@ export type StrikeKind = 'attack' | 'cast' | 'ultimate';
 export interface Strike { dur: number; hit: number; t: number[]; [ch: string]: number[] | number }
 
 /** Species that fight from the air: they hover this high (body px) until a few seconds after a move. */
-export const COMBAT_HOVER: Partial<Record<SpeciesId, number>> = { hac_long: 95, than_long: 95, phuong_hoang_lua: 95, phuong_hoang_bang: 95 };
+export const COMBAT_HOVER: Partial<Record<SpeciesId, number>> = { black_dragon: 95, celestial_dragon: 95, fire_phoenix: 95, ice_phoenix: 95 };
 
 type StrikeSet = Record<StrikeKind, Strike>;
 export type { StrikeSet };
@@ -32,9 +32,15 @@ export interface RigData {
     hindKnee?: 'back';
     foreArms?: boolean;
     noFly?: boolean;
+    /** peacock tail: how far each fan_k feather turns (rad) when the tail opens fully (strike channel `fan`) */
+    fan?: number[];
     rigidLegs?: boolean;
     stride?: number;
+    /** how high the swinging paws lift, x RIG.lift (default 1): low for short crouched legs */
+    liftScale?: number;
     flyHang?: [number, number];
+    /** share of the head's own sway kept (default 1); low for a stiff neck drawn in one piece with the skull */
+    neck?: number;
     idleHover?: number;
     swingTilt?: number;
     slither?: boolean;

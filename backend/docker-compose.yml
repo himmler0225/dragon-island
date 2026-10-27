@@ -1,0 +1,19 @@
+# Local Postgres for development: `docker compose up -d`
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: dragon
+      POSTGRES_PASSWORD: dragon
+      POSTGRES_DB: dragon_island
+    ports:
+      - '5433:5432'   # 5433 on the host: 5432 is often taken by another local Postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U dragon -d dragon_island']
+      interval: 5s
+      retries: 10
+
+volumes:
+  db-data:

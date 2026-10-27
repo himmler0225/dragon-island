@@ -20,7 +20,7 @@ const VIOLET = 0xb050ff, GOLD = 0xffe27a, HEAL = '#7dffa0';
 
 export const COMBOS: ComboDef[] = [
   {
-    id: 'am_duong_long_kich', name: 'Âm Dương Long Kích', pair: ['hac_long', 'than_long'], anim: 'ultimate',
+    id: 'am_duong_long_kich', name: 'Âm Dương Long Kích', pair: ['black_dragon', 'celestial_dragon'], anim: 'ultimate',
     desc: 'Hắc Long và Thần Long cùng bổ nhào, bóng tối và thánh quang hợp nhất: 2 đòn 150% Công lên toàn bộ địch, '
       + 'phá 30% Giáp và choáng 1 lượt; toàn đội hồi 20% Sinh lực.',
     run: async (dark, light, targets) => {

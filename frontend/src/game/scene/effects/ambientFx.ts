@@ -69,9 +69,9 @@ export class AmbientFx {
   cloudPuff(d: Dragon) {
     const s = d.scale, { x, y } = d.feet();
     const back = -d.dir;
-    const p = this.scene.add.image(x + back * Phaser.Math.Between(60, 110) * s, y - (d.height - 4) * s + Phaser.Math.Between(-6, 6) * s,
-      cloudKey(d.id, Phaser.Math.Between(1, CLOUD_PUFFS))).setScale(0.35 * s).setAlpha(0.9).setDepth(d.root.depth - 0.01).setFlipX(back > 0);
-    this.scene.tweens.add({ targets: p, x: p.x + back * 120 * s, y: p.y + 10 * s, scale: 0.55 * s, alpha: 0,
+    const p = this.scene.add.image(x + back * Phaser.Math.Between(42, 77) * s, y - (d.height - 4) * s + Phaser.Math.Between(-6, 6) * s,
+      cloudKey(d.id, Phaser.Math.Between(1, CLOUD_PUFFS))).setScale(0.25 * s).setAlpha(0.9).setDepth(d.root.depth - 0.01).setFlipX(back > 0);
+    this.scene.tweens.add({ targets: p, x: p.x + back * 85 * s, y: p.y + 7 * s, scale: 0.39 * s, alpha: 0,
       duration: 1100, ease: 'Sine.easeOut', onComplete: () => p.destroy() });
   }
 

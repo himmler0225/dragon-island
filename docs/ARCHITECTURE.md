@@ -68,8 +68,8 @@ components/game/GameScreen.tsx
 | Loại resource, tên, tốc độ sản xuất | `game/config/economy.ts` | `PRODUCTION`, `RESOURCE_NAME`, `BUILDING_NAME`, `DRAGON_SCALE`, `FLY_SPEED`, `FLY_ALT` |
 | Danh sách species, tên hiển thị, rarity | `game/config/species.ts` | `SPECIES`, `SPECIES_INFO` |
 | Tốc độ walk cycle, stride, leg lift, flap rate | `game/rig/tuning.ts` | `RIG.cycle`, `RIG.stride`, `RIG.lift`, `RIG.flapRate` |
-| Tư thế đánh/cast/ultimate | `game/rig/strikes.ts` | `STRIKES` |
-| Hiệu ứng skill (size, speed…) | `game/skills/registry.ts` | `VFX_SIZE`, `VFX_DUR` |
+| Tư thế đánh/cast/ultimate | `game/rig/strikes_data.ts` (bảng `STRIKES_DATA`) | `STRIKES` (re-export từ `strikes.ts`) |
+| Số lượng/đường dẫn vfx của từng loài | `game/skills/registry.ts` | `VFX_COUNT`, `BASIC_FX`, `NO_VFX`, `JAW_SPECIES`, `vfxNumbers()` |
 
 ## Cấu trúc scene
 

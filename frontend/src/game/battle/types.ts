@@ -12,7 +12,6 @@ export interface BattleApi {
 }
 
 export interface BattleEvents {
-  ultimate?(id: SpeciesId, name: string, side: Side): void;
   hit(side: Side): void;
   view?(from: number, to: number): void;
   progress?(p: number): void;

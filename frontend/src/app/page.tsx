@@ -7,21 +7,24 @@ import { SPECIES, SPECIES_INFO, portraitUrl, type SpeciesId } from "@/game/confi
 import styles from "./home.module.css";
 
 const DRAGON_BLURB: Record<SpeciesId, string> = {
-  ki_lan: "Linh thú điềm lành mình đỏ giáp vàng. Há miệng khạc ra đầu rồng vàng xuyên thủng cả đội hình địch.",
-  hai_long: "Long vương của biển cả với bờm lửa và chóp đuôi lông công. Thủ lĩnh bộ Tứ Hải Long Vương.",
-  hac_long: "Sát thủ bầu trời. Luôn chiến đấu trên không, bổ nhào xé toạc đối thủ và đoạt mệnh kẻ yếu.",
-  rong_xuong: "Bộ xương rồng sống lại nhờ ngọn lửa xanh trong lồng ngực. Hứng đòn, hút máu và hồi sinh.",
-  tuan_long: "Linh thú sừng băng bảo hộ cả đội: dựng lá chắn, giải hiệu ứng xấu và hồi sinh đồng đội.",
-  rong_vang: "Rồng lông vũ giáp vàng đứng thẳng như chiến binh. Cào chéo bằng song trảo và phun luồng sáng mặt trời.",
-  phuong_hoang_lua: "Phượng hoàng lửa giáp vàng: đi bốn chân, sải đôi cánh lông vũ rực cháy bay lượn khắp đảo.",
-  phuong_hoang_bang: "Song sinh băng giá của Phượng Hoàng Lửa: lông vũ bạc lấp lánh như sương, bay lượn trong gió lạnh.",
-  rong_cay_xanh_la: "Rồng rừng mảnh mai mang bờm lá thu, đứng bằng hai chân. Quất đuôi lá, gọi dây leo trói chân và hồi máu cho cả đội.",
-  rong_bang_xanh_bien: "Rồng con băng với đôi cánh pha lê. Phun hơi lạnh, bắn mảnh băng và gọi mưa pha lê làm đóng băng kẻ địch.",
-  rong_lua_do: "Rồng con lửa đỏ nghịch ngợm. Cắn bằng hàm răng rực lửa, khạc cầu lửa và gọi mưa lông vũ lửa thiêu đốt cả đội hình địch.",
-  rong_dat_nau: "Rồng đất giáp đá như khủng long nhỏ, không biết bay nhưng lì đòn. Dậm chân gây địa chấn và gọi mưa đá làm choáng kẻ địch.",
-  tu_xa_long: "Xà long tím của hư không. Không bao giờ đứng trên sân đấu: xé cổng thời gian trên trời, ló đầu ra phun lửa tím xuống cả đội hình địch.",
-  than_long: "Song sinh ánh sáng của Hắc Long: cùng thân hình, cùng lối đánh trên không, nhưng mang thánh quang hồi phục cả đội.",
-  rong_bac: "Song sinh ánh trăng của Rồng Vàng. Cùng chiêu thức nhưng mang sức mạnh ánh bạc, hồi phục dưới trăng.",
+  qilin: "Linh thú điềm lành mình đỏ giáp vàng. Há miệng khạc ra đầu rồng vàng xuyên thủng cả đội hình địch.",
+  sea_dragon: "Việt Hải Long Vương, rồng biển xanh bờm lửa với chóp đuôi lửa xanh. Đứng đầu Ngũ Hải Long Vương.",
+  east_sea_dragon: "Đông Hải Long Vương mình đỏ rực, bụng lam, chóp đuôi lông công ngậm ngọc. Phun thủy châu nóng như lửa.",
+  west_sea_dragon: "Tây Hải Long Vương vảy lục lam, bụng hồng, vây lá non. Long vương của biển rừng phía tây.",
+  north_sea_dragon: "Bắc Hải Long Vương xanh băng, bụng cam, đuôi lông công trắng. Hơi thở lạnh làm đóng băng kẻ địch.",
+  peacock: "Khổng Tước, chúa tể muôn loài chim. Xòe chiếc đuôi cầu vồng bắn tên lông vũ, nhảy vọt lên gọi cột sáng giáng xuống kẻ địch.",
+  south_sea_dragon: "Nam Hải Long Vương vảy vàng óng, bờm lam, đuôi lông công. Long vương của biển nắng phương nam.",
+  black_dragon: "Sát thủ bầu trời. Luôn chiến đấu trên không, bổ nhào xé toạc đối thủ và đoạt mệnh kẻ yếu.",
+  bone_dragon: "Bộ xương rồng sống lại nhờ ngọn lửa xanh trong lồng ngực. Hứng đòn, hút máu và hồi sinh.",
+  stag_dragon: "Linh thú sừng băng bảo hộ cả đội: dựng lá chắn, giải hiệu ứng xấu và hồi sinh đồng đội.",
+  gold_dragon: "Rồng lông vũ giáp vàng đứng thẳng như chiến binh. Cào chéo bằng song trảo và phun luồng sáng mặt trời.",
+  fire_phoenix: "Phượng hoàng lửa giáp vàng: đi bốn chân, sải đôi cánh lông vũ rực cháy bay lượn khắp đảo.",
+  ice_phoenix: "Song sinh băng giá của Phượng Hoàng Lửa: lông vũ bạc lấp lánh như sương, bay lượn trong gió lạnh.",
+  fire_dragon: "Rồng con lửa đỏ nghịch ngợm. Cắn bằng hàm răng rực lửa, khạc cầu lửa và gọi mưa lông vũ lửa thiêu đốt cả đội hình địch.",
+  earth_dragon: "Rồng đất giáp đá như khủng long nhỏ, không biết bay nhưng lì đòn. Dậm chân gây địa chấn và gọi mưa đá làm choáng kẻ địch.",
+  void_serpent: "Xà long tím của hư không. Không bao giờ đứng trên sân đấu: xé cổng thời gian trên trời, ló đầu ra phun lửa tím xuống cả đội hình địch.",
+  celestial_dragon: "Song sinh ánh sáng của Hắc Long: cùng thân hình, cùng lối đánh trên không, nhưng mang thánh quang hồi phục cả đội.",
+  silver_dragon: "Song sinh ánh trăng của Rồng Vàng. Cùng chiêu thức nhưng mang sức mạnh ánh bạc, hồi phục dưới trăng.",
 };
 const ELEMENT_CLASS: Record<string, string> = { Băng: styles.ice, Ám: styles.dark, Quang: styles.light, Thủy: styles.water };
 
@@ -47,7 +50,7 @@ const FEATURES = [
 export default function HomePage() {
   return (
     <div className={styles.page}>
-      <TopBar />
+      <TopBar active="/" />
 
       {/* Hero */}
       <section className={styles.hero}>

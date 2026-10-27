@@ -9,10 +9,10 @@ import { SpotTarget } from './SpotTarget';
 import { Island, LAMP_KEY, grassKey, NEST_KEY, buildingKey, eggKey, islandKey, resourceKey } from './Island';
 import { oceanFrag } from './ocean';
 import { DayNight, hcmHour } from './dayNight';
-import { BOAT_TEXTURES, FoodBoats } from './foodBoat';
-import { Weather } from './weather';
+import { BALLOON_TEXTURES, FoodBalloons } from './foodBalloon';
+import { RAIN_TEXTURES, Weather } from './weather';
 import { rigTextureKey, type RigData } from '../rig';
-import { COMBOS, JAW_SPECIES, NO_VFX, VFX_COUNT, SKILLS, combosFor, jawKey, jawUrl, skill, vfxKey, vfxUrl } from '../skills';
+import { COMBOS, JAW_SPECIES, NO_VFX, vfxNumbers, SKILLS, combosFor, jawKey, jawUrl, skill, vfxKey, vfxUrl } from '../skills';
 import { CLOUD_PUFFS, SPECIES, cloudKey, cloudUrl, type SpeciesId } from '../config/species';
 import type { SkillActor, SkillCtx, SkillDef, SkillSlot } from '../skills';
 import { CombatFx } from './effects/combatFx';
@@ -40,7 +40,7 @@ export class IslandScene extends Phaser.Scene {
   private press: { x: number; scrollX: number } | null = null;
   dragging = false;
   dayNight!: DayNight;
-  private boats!: FoodBoats;
+  private balloons!: FoodBalloons;
   weather!: Weather;
   private fishT = 4;
   /** 0 day .. 1 night, from dayNight (lamps on the islands follow it) */
@@ -63,7 +63,9 @@ export class IslandScene extends Phaser.Scene {
     this.load.image(NEST_KEY, '/eggs/nest.png');
     this.load.image(LAMP_KEY, '/props/lamp.png');
     for (let n = 1; n <= 6; n++) this.load.image(grassKey(n), `/props/grass_${n}.png`);
-    for (const k of BOAT_TEXTURES) this.load.image(k, `/boat/${k}.png`);
+    for (const [k, url] of BALLOON_TEXTURES) this.load.image(k, url);
+    for (let n = 1; n <= 4; n++) this.load.image(`hunger_${n}`, `/balloon/hunger_${n}.png`);
+    for (const k of RAIN_TEXTURES) this.load.image(k, `/weather/${k}.png`);
     for (let l = 1; l <= 10; l++) this.load.image(eggKey(l), `/eggs/egg_${l}.png`);
     for (const id of SPECIES) {
       for (const b of this.rigs[id].bones) this.load.image(rigTextureKey(id, b.name), `/dragons/${id}/${b.name}.png`);
@@ -71,7 +73,7 @@ export class IslandScene extends Phaser.Scene {
         for (const part of ['main', ...Array.from({ length: CLOUD_PUFFS }, (_, k) => k + 1)] as ('main' | number)[])
           this.load.image(cloudKey(id, part), cloudUrl(id, part));
       }
-      if (SKILLS[id].length && !NO_VFX.includes(id)) for (let n = 1; n <= (VFX_COUNT[id] ?? 8); n++) this.load.image(vfxKey(id, n), vfxUrl(id, n));
+      if (SKILLS[id].length && !NO_VFX.includes(id)) for (const n of vfxNumbers(id)) this.load.image(vfxKey(id, n), vfxUrl(id, n));
       if (JAW_SPECIES.includes(id)) for (const part of ['upper', 'lower'] as const) this.load.image(jawKey(id, part), jawUrl(id, part));
     }
   }
@@ -104,7 +106,7 @@ export class IslandScene extends Phaser.Scene {
       [{ dragon: isl.def.dragon, start: isl.def.start }, ...(isl.def.guests ?? [])]
         .map(g => new Dragon(this, isl, g.dragon, this.rigs[g.dragon], isl.toWorld(g.start))));
     this.select(this.dragons[0], true);
-    this.boats = new FoodBoats(this, this.islands, isl => this.dragons.filter(d => d.island === isl));
+    this.balloons = new FoodBalloons(this, this.islands, isl => this.dragons.filter(d => d.island === isl));
 
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
       this.press = { x: p.x, scrollX: this.cameras.main.scrollX };
@@ -138,7 +140,7 @@ export class IslandScene extends Phaser.Scene {
       focusIsland: i => this.focusIsland(i),
       combos: id => this.availableCombos(id),
       canFly: id => !this.rigs[id].motion?.noFly,
-      callBoat: id => { const d = this.dragons.find(o => o.id === id); if (d) this.boats.call(d.island); },
+      callBoat: id => { const d = this.dragons.find(o => o.id === id); if (d) this.balloons.call(d.island); },
       hunger: () => Object.fromEntries(this.dragons.map(o => [o.id, o.hunger])),
       useCombo: id => this.useCombo(id),
       setPaused: on => { if (on) this.game.loop.sleep(); else this.game.loop.wake(); },
@@ -154,7 +156,7 @@ export class IslandScene extends Phaser.Scene {
       isl.update(dt);
       isl.stepGrass(this.dragons.filter(d => d.island === isl && d.height < 5).map(d => d.feet()), dt);
     }
-    this.boats.update(dt);
+    this.balloons.update(dt);
     this.weather.update(dt);
     // lamps follow the darkest of night and gloomy weather
     this.night = Math.max(this.dayNight.night, this.weather.gloom * 0.9);
@@ -247,7 +249,9 @@ export class IslandScene extends Phaser.Scene {
       elementRain: (ts, onHit, opts) => this.combat.callElementRain(ts, onHit, opts),
       beam: (n, from, to, opts) => this.combat.callBeam(vfxKey(self.id, n), from, to, opts),
       wait: ms => new Promise(res => this.time.delayedCall(ms, res)),
-      shake: () => {},   // no screen shake: it was too jarring when skills fire
+      // camera shake: intensity is Phaser's scale (0.001 barely visible, 0.01 harsh). The skills
+      // ask for 0.004-0.016, which reads as harsh on a small island, so damp it.
+      shake: (ms, intensity) => { this.cameras.main.shake(ms, Math.min(intensity * 0.45, 0.006)); },
       bite: (at, opts) => this.combat.callBite(self.id, at, opts),
       gust: (from, dir, opts) => this.combat.callGust(from, dir, opts),
       boneRain: (at, opts) => this.combat.callBoneRain(at, opts),

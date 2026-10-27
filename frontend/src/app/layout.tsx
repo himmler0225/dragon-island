@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Dragon Island",
+  title: {
+    default: "Dragon Island",
+    template: "%s — Dragon Island",
+  },
   description: "Game nuôi rồng trên đảo nổi",
 };
 

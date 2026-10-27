@@ -6,7 +6,7 @@ export default function Footer() {
       <div className="page-container">
         <div className="footer-links">
           <Link href="/">Trang chủ</Link>
-          <Link href="/games">Game</Link>
+          <Link href="/games">Kho game</Link>
           <Link href="/news">Tin tức</Link>
           <Link href="/play">Chơi ngay</Link>
         </div>

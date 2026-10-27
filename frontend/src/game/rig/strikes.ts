@@ -6,7 +6,7 @@ import { STRIKES_DATA } from './strikes_data';
 
 export { track, smoothstep };
 
-/** STRIKES[SpeciesId]: resolved with than_long = hac_long lazy break to avoid circular object ref. */
+/** STRIKES[SpeciesId]: per-species strike sets (a factory entry is resolved here, once). */
 export const STRIKES: Record<SpeciesId, StrikeSet> = Object.fromEntries(
   Object.entries(STRIKES_DATA).map(([k, v]) => [k, typeof v === 'function' ? v() : v])
 ) as Record<SpeciesId, StrikeSet>;

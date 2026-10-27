@@ -29,8 +29,8 @@ export interface FlightCtx {
   action: string;
   setAction: (a: string) => void;
   dustRing: (dragon: unknown) => void;
-  /** Set rest duration on landing. */
-  setRest: (v: number) => void;
+  /** Pick a rest duration on landing. */
+  setRest: () => void;
 }
 
 /** Advance flight by dt seconds. Returns { alt } (new altitude). */
@@ -47,7 +47,6 @@ export function advanceFlight(dt: number, F: DragonFlight | null, ctx: FlightCtx
     alt = FLY_ALT * smooth(clamp01((F.t - 0.15) / (TAKEOFF_S - 0.15)));
     ctx.setAlt(alt);
     if (F.t >= TAKEOFF_S) F.phase = 'cruise';
-    return { alt };
   }
   if (F.phase !== 'land' && F.t > 0.35) {
     const dx = F.target[0] - ctx.getX(), dy = F.target[1] - ctx.getY();
@@ -73,7 +72,7 @@ export function advanceFlight(dt: number, F: DragonFlight | null, ctx: FlightCtx
       ctx.setAlt(0);
       ctx.dustRing(null);
       ctx.setAction('idle');
-      ctx.setRest(2);
+      ctx.setRest();
     }
   }
   return { alt };

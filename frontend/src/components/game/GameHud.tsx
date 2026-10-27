@@ -8,17 +8,19 @@ import { COMBOS, SKILLS, skillIconUrl, type SkillSlot } from '@/game/skills';
 import { SPECIES, SPECIES_INFO, portraitUrl, type SpeciesId } from '@/game/config';
 import BattleScreen from './BattleScreen';
 import BreedPanel from './BreedPanel';
+import TeamPanel from './TeamPanel';
+import BagPanel from './BagPanel';
 import styles from './GameHud.module.css';
 
-type MenuId = 'breed' | 'quest' | 'achievement' | 'ranking' | 'mail' | 'gift' | 'bag' | 'shop' | 'cards' | 'battle' | 'map' | 'friends' | 'settings' | 'profile';
+type MenuId = 'breed' | 'team' | 'quest' | 'achievement' | 'ranking' | 'mail' | 'gift' | 'bag' | 'shop' | 'cards' | 'battle' | 'map' | 'friends' | 'settings' | 'profile';
 const SIDE: [MenuId, string][] = [['quest', 'Nhiệm vụ'], ['achievement', 'Thành tựu'], ['ranking', 'Xếp hạng'], ['mail', 'Thư'], ['gift', 'Quà']];
-const BOTTOM: [MenuId, string][] = [['breed', 'Lai rồng'], ['bag', 'Túi'], ['shop', 'Cửa hàng'], ['cards', 'Từ điển'], ['battle', 'Chiến đấu'], ['map', 'Bản đồ'], ['friends', 'Bạn bè'], ['settings', 'Cài đặt']];
+const BOTTOM: [MenuId, string][] = [['breed', 'Lai rồng'], ['team', 'Đội hình'], ['bag', 'Túi'], ['shop', 'Cửa hàng'], ['cards', 'Từ điển'], ['battle', 'Chiến đấu'], ['map', 'Bản đồ'], ['friends', 'Bạn bè'], ['settings', 'Cài đặt']];
 const LABEL = Object.fromEntries([...SIDE, ...BOTTOM, ['profile', 'Hồ sơ']]) as Record<MenuId, string>;
 const COMMANDS: [DragonCommand, string][] = [['walk', '🚶'], ['fly', '🪽'], ['sleep', '💤']];
 const ACTION_LABEL: Record<DragonAction, string> = { idle: 'đứng', walk: 'đi dạo', fly: 'bay', sleep: 'ngủ', strike: 'ra đòn' };
 
 // menus without their own icon art yet borrow one (breed -> egg icon when drawn: public/ui/breed.png)
-const ICON_ALIAS: Record<string, string> = { breed: 'chest' };
+const ICON_ALIAS: Record<string, string> = { breed: 'chest', team: 'cards' };
 const Icon = ({ name }: { name: string }) => (
   // eslint-disable-next-line @next/next/no-img-element
   <img src={`/ui/${ICON_ALIAS[name] ?? name}.png`} alt="" draggable={false} />
@@ -178,8 +180,10 @@ export default function GameHud({ dev = false }: { dev?: boolean }) {
 
       {panel === 'breed' && <BreedPanel onClose={() => setPanel(null)} />}
       {panel === 'battle' && <BattleScreen onClose={() => setPanel(null)} />}
+      {panel === 'team' && <TeamPanel onClose={() => setPanel(null)} />}
+      {panel === 'bag' && <BagPanel onClose={() => setPanel(null)} />}
 
-      {panel && panel !== 'breed' && panel !== 'battle' && (
+      {panel && panel !== 'breed' && panel !== 'battle' && panel !== 'team' && panel !== 'bag' && (
         <div className={styles.modal} onClick={e => { if (e.target === e.currentTarget) setPanel(null); }}>
           <div className={styles.sheet}>
             <header>

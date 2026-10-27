@@ -1,4 +1,5 @@
 // Fire and Ice Phoenix skills.
+import { skyfall } from './skyfall';
 import type { SkillActor, SkillCtx, SkillDef, Spot } from './types';
 
 const dmg = (scale: number) => `-${Math.round((180 + Math.random() * 40) * scale)}`;
@@ -45,16 +46,10 @@ function phoenixSkills(el: Element): SkillDef[] {
     { type: 'passive', name: el.passive[0], desc: el.passive[1] },
   {
     type: 'basic', name: el.basic, anim: 'attack', target: 'enemy',
-      desc: `Bổ nhào từ trên không, móng vuốt ${el.kind === 'fire' ? 'rực lửa' : 'phủ băng'} cào 100% Công lên 1 mục tiêu, 30% gây ${el.status} 1 lượt.`,
-      run: async ({ self, targets: [t], fx, wait }) => {
-        const c = t.chest(), flip = self.facing > 0;
-        fx(10, { x: c.x - 60 * self.facing, y: c.y - 50 }, { scale: 0.34, dur: 380, flipX: flip });
-        await wait(120);
-        fx(9, c, { scale: 0.32, dur: 420, flipX: flip });
-        fx(11, c, { scale: 0.26, dur: 460 });
-        t.hurt(); t.text(dmg(1));
-        await wait(180);
-        fx(12, t.head(), { scale: 0.22, dur: 900 });
+      desc: `Rải lông vũ ${el.kind === 'fire' ? 'rực lửa' : 'băng giá'} từ trời: 4 chiếc, mỗi chiếc 25% Công lên 1 mục tiêu, 30% gây ${el.status} 1 lượt.`,
+      run: async ctx => {
+        const [t] = ctx.targets;
+        await skyfall(ctx, t, 4, () => { t.hurt(); t.text(dmg(0.25)); });
         if (Math.random() < 0.3) t.text(el.status, el.text);
       },
     },

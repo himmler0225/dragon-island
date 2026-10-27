@@ -3,7 +3,3 @@ export { default as TopBar } from './portal/TopBar';
 export { default as Footer } from './portal/Footer';
 export { default as Breadcrumb } from './portal/Breadcrumb';
 export { default as GameCard } from './portal/GameCard';
-export { default as GameFrame } from './portal/GameFrame';
-export { default as GameCanvas } from './portal/GameCanvas';
-export { default as HeroBanner } from './portal/HeroBanner';
-export { default as NewsList } from './portal/NewsList';

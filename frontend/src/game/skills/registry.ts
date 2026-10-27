@@ -2,6 +2,7 @@
 import type { SpeciesId } from '../config/species';
 import type { SkillDef, SkillType } from './types';
 import { SEA_DRAGON_SKILLS } from './seaDragon';
+import { PEACOCK_SKILLS } from './peacock';
 import { QILIN_SKILLS } from './qilin';
 import { BLACK_DRAGON_SKILLS } from './blackDragon';
 import { BONE_DRAGON_SKILLS } from './boneDragon';
@@ -10,35 +11,51 @@ import { SILVER_DRAGON_SKILLS, GOLD_DRAGON_SKILLS } from './goldSilverTwins';
 import { CELESTIAL_DRAGON_SKILLS } from './celestialDragon';
 import { VOID_SERPENT_SKILLS } from './voidSerpent';
 import { ICE_PHOENIX_SKILLS, FIRE_PHOENIX_SKILLS } from './phoenix';
-import { ICE_DRAGON_SKILLS, FOREST_DRAGON_SKILLS, EARTH_DRAGON_SKILLS, FIRE_DRAGON_SKILLS } from './basicDragons';
+import { EARTH_DRAGON_SKILLS, FIRE_DRAGON_SKILLS } from './basicDragons';
 
 export const SKILLS: Record<SpeciesId, SkillDef[]> = {
-  hai_long: SEA_DRAGON_SKILLS,
-  ki_lan: QILIN_SKILLS,
-  hac_long: BLACK_DRAGON_SKILLS,
-  rong_xuong: BONE_DRAGON_SKILLS,
-  tuan_long: STAG_DRAGON_SKILLS,
-  rong_vang: GOLD_DRAGON_SKILLS,
-  rong_bac: SILVER_DRAGON_SKILLS,
-  than_long: CELESTIAL_DRAGON_SKILLS,
-  tu_xa_long: VOID_SERPENT_SKILLS,
-  phuong_hoang_lua: FIRE_PHOENIX_SKILLS,
-  phuong_hoang_bang: ICE_PHOENIX_SKILLS,
-  rong_lua_do: FIRE_DRAGON_SKILLS,
-  rong_dat_nau: EARTH_DRAGON_SKILLS,
-  rong_cay_xanh_la: FOREST_DRAGON_SKILLS,
-  rong_bang_xanh_bien: ICE_DRAGON_SKILLS,
+  sea_dragon: SEA_DRAGON_SKILLS,
+  peacock: PEACOCK_SKILLS,
+  east_sea_dragon: SEA_DRAGON_SKILLS,
+  west_sea_dragon: SEA_DRAGON_SKILLS,
+  north_sea_dragon: SEA_DRAGON_SKILLS,
+  south_sea_dragon: SEA_DRAGON_SKILLS,
+  qilin: QILIN_SKILLS,
+  black_dragon: BLACK_DRAGON_SKILLS,
+  bone_dragon: BONE_DRAGON_SKILLS,
+  stag_dragon: STAG_DRAGON_SKILLS,
+  gold_dragon: GOLD_DRAGON_SKILLS,
+  silver_dragon: SILVER_DRAGON_SKILLS,
+  celestial_dragon: CELESTIAL_DRAGON_SKILLS,
+  void_serpent: VOID_SERPENT_SKILLS,
+  fire_phoenix: FIRE_PHOENIX_SKILLS,
+  ice_phoenix: ICE_PHOENIX_SKILLS,
+  fire_dragon: FIRE_DRAGON_SKILLS,
+  earth_dragon: EARTH_DRAGON_SKILLS,
 };
 
-export const skill = (id: SpeciesId, type: SkillType) => SKILLS[id].find(s => s.type === type)!;
+/** The skill of that slot. Throws (with a clear message) when the species has no such slot, instead
+ *  of returning undefined and crashing somewhere further down. */
+export const skill = (id: SpeciesId, type: SkillType): SkillDef => {
+  const found = SKILLS[id].find(s => s.type === type);
+  if (!found) throw new Error(`Species "${id}" has no "${type}" skill`);
+  return found;
+};
 export const skillIconUrl = (id: SpeciesId, type: SkillType) => `/dragons/${id}/skills/icon_${type}.png`;
 export const vfxKey = (id: SpeciesId, n: number) => `vfx_${id}_${n}`;
 /** Species whose skills use only code-drawn effects (no skills/vfx.png yet). */
 /** Species with a second vfx sheet (skills/vfx2.png -> vfx_9..16). */
-export const VFX_COUNT: Partial<Record<SpeciesId, number>> = { phuong_hoang_lua: 16, phuong_hoang_bang: 16 };
-export const NO_VFX: SpeciesId[] = ['tu_xa_long', 'rong_lua_do', 'rong_dat_nau', 'rong_cay_xanh_la', 'rong_bang_xanh_bien'];
+export const VFX_COUNT: Partial<Record<SpeciesId, number>> = { fire_phoenix: 16, ice_phoenix: 16 };
+/** Species with a basic-attack sheet (skills/basic.png -> vfx_17..24: 4 falling projectiles, 4 impact frames). */
+export const BASIC_FX: SpeciesId[] = ['black_dragon', 'celestial_dragon', 'fire_phoenix', 'ice_phoenix', 'peacock'];
+/** Every vfx number to load for a species. */
+export const vfxNumbers = (id: SpeciesId) => [
+  ...Array.from({ length: VFX_COUNT[id] ?? 8 }, (_, k) => k + 1),
+  ...(BASIC_FX.includes(id) ? Array.from({ length: 8 }, (_, k) => k + 17) : []),
+];
+export const NO_VFX: SpeciesId[] = ['void_serpent', 'fire_dragon', 'earth_dragon'];
 /** Species with drawn bite jaws (skills/jaw_upper.png + jaw_lower.png); others get procedural fangs. */
-export const JAW_SPECIES: SpeciesId[] = ['hac_long', 'than_long'];
+export const JAW_SPECIES: SpeciesId[] = ['black_dragon', 'celestial_dragon'];
 export const jawKey = (id: SpeciesId, part: 'upper' | 'lower') => `jaw_${part}_${id}`;
 export const jawUrl = (id: SpeciesId, part: 'upper' | 'lower') => `/dragons/${id}/skills/jaw_${part}.png`;
 export const vfxUrl = (id: SpeciesId, n: number) => `/dragons/${id}/skills/vfx_${n}.png`;

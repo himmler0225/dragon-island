@@ -31,7 +31,8 @@ export const ENEMY_BUFFS: [string, string][] = [
 
 // Enemy waves (placeholder): [species, count]
 export const WAVES: [SpeciesId, number][] = [
-  ['hac_long', 15], ['tuan_long', 1], ['hai_long', 1], ['ki_lan', 3], ['rong_xuong', 1],
-  ['phuong_hoang_lua', 10], ['tu_xa_long', 1], ['rong_vang', 22], ['phuong_hoang_bang', 2],
-  ['than_long', 1], ['rong_bac', 11], ['hac_long', 2],
+  ['black_dragon', 15], ['stag_dragon', 1], ['sea_dragon', 1], ['qilin', 3], ['bone_dragon', 1],
+  ['fire_phoenix', 10], ['void_serpent', 1], ['gold_dragon', 22], ['ice_phoenix', 2],
+  ['celestial_dragon', 1], ['silver_dragon', 11], ['black_dragon', 2],
+  ['east_sea_dragon', 1], ['west_sea_dragon', 1], ['north_sea_dragon', 1], ['south_sea_dragon', 1],
 ];

@@ -2,6 +2,8 @@
 
 Hướng dẫn từng bước để thêm một loài rồng mới vào game.
 
+> `assets/` và `tools/` trong tài liệu này nằm ở repo **`../dragon-island-tools`**; chạy lệnh `.venv/bin/python tools/...` từ thư mục gốc của repo đó.
+
 ---
 
 ## 1. Vẽ art (art team / ChatGPT)
@@ -178,9 +180,9 @@ const SKILLS: Record<SpeciesId, SkillDef[]> = {
 };
 ```
 
-### 4c. Strike poses (`game/rig/strikes.ts`)
+### 4c. Strike poses (`game/rig/strikes_data.ts`)
 
-Thêm `STRIKES.<id>` với 3 `StrikeKind`:
+Thêm `STRIKES_DATA.<id>` với 3 `StrikeKind`:
 ```typescript
 STRIKES = {
   // ...

@@ -35,10 +35,12 @@ export class CombatFx {
     if (o.tint !== undefined) img.setTint(o.tint);
     const sy = o.ground ? 0.42 : 1;
     img.setScale(scale * 0.7, scale * 0.7 * sy);
-    const fadeIn = Math.min(160, dur * 0.25), total = dur + hold;
-    this.scene.tweens.add({ targets: img, alpha: this.intensity, scaleX: scale, scaleY: scale * sy, duration: fadeIn, ease: 'Sine.easeOut' });
-    this.scene.tweens.add({ targets: img, alpha: 0, scaleX: scale * 1.08, scaleY: scale * 1.08 * sy, delay: total - dur * 0.35,
-      duration: dur * 0.35, ease: 'Sine.easeIn', onComplete: () => img.destroy() });
+    // bursts in with a little overshoot, then lingers and dissolves: it keeps spreading and (in the air)
+    // drifts up as it fades, over the second half of its life, instead of popping off
+    const fadeIn = Math.min(140, dur * 0.2), fadeOut = dur * 0.55, total = dur + hold;
+    this.scene.tweens.add({ targets: img, alpha: this.intensity, scaleX: scale, scaleY: scale * sy, duration: fadeIn, ease: 'Back.easeOut' });
+    this.scene.tweens.add({ targets: img, alpha: 0, scaleX: scale * 1.3, scaleY: scale * 1.3 * sy, y: img.y - (o.ground ? 0 : 18 * scale),
+      delay: total - fadeOut, duration: fadeOut, ease: 'Quad.easeOut', onComplete: () => img.destroy() });
     if (o.spin) this.scene.tweens.add({ targets: img, rotation: img.rotation + o.spin, duration: total });
   }
 
@@ -50,8 +52,18 @@ export class CombatFx {
         .setRotation(o.rotate === false ? 0 : Math.atan2(to.y - from.y, to.x - from.x));
       this.take(img);
       if (o.tint !== undefined) img.setTint(o.tint);
+      // a fading trail of ghosts behind it, and on arrival it flares and melts away instead of vanishing
+      const trail = this.scene.time.addEvent({ delay: 35, loop: true, callback: () => {
+        const g = this.scene.add.image(img.x, img.y, key).setBlendMode(this.blend).setDepth(20.9).setRotation(img.rotation)
+          .setScale(img.scaleX * 0.9).setFlipX(img.flipX).setAlpha(this.intensity * 0.45);
+        if (o.tint !== undefined) g.setTint(o.tint);
+        this.scene.tweens.add({ targets: g, alpha: 0, scale: g.scaleX * 0.5, duration: 260, ease: 'Quad.easeOut', onComplete: () => g.destroy() });
+      } });
       this.scene.tweens.add({ targets: img, x: to.x, y: to.y, duration: o.dur ?? 400, ease: 'Sine.easeIn',
-        onComplete: () => { img.destroy(); res(); } });
+        onComplete: () => {
+          trail.remove(); res();
+          this.scene.tweens.add({ targets: img, alpha: 0, scale: img.scaleX * 1.5, duration: 220, ease: 'Quad.easeOut', onComplete: () => img.destroy() });
+        } });
     });
   }
 
@@ -66,8 +78,10 @@ export class CombatFx {
       const len = Math.hypot(to.x - from.x, to.y - from.y) / img.width;
       img.setScale(0.05, w * 0.4);
       this.scene.tweens.add({ targets: img, scaleX: len, scaleY: w, duration: dur * 0.25, ease: 'Cubic.easeOut', onComplete: () => res() });
-      this.scene.tweens.add({ targets: img, scaleY: 0, alpha: 0, delay: dur * 0.7, duration: dur * 0.3, ease: 'Sine.easeIn',
-        onComplete: () => img.destroy() });
+      // flickers while it burns, then thins out and fades slowly
+      const flicker = this.scene.tweens.add({ targets: img, alpha: this.intensity * 0.75, duration: 70, yoyo: true, repeat: -1, delay: dur * 0.25 });
+      this.scene.tweens.add({ targets: img, scaleY: w * 0.15, alpha: 0, delay: dur * 0.55, duration: dur * 0.45, ease: 'Quad.easeOut',
+        onStart: () => flicker.remove(), onComplete: () => img.destroy() });
     });
   }
 

@@ -1,0 +1,47 @@
+// Database schema. After editing: `npm run db:migrate -- --name <change>` (creates a migration and
+// regenerates the client in src/generated/prisma).
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  displayName  String   @map("display_name")
+  level        Int      @default(1)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  dragons Dragon[]
+
+  @@map("users")
+}
+
+model Dragon {
+  id        String   @id @default(uuid()) @db.Uuid
+  ownerId   String   @map("owner_id") @db.Uuid
+  /// species id, see src/modules/dragons/dragon-species.ts
+  species   String
+  nickname  String?
+  stars     Int      @default(1)
+  level     Int      @default(1)
+  exp       Int      @default(0)
+  /// hunger as it was at hungerAt; the current value is worked out from the time since (no ticking)
+  hunger    Float    @default(100)
+  hungerAt  DateTime @default(now()) @map("hunger_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+  @@map("dragons")
+}

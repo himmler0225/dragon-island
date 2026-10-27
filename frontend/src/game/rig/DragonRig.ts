@@ -1,12 +1,11 @@
 // Dragon rig: pieces, joints, IK, walk, flight, breathing and strikes.
 import * as Phaser from 'phaser';
 import { RIG } from './tuning';
-import { solveLeg } from './ik';
 import { track, smoothstep, STRIKES } from './strikes';
 import { rigTextureKey, type RigData, type Strike, type StrikeKind, type Vec, type LegName } from './types';
 import type { SpeciesId } from '../config/species';
 import { alphaAt } from './alphaMask';
-import { MOUTH_OPEN, makeLids, updateLids } from './eyelids';
+import { makeLids, updateLids } from './eyelids';
 import { applyPose } from './pose';
 
 type Bone = {
@@ -39,7 +38,7 @@ export class DragonRig {
   readonly container: Phaser.GameObjects.Container;
   private bones: Record<string, Bone> = {};
   private legs: Leg[];
-  private motion: { sleepTail: [number, number, number]; wingSpread: [number, number]; rideCloud?: boolean; flyLegs?: 'tuck' | 'dangle'; flyPitch?: number; tailWave?: number[]; hindKnee?: 'back'; swingTilt?: number; rigidLegs?: boolean; stride?: number; flyHang?: [number, number]; slither?: boolean; foreArms?: boolean; stance?: [number, number]; armPose?: [[number, number], [number, number]] };
+  private motion: { sleepTail: [number, number, number]; wingSpread: [number, number]; rideCloud?: boolean; flyLegs?: 'tuck' | 'dangle'; flyPitch?: number; tailWave?: number[]; hindKnee?: 'back'; swingTilt?: number; rigidLegs?: boolean; stride?: number; liftScale?: number; flyHang?: [number, number]; neck?: number; fan?: number[]; slither?: boolean; foreArms?: boolean; stance?: [number, number]; armPose?: [[number, number], [number, number]] };
   walk = 0;     // 0..1 blend of the walk cycle
   fly = 0;      // 0..1 blend of flight
   sleep = 0;    // 0..1 lying down
@@ -87,7 +86,8 @@ export class DragonRig {
     const hind = this.legs.find(L => L.kind === 'hind');
     const legLen = hind ? hind.len1 + hind.len2 : 90;
     this.stride = this.motion.stride ?? RIG.stride;
-    this.lift = { fore: legLen * RIG.lift.fore, hind: legLen * RIG.lift.hind };
+    const ls = this.motion.liftScale ?? 1;
+    this.lift = { fore: legLen * RIG.lift.fore * ls, hind: legLen * RIG.lift.hind * ls };
   }
 
   /** rig px a planted foot travels per walk cycle, and how high a swinging paw rises */
@@ -103,13 +103,18 @@ export class DragonRig {
 
   /** Play this species' attack pose; returns it (duration, hit time). */
   strike(kind: StrikeKind) {
-    const strike = STRIKES[this.species][kind];
+    const keys = STRIKES[this.species][kind];
+    const strike: Strike = { ...keys, dur: keys.dur * RIG.strike.tempo };
     this.act = { strike, t: 0 };
     this.blendFrom = { A: { ...this.lastA }, t: 0 };
     return strike;
   }
 
   get striking() { return this.act !== null; }
+
+  /** Front-paw stomps so far (goes up by one on each landing): callers puff dust when it changes. */
+  stomps = 0;
+  private stompArmed = new Set<string>();
 
   /** Flinch: knocked back a little and flash red. */
   /** `white`: a solid white hit-flash first (battle), then the red one. */
@@ -125,7 +130,7 @@ export class DragonRig {
     if (this.walk > 0) this.gait = (this.gait + dt / RIG.cycle) % 1;
 
     // attack pose channels (all 0 when not striking)
-    const A: Record<string, number> = { lunge: 0, rear: 0, lift: 0, head: 0, jaw: 0, wings: 0, claw: 0, flap: 0, air: 0, spread: 0, stretch: 0 };
+    const A: Record<string, number> = { lunge: 0, rear: 0, lift: 0, head: 0, jaw: 0, wings: 0, claw: 0, flap: 0, air: 0, spread: 0, stretch: 0, breath: 0, stompL: 0, stompR: 0, fan: 0 };
     if (this.act) {
       this.act.t += dt;
       const u = this.act.t / this.act.strike.dur;
@@ -134,9 +139,14 @@ export class DragonRig {
     }
     if (this.blendFrom) {
       this.blendFrom.t += dt;
-      const w = smoothstep(Math.min(1, this.blendFrom.t / 0.2));
+      const w = smoothstep(Math.min(1, this.blendFrom.t / RIG.strike.blend));
       for (const ch of Object.keys(A)) A[ch] = (this.blendFrom.A[ch] ?? 0) * (1 - w) + A[ch] * w;
       if (w >= 1) this.blendFrom = null;
+    }
+    // a front paw coming down hard: armed once its stomp channel is high, counted when it is back down
+    for (const ch of ['stompL', 'stompR']) {
+      if (A[ch] > 0.5) this.stompArmed.add(ch);
+      else if (A[ch] < 0.08 && this.stompArmed.delete(ch)) this.stomps++;
     }
     this.lastA = A;
     this.air = A.air;
@@ -155,9 +165,11 @@ export class DragonRig {
     const t = this.t, g = this.gait, W = this.walk, F = Math.max(this.fly, A.flap);
     const Z = this.sleep * this.sleep * (3 - 2 * this.sleep);
     this.tailPhase += dt * (1.6 + 2.5 * W - 0.8 * Z + 1.4 * (this.motion.rideCloud ? F : 0));
-    applyPose(this.bones, this.legs, t, g, W, F, Z, hurt, A, this.motion, this.tailPhase, this.stride, this.lift);
+    // yawn: only while falling asleep, not while waking up
+    const yawn = mode === 'sleep' ? Math.max(0, Math.sin(Math.PI * Math.min(1, this.sleep * 1.4))) : 0;
+    applyPose(this.bones, this.legs, t, g, W, F, Z, hurt, A, this.motion, this.tailPhase, this.stride, this.lift, yawn);
     for (const b of Object.values(this.bones)) b.img.setPosition(b.pos[0], b.pos[1]).setRotation(b.rot).setScale(b.sx ?? 1, b.sy ?? 1);
-    this.eyeState.blinkT = updateLids(this.eyeState.lids, this.bones.head.img, this.eyeState.blinkT, dt, Z, mode);    this.eyeState.blinkT = updateLids(this.eyeState.lids, this.bones.head.img, this.eyeState.blinkT, dt, Z, mode);
+    this.eyeState.blinkT = updateLids(this.eyeState.lids, this.bones.head.img, this.eyeState.blinkT, dt, Z, mode);
   }
 
   /** FK: bone rotation relative to its parent; position follows the parent's joint. */

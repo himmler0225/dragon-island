@@ -10,25 +10,23 @@
 import { useEffect, useRef, useState } from 'react';
 import type { BattleApi } from '@/game/battle/createBattle';
 import { island } from '@/game/bridge';
-import { SPECIES, SPECIES_INFO, portraitUrl, type SpeciesId } from '@/game/config';
+import { SPECIES_INFO, portraitUrl, type SpeciesId } from '@/game/config';
+import { activeTeam } from '@/game/config/team';
 import {
   ALLY_BUFFS, ENEMY_BUFFS, fmt, MANA_MAX, MANA_PER_S, SUMMON_COST, STARS, TIPS, TIME, WAVES,
 } from './battleScreenData';
 import styles from './BattleScreen.module.css';
+/** Seconds the enemy wave list stays on screen after the fight starts. */
+const WAVES_SHOWN = 15;
+
 export default function BattleScreen({ onClose }: { onClose: () => void }) {
-  const team = SPECIES.slice(0, 9);
+  // the active team from Đội hình (TeamPanel), in its summon order
+  const [team] = useState(activeTeam);
   const [mana, setMana] = useState(MANA_MAX);   // starts full so the first dragons come out at once
   const [left, setLeft] = useState(TIME);
   const [allyHp, setAllyHp] = useState(100);
   const [enemyHp, setEnemyHp] = useState(100);
   const [view, setView] = useState<[number, number]>([0, 1]);   // part of the field in view (0..1)
-  // ultimate banner: sweeps across the screen with the dragon and the move's name
-  const [banner, setBanner] = useState<{ key: number; id: SpeciesId; name: string; side: 'ally' | 'enemy' } | null>(null);
-  useEffect(() => {
-    if (!banner) return;
-    const t = window.setTimeout(() => setBanner(null), 1300);
-    return () => window.clearTimeout(t);
-  }, [banner]);
   const [selected, setSelected] = useState<SpeciesId>(team[0]);
   // dragons that fell in this battle (greyed card with a skull); nothing kills them yet
   const [dead] = useState<Set<SpeciesId>>(new Set());
@@ -65,7 +63,6 @@ export default function BattleScreen({ onClose }: { onClose: () => void }) {
         else setAllyHp(h => Math.max(0, h - 3));
       },
       view: (a, b) => { if (alive) setView([a, b]); },
-      ultimate: (id, name, side) => { if (alive) setBanner({ key: Date.now(), id, name, side }); },
     })).then(a => { if (alive) { made = a; api.current = a; setFieldReady(true); } else a.destroy(); });
     return () => { alive = false; made?.destroy(); api.current = null; };
   }, []);
@@ -128,13 +125,6 @@ export default function BattleScreen({ onClose }: { onClose: () => void }) {
             <span className={styles.loadTip}>Mẹo: {tip}</span>
           </div>
         )}
-        {banner && (
-          <div key={banner.key} className={`${styles.banner} ${banner.side === 'enemy' ? styles.bannerEnemy : ''}`}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={portraitUrl(banner.id)} alt="" />
-            <div><small>{SPECIES_INFO[banner.id].name} · TUYỆT KỸ</small><b>{banner.name}</b></div>
-          </div>
-        )}
         {/* the field is wider than the screen: drag it, use the wheel, or this bar */}
         <div className={styles.scroll} onPointerDown={e => { e.currentTarget.setPointerCapture(e.pointerId); scrollTo(e); }} onPointerMove={scrollTo}>
           <i style={{ left: `${view[0] * 100}%`, width: `${Math.max(4, (view[1] - view[0]) * 100)}%` }} />
@@ -160,8 +150,8 @@ export default function BattleScreen({ onClose }: { onClose: () => void }) {
           {ENEMY_BUFFS.map(([e, t]) => <span key={t} title={t}>{e}</span>)}
         </div>
 
-        {/* right: enemy waves */}
-        <div className={styles.waves}>
+        {/* right: enemy waves, shown for the first WAVES_SHOWN s of the fight */}
+        <div className={`${styles.waves} ${TIME - left > WAVES_SHOWN ? styles.wavesGone : ''}`}>
           {WAVES.map(([id, n], k) => (
             <div key={k} className={`${styles.wave} ${k === wave % WAVES.length ? styles.waveNow : ''}`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -1,0 +1,93 @@
+/* Đội hình panel: the gold-framed teal sheet of Lai Rồng (BreedPanel.module.css), all CSS. */
+.backdrop { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; background: rgba(4, 10, 20, .6); pointer-events: auto; z-index: 20; }
+.panel {
+  position: relative;
+  width: min(1040px, 100%); max-height: 100%; overflow: auto; border-radius: 18px; padding: 6px;
+  background: linear-gradient(#f7d77a, #b8862a 40%, #8a5f17); box-shadow: 0 14px 50px rgba(0, 0, 0, .65);
+}
+.title { position: relative; display: grid; place-items: center; height: 44px; margin-bottom: 6px; border-radius: 12px 12px 6px 6px;
+  background: linear-gradient(#4e5a2a, #2f3816); border: 2px solid #e3b54a; }
+.title h2 { margin: 0; font-size: 20px; color: #fff4c8; text-shadow: 0 2px 0 #1b2008; letter-spacing: .5px; }
+.close { position: absolute; right: 6px; top: 50%; translate: 0 -50%; width: 34px; height: 34px; border-radius: 50%;
+  border: 2px solid #fff0b0; background: radial-gradient(circle at 35% 30%, #ffe27a, #c8901f); color: #4a2c00; font-weight: 800; cursor: pointer; }
+
+.body { display: flex; flex-direction: column; gap: 8px; padding: 8px; border-radius: 10px;
+  background: linear-gradient(#2d6a6a, #1f4f52); border: 2px solid #18393b; }
+.top { display: grid; grid-template-columns: minmax(0, 1fr) 230px; gap: 8px; }
+.slots, .summary, .collection { border-radius: 10px; background: rgba(8, 40, 44, .55); border: 1px solid #3f8a86; box-shadow: inset 0 2px 6px rgba(0, 0, 0, .35); }
+
+/* team tabs */
+.tabs { display: flex; gap: 6px; }
+.tab { padding: 5px 18px; border-radius: 10px 10px 4px 4px; border: 2px solid #3f8a86; background: rgba(8, 40, 44, .7); color: #9fc9c4;
+  font-weight: 800; cursor: pointer; }
+.tab i { margin-left: 6px; color: #ffe066; font-style: normal; }
+.tabOn { background: linear-gradient(#6fc8ff, #2a77d0); border-color: #e3b54a; color: #fff; text-shadow: 0 1px 0 rgba(0, 0, 0, .45); }
+
+/* the 9 slots, numbered in summon order */
+.slots { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 6px; padding: 18px 10px 12px; align-content: center; }
+.slot { position: relative; min-width: 0; aspect-ratio: 3 / 4; padding: 0; border-radius: 10px; cursor: pointer; overflow: visible;
+  background: radial-gradient(#2f6f6a, #163d3c); border: 3px solid #c99a35; box-shadow: inset 0 0 14px rgba(0, 0, 0, .5); }
+.slot img { position: absolute; inset: 8% 4% 22%; width: 92%; height: 70%; object-fit: contain; }
+.slotEmpty { border-color: #557a72; background: rgba(8, 30, 34, .6); }
+.slotOn { border-color: #ffe066; box-shadow: 0 0 14px #ffe066, inset 0 0 14px rgba(0, 0, 0, .5); }
+.num { position: absolute; top: -12px; left: 50%; translate: -50% 0; z-index: 2; width: 24px; height: 24px; border-radius: 50%;
+  display: grid; place-items: center; background: radial-gradient(circle at 35% 30%, #2a5f8a, #10304a); border: 2px solid #e3b54a;
+  color: #fff; font-size: 12px; font-weight: 900; }
+.plus { position: absolute; inset: 0; display: grid; place-items: center; font-size: 34px; color: #6f9f96; }
+
+/* badges shared by slots and cards */
+.el { position: absolute; left: 3px; bottom: 20px; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 11px; border: 2px solid #ffe7a0; z-index: 1; }
+.stars { position: absolute; right: 4px; bottom: 21px; color: #fff; font-size: 11px; font-weight: 800; text-shadow: 0 1px 2px #000; z-index: 1; }
+.stars i { color: #ffd84d; font-style: normal; }
+.lv { position: absolute; left: 0; right: 0; bottom: 2px; text-align: center; color: #fff4c8; font-size: 12px; font-weight: 800; text-shadow: 0 1px 2px #000; }
+
+/* summary */
+.summary { padding: 10px 12px; color: #e8fbff; display: flex; flex-direction: column; gap: 4px; }
+.summary h4 { margin: 4px 0 0; color: #9fc9c4; font-size: 12px; font-weight: 700; }
+.power { margin: 0; color: #ffe066; font-size: 24px; font-weight: 900; text-shadow: 0 2px 0 #4a2400; }
+.counts { display: flex; flex-wrap: wrap; gap: 8px; }
+.counts span { display: flex; align-items: center; gap: 3px; font-weight: 800; }
+.counts b { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; border: 2px solid #ffe7a0; }
+.bonus { margin: 0; color: #a6ea5a; font-size: 13px; font-weight: 700; }
+
+/* collection: filters + owned dragons */
+.collection { padding: 8px; display: flex; flex-direction: column; gap: 8px; }
+.filters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.label { padding: 4px 12px; border-radius: 8px; background: linear-gradient(#6fc8ff, #2a77d0); color: #fff; font-weight: 800; text-shadow: 0 1px 0 rgba(0, 0, 0, .45); }
+.chip { padding: 3px 10px; border-radius: 8px; border: 2px solid #3f8a86; background: rgba(0, 0, 0, .3); color: #d8f2ec; font-weight: 800; cursor: pointer; }
+.dot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #3f8a86; font-size: 13px; cursor: pointer; display: grid; place-items: center; padding: 0; }
+.chipOn { border-color: #ffe066; box-shadow: 0 0 8px #ffe066; }
+.rR { color: #c8d0d8; } .rSR { color: #c79bff; } .rSSR { color: #ffd84d; } .rUR { color: #ff7a6a; }
+.sep { width: 1px; height: 22px; background: #3f8a86; margin: 0 4px; }
+.sort { margin-left: auto; padding: 4px 8px; border-radius: 8px; border: 2px solid #3f8a86; background: #163d3c; color: #e8fbff; font-weight: 700; }
+
+.owned { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; max-height: 260px; overflow: auto; padding: 4px 2px; }
+.card { position: relative; aspect-ratio: 3 / 4; padding: 0; border-radius: 8px; cursor: pointer; overflow: hidden;
+  background: radial-gradient(#2f6f6a, #163d3c); border: 2px solid #3f8a86; }
+.card img { position: absolute; inset: 6% 4% 22%; width: 92%; height: 72%; object-fit: contain; }
+.cR { border-color: #8a96a0; } .cSR { border-color: #9b6bff; } .cSSR { border-color: #e3b54a; } .cUR { border-color: #ff5a4a; }
+.cardIn { opacity: .55; }
+.inTeam { position: absolute; top: 3px; right: 3px; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center;
+  background: #e3b54a; color: #3a2400; font-size: 11px; font-weight: 900; }
+.empty { grid-column: 1 / -1; color: #9fc9c4; text-align: center; }
+
+/* buttons (as in Lai Rồng) */
+.actions { display: flex; justify-content: flex-end; gap: 12px; }
+.btn { min-width: 160px; padding: 8px 16px; border-radius: 10px; border: 2px solid rgba(255, 255, 255, .55); color: #fff; font-weight: 800;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .45); cursor: pointer; box-shadow: 0 3px 0 rgba(0, 0, 0, .35); }
+.btn:active:not(:disabled) { translate: 0 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, .35); }
+.btn:disabled { filter: grayscale(.7) brightness(.8); cursor: default; }
+.orange { background: linear-gradient(#ffcf5a, #e8891c); color: #4a2400; text-shadow: none; }
+.blue { background: linear-gradient(#6fc8ff, #2a77d0); }
+
+.msg { position: absolute; left: 50%; top: 56px; translate: -50% 0; z-index: 5; margin: 0; padding: 8px 18px; border-radius: 20px;
+  background: rgba(20, 30, 10, .92); border: 1px solid #e3b54a; color: #ffe7a0; font-size: 14px; font-weight: 700; white-space: nowrap;
+  pointer-events: none; animation: toast 1.8s ease forwards; }
+@keyframes toast { 0% { opacity: 0; translate: -50% -6px; } 12%, 80% { opacity: 1; translate: -50% 0; } 100% { opacity: 0; } }
+
+@media (max-width: 760px) {
+  .top { grid-template-columns: 1fr; }
+  .slots { grid-template-columns: repeat(5, 1fr); row-gap: 18px; }
+  .btn { min-width: 0; flex: 1; }
+}

@@ -11,7 +11,7 @@ export const BONE_DRAGON_SKILLS: SkillDef[] = [
     run: async ({ self, targets: [t], fx, projectile }) => {
       fx(4, t.chest(), { scale: 0.55, dur: 420, flipX: self.facing < 0 });
       fx(3, t.chest(), { scale: 0.4, dur: 450 });
-      t.hurt(); t.text(dmg(1));
+      t.hurt(); t.push?.(55 * self.facing); t.text(dmg(1));
       await projectile(5, t.chest(), self.chest(), { dur: 600, scale: 0.42 });
       fx(8, self.feet(), { scale: 0.35, anchor: 'bottom', dur: 600 });
       self.text('+60', HEAL);

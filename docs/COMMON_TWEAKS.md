@@ -26,7 +26,7 @@ Hướng dẫn nhanh "số nào ở đâu" để thay đổi các thông số ga
 ```typescript
 // game/rig/types.ts
 export const COMBAT_HOVER: Partial<Record<SpeciesId, number>> = {
-  hac_long: 120,   // tăng từ 95
+  black_dragon: 120,   // tăng từ 95
 };
 ```
 
@@ -36,8 +36,8 @@ export const COMBAT_HOVER: Partial<Record<SpeciesId, number>> = {
 
 | Thay đổi | File | Constant |
 |----------|------|----------|
-| Góc lắc đuôi khi ngủ | `game/rig/strikes.ts` | `STRIKES[<id>].attack.tail` (nếu có) |
-| Độ sóng đuôi khi bơi (Hải Long) | `game/config/species.ts` | `SPECIES_INFO.hai_long.motion.tailWave` |
+| Góc lắc đuôi khi ngủ | `game/rig/strikes_data.ts` | `STRIKES[<id>].attack.tail` (nếu có) |
+| Độ sóng đuôi khi bơi (Hải Long) | `game/config/species.ts` | `SPECIES_INFO.sea_dragon.motion.tailWave` |
 | Tail sway khi idle/walk | `game/rig/tuning.ts` | `RIG.sleepRate` (chỉ khi ngủ thôi) |
 
 ---
@@ -54,18 +54,18 @@ export const COMBAT_HOVER: Partial<Record<SpeciesId, number>> = {
 
 ## Skill effects
 
-Trong `game/skills/registry.ts`:
+Kích thước và thời gian hiệu ứng truyền qua options của từng lời gọi trong skill definition:
 
-| Thay đổi | Constant |
-|-----------|----------|
-| Kích thước hiệu ứng (mặc định) | `VFX_SIZE = 1.0` |
-| Thời gian hiệu ứng (mặc định) | `VFX_DUR = 0.7` |
-| Radius splash effect | `SPLASH_RADIUS = 120` |
-
-Khi gọi effect trong skill definition:
 ```typescript
-{ fx: 'gust', fxSize: 1.5 }   // scale riêng cho skill này
+fx(3, t.chest(), { scale: 0.55, dur: 420 });   // scale, dur (ms), tint, spin, ground, anchor…
 ```
+
+| Thay đổi | Constant / nơi |
+|----------|----------------|
+| Kích thước hiệu ứng (mặc định) | `FxOpts.scale` trong `game/skills/types.ts` |
+| Thời gian hiệu ứng (mặc định) | `FxOpts.dur` trong `game/skills/types.ts` |
+| Số vfx nạp cho từng loài | `VFX_COUNT`, `BASIC_FX` trong `game/skills/registry.ts` |
+| Radius splash effect | `SPLASH_RADIUS` trong `game/scene/effects/combatFx.ts` |
 
 ---
 
@@ -123,6 +123,8 @@ export const PRODUCTION: Record<Resource, { every: number[]; amount: number[] }>
 
 ## Art pipeline (tools)
 
+> `assets/` và `tools/` trong tài liệu này nằm ở repo **`../dragon-island-tools`**; chạy lệnh `.venv/bin/python tools/...` từ thư mục gốc của repo đó.
+
 | Thay đổi | File | Constant |
 |----------|------|----------|
 | Tốc độ chân (stride) trong gait design | `tools/legacy/gait_design.py` | `STRIDE = 56` |
@@ -157,7 +159,7 @@ Toạ độ là pixel của layout (gần bằng pixel ảnh `parts/body.png`). 
 
 Sau khi sửa luôn build lại rồi reload trang:
 ```bash
-.venv/bin/python tools/build_rig.py <id>        # Rồng Vàng/Bạc: chạy cho cả rong_vang và rong_bac
+.venv/bin/python tools/build_rig.py <id>        # Rồng Vàng/Bạc: chạy cho cả gold_dragon và silver_dragon
 ```
 Mẹo: mở `frontend/public/dragons/<id>/portrait.png` để xem nhanh dáng đứng sau khi build.
 
@@ -169,7 +171,7 @@ Mẹo: mở `frontend/public/dragons/<id>/portrait.png` để xem nhanh dáng đ
 | Tay đung đưa mạnh/nhẹ | `frontend/src/game/rig/DragonRig.ts` | khối `if (arm)`: `(4 + 10 * W)` = biên độ ngang |
 | Đuôi lắc nhiều/ít | `tools/rig_configs/<id>.py` | `motion["tailWave"]` (hệ số từng khúc; khúc đầu = 0 thì khúc đó đứng yên theo thân, như thân sau Hải Long) |
 | Bay ngóc đầu | `tools/rig_configs/<id>.py` | `motion["flyPitch"]` |
-| Tư thế đòn đánh | `frontend/src/game/rig/strikes.ts` | `STRIKES.<id>` (Vàng/Bạc: `TWIN_DRAGON`) |
+| Tư thế đòn đánh | `frontend/src/game/rig/strikes_data.ts` | `STRIKES.<id>` (Vàng/Bạc: `TWIN_DRAGON`) |
 | Tên/mô tả/hiệu ứng chiêu | `frontend/src/game/skills/<id>.ts` | Vàng/Bạc: `goldSilverTwins.ts` |
 | Hệ, độ hiếm, tên hiển thị | `frontend/src/game/config/species.ts` | `SPECIES_INFO` |
 | Rồng đứng ở đảo nào, chỗ nào | `frontend/src/game/config/islands.ts` | `dragon` / `guests` |

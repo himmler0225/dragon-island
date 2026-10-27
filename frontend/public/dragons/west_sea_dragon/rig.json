@@ -1,0 +1,424 @@
+{
+ "name": "T\u00e2y H\u1ea3i Long V\u01b0\u01a1ng",
+ "height": 426,
+ "motion": {
+  "sleepTail": [
+   0,
+   0,
+   0
+  ],
+  "rideCloud": true,
+  "stride": 55,
+  "liftScale": 0.45,
+  "stance": [
+   -45,
+   -45
+  ]
+ },
+ "bones": [
+  {
+   "name": "cap_fore_far_lower",
+   "parent": null,
+   "joint": [
+    -82.39,
+    -77.01
+   ],
+   "origin": [
+    0.5,
+    0.5
+   ],
+   "cap": [
+    "fore_far_upper",
+    "fore_far_lower"
+   ]
+  },
+  {
+   "name": "cap_fore_far_upper",
+   "parent": null,
+   "joint": [
+    -104.96,
+    -130.14
+   ],
+   "origin": [
+    0.5,
+    0.5
+   ],
+   "cap": [
+    "torso",
+    "fore_far_upper"
+   ]
+  },
+  {
+   "name": "fore_far_upper",
+   "parent": "torso",
+   "joint": [
+    -104.96,
+    -130.14
+   ],
+   "origin": [
+    0.3815,
+    0.2959
+   ]
+  },
+  {
+   "name": "cap_fore_far_paw",
+   "parent": null,
+   "joint": [
+    -134.98,
+    -48.3
+   ],
+   "origin": [
+    0.5,
+    0.5
+   ],
+   "cap": [
+    "fore_far_lower",
+    "fore_far_paw"
+   ]
+  },
+  {
+   "name": "fore_far_lower",
+   "parent": "fore_far_upper",
+   "joint": [
+    -82.39,
+    -77.01
+   ],
+   "origin": [
+    0.9178,
+    0.2294
+   ]
+  },
+  {
+   "name": "fore_far_paw",
+   "parent": "fore_far_lower",
+   "joint": [
+    -134.98,
+    -48.3
+   ],
+   "origin": [
+    0.6759,
+    0.0796
+   ],
+   "toe": [
+    -177.3,
+    0.0
+   ]
+  },
+  {
+   "name": "cap_hind_far_lower",
+   "parent": null,
+   "joint": [
+    124.67,
+    -77.69
+   ],
+   "origin": [
+    0.5,
+    0.5
+   ],
+   "cap": [
+    "hind_far_upper",
+    "hind_far_lower"
+   ]
+  },
+  {
+   "name": "cap_hind_far_upper",
+   "parent": null,
+   "joint": [
+    152.24,
+    -129.99
+   ],
+   "origin": [
+    0.5,
+    0.5
+   ],
+   "cap": [
+    "torso",
+    "hind_far_upper"
+   ]
+  },
+  {
+   "name": "hind_far_upper",
+   "parent": "torso",
+   "joint": [
+    152.24,
+    -129.99
+   ],
+   "origin": [
+    0.6257,
+    0.3429
+   ]
+  },
+  {
+   "name": "cap_hind_far_paw",
+   "parent": null,
+   "joint": [
+    173.3,
+    -47.36
+   ],
+   "origin": [
+    0.5,
+    0.5
+   ],
+   "cap": [
+    "hind_far_lower",
+    "hind_far_paw"
+   ]
+  },
+  {
+   "name": "hind_far_lower",
+   "parent": "hind_far_upper",
+   "joint": [
+    124.67,
+    -77.69
+   ],
+   "origin": [
+    0.116,
+    0.1925
+   ]
+  },
+  {
+   "name": "hind_far_paw",
+   "parent": "hind_far_lower",
+   "joint": [
+    173.3,
+    -47.36
+   ],
+   "origin": [
+    0.6682,
+    0.0766
+   ],
+   "toe": [
+    124.74,
+    0.0
+   ]
+  },
+  {
+   "name": "cap_fore_near_upper",
+   "parent": null,
+   "joint": [
+    -86.07,
+    -135.95
+   ],
+   "origin": [
+    0.5,
+    0.5
+   ],
+   "cap": [
+    "torso",
+    "fore_near_upper"
+   ]
+  },
+  {
+   "name": "cap_hind_near_upper",
+   "parent": null,
+   "joint": [
+    174.88,
+    -129.92
+   ],
+   "origin": [
+    0.5,
+    0.5
+   ],
+   "cap": [
+    "torso",
+    "hind_near_upper"
+   ]
+  },
+  {
+   "name": "cap_head",
+   "parent": null,
+   "joint": [
+    -142.68,
+    -251.56
+   ],
+   "origin": [
+    0.5,
+    0.5
+   ],
+   "cap": [
+    "torso",
+    "head"
+   ]
+  },
+  {
+   "name": "torso",
+   "parent": null,
+   "joint": [
+    0.0,
+    -194.41
+   ],
+   "origin": [
+    0.3215,
+    0.6183
+   ]
+  },
+  {
+   "name": "cap_hind_near_lower",
+   "parent": null,
+   "joint": [
+    146.49,
+    -78.34
+   ],
+   "origin": [
+    0.5,
+    0.5
+   ],
+   "cap": [
+    "hind_near_upper",
+    "hind_near_lower"
+   ]
+  },
+  {
+   "name": "hind_near_upper",
+   "parent": "torso",
+   "joint": [
+    174.88,
+    -129.92
+   ],
+   "origin": [
+    0.6245,
+    0.34
+   ]
+  },
+  {
+   "name": "cap_hind_near_paw",
+   "parent": null,
+   "joint": [
+    194.98,
+    -47.59
+   ],
+   "origin": [
+    0.5,
+    0.5
+   ],
+   "cap": [
+    "hind_near_lower",
+    "hind_near_paw"
+   ]
+  },
+  {
+   "name": "hind_near_lower",
+   "parent": "hind_near_upper",
+   "joint": [
+    146.49,
+    -78.34
+   ],
+   "origin": [
+    0.1214,
+    0.1798
+   ]
+  },
+  {
+   "name": "hind_near_paw",
+   "parent": "hind_near_lower",
+   "joint": [
+    194.98,
+    -47.59
+   ],
+   "origin": [
+    0.6889,
+    0.0766
+   ],
+   "toe": [
+    143.51,
+    0.0
+   ]
+  },
+  {
+   "name": "cap_fore_near_lower",
+   "parent": null,
+   "joint": [
+    -61.88,
+    -77.64
+   ],
+   "origin": [
+    0.5,
+    0.5
+   ],
+   "cap": [
+    "fore_near_upper",
+    "fore_near_lower"
+   ]
+  },
+  {
+   "name": "fore_near_upper",
+   "parent": "torso",
+   "joint": [
+    -86.07,
+    -135.95
+   ],
+   "origin": [
+    0.4007,
+    0.3185
+   ]
+  },
+  {
+   "name": "cap_fore_near_paw",
+   "parent": null,
+   "joint": [
+    -114.87,
+    -48.3
+   ],
+   "origin": [
+    0.5,
+    0.5
+   ],
+   "cap": [
+    "fore_near_lower",
+    "fore_near_paw"
+   ]
+  },
+  {
+   "name": "fore_near_lower",
+   "parent": "fore_near_upper",
+   "joint": [
+    -61.88,
+    -77.64
+   ],
+   "origin": [
+    0.9201,
+    0.2345
+   ]
+  },
+  {
+   "name": "fore_near_paw",
+   "parent": "fore_near_lower",
+   "joint": [
+    -114.87,
+    -48.3
+   ],
+   "origin": [
+    0.686,
+    0.0796
+   ],
+   "toe": [
+    -158.53,
+    0.0
+   ]
+  },
+  {
+   "name": "jaw",
+   "parent": "head",
+   "joint": [
+    -155.61,
+    -245.72
+   ],
+   "origin": [
+    0.8632,
+    0.3027
+   ]
+  },
+  {
+   "name": "head",
+   "parent": "torso",
+   "joint": [
+    -142.68,
+    -251.56
+   ],
+   "origin": [
+    0.6368,
+    0.9396
+   ]
+  }
+ ]
+}

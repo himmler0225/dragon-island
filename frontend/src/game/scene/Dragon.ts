@@ -13,8 +13,12 @@ import { bump, clamp01, smooth } from '../config/world';
 import type { DragonFlight } from './Dragon.flight';
 import { advanceFlight } from './Dragon.flight';
 
-/** Width of the riding cloud in body px (the dragon is ~340 long). */
-const CLOUD_W = 470;
+/** Knock-back (push): base skid time (ms, plus ~1.2 ms per px), hop (body px), rear-back tilt (rad). */
+const KNOCK = { dur: 260, hop: 22, tilt: 0.16 };
+/** On-screen size of the hunger art (images ~180 px): thought bubble, growl swirl, drool drop. */
+const HUNGER_FX = { bubble: 0.3, growl: 0.22, drool: 0.14 };
+/** Width of the riding cloud in body px (the dragon is ~340 long): about its own length. */
+const CLOUD_W = 330;
 
 type Flight = DragonFlight;
 
@@ -37,10 +41,12 @@ export class Dragon implements SkillActor {
   private strikeSeq = 0;
   private cancelAt = 0;
   private hover = 0;
+  private knock = { hop: 0, tilt: 0 };   // knock-back: hop height (body px) and backward tilt (rad)
   private combatT = 0;
   /** 0 starving .. 100 full (HUNGER); random start so they don't all get hungry at once */
   hunger = Phaser.Math.Between(45, 100);
-  private bubble: Phaser.GameObjects.Container | null = null;
+  private bubble: Phaser.GameObjects.Image | null = null;
+  private nextGrowl = 2;   // s to the next stomach growl (hungry) or drool drop (starving)
 
   readonly root: Phaser.GameObjects.Container;
   private readonly body: Phaser.GameObjects.Container;
@@ -48,6 +54,7 @@ export class Dragon implements SkillActor {
   readonly ring: Phaser.GameObjects.Ellipse;
   readonly rig: DragonRig;
   private cloud: Phaser.GameObjects.Image | null = null;
+  private seenStomps = 0;
   private puffT = 0;
   height = 0;
 
@@ -167,8 +174,13 @@ export class Dragon implements SkillActor {
       if (!this.island.free(x + step, this.y)) break;
       x += step;
     }
-    this.scene.tweens.add({ targets: this, x, duration: 380, ease: 'Cubic.easeOut' });
-    this.scene.ambient.footDust(this);
+    // thrown back: a little hop and a rear-back tilt while it skids, dust trailing under the feet
+    const dur = KNOCK.dur + Math.abs(x - this.x) * 1.2;
+    this.scene.tweens.add({ targets: this, x, duration: dur, ease: 'Expo.easeOut' });
+    this.scene.tweens.add({ targets: this.knock, hop: KNOCK.hop, duration: dur * 0.3, yoyo: true, ease: 'Quad.easeOut' });
+    this.scene.tweens.add({ targets: this.knock, tilt: KNOCK.tilt, duration: dur * 0.25, yoyo: true, hold: dur * 0.2, ease: 'Sine.easeOut' });
+    const trail = this.scene.time.addEvent({ delay: 70, repeat: Math.floor(dur / 70) - 2, callback: () => this.scene.ambient.footDust(this) });
+    this.scene.time.delayedCall(dur * 0.6, () => { trail.remove(); this.scene.ambient.dustRing(this); });
   }
 
   private get screenY() { return this.y + this.island.bob; }
@@ -215,13 +227,17 @@ export class Dragon implements SkillActor {
     let sy = 1, sx = 1;
     if (this.flight?.phase === 'takeoff') sy *= 1 - 0.1 * bump(this.flight.t, 0, 0.3);
     if (this.turnT < 0.22) { this.turnT += dt; sx *= 0.7 + 0.3 * smooth(clamp01(this.turnT / 0.22)); }
-    const height = this.alt + this.hover + this.rig.air;
+    const height = this.alt + this.hover + this.rig.air + this.knock.hop;
     this.height = height;
-    this.body.setPosition(0, -height).setScale(sx, sy);
+    this.body.setPosition(0, -height).setScale(sx, sy).setRotation(this.knock.tilt);
     if (this.cloud) {
       const ride = this.rig.fly;
-      this.cloud.setAlpha(ride).setVisible(ride > 0.01).setY(4 + 3 * Math.sin(this.t * 2.2)).setScale((CLOUD_W / this.cloud.width) * (0.7 + 0.3 * ride));
+      this.cloud.setAlpha(ride).setVisible(ride > 0.01).setScale((CLOUD_W / this.cloud.width) * (0.7 + 0.3 * ride));
       if (ride > 0.5 && height > 20 && (this.puffT -= dt) <= 0) { this.scene.ambient.cloudPuff(this); this.puffT = 0.28; }
+    }
+    if (this.rig.stomps !== this.seenStomps) {   // a front paw landed: a puff off the cloud (or dust on the ground)
+      this.seenStomps = this.rig.stomps;
+      if (this.cloud && this.rig.fly > 0.5) this.scene.ambient.cloudPuff(this); else this.scene.ambient.footDust(this);
     }
 
     const fade = 1 - Math.min(0.75, height / 150);
@@ -231,23 +247,48 @@ export class Dragon implements SkillActor {
     this.root.setPosition(this.x, this.screenY).setScale(flip * s, s).setDepth(5 + this.y / 1000 + (height > 20 ? 1 : 0));
   }
 
-  /** Hunger falls over time; below HUNGER.hungry a food bubble bobs over the head. */
+  /** Hunger falls over time. Hungry: a thought bubble with a ham over the head and now and then a
+   *  growl swirl off the belly. Starving: the bubble turns red with an empty bowl and it drools.
+   *  Art: public/balloon/hunger_1..4.png (tools/slice_balloon.py). */
   private updateHunger(dt: number) {
     const was = this.hungerLevel;
     this.hunger = Math.max(0, this.hunger - (HUNGER.perMinute / 60) * dt);
-    if (this.hungerLevel !== was) gameEvents.emit('hunger', { id: this.id, hunger: this.hunger, level: this.hungerLevel });
-    const show = this.hunger < HUNGER.hungry;
-    if (show && !this.bubble) {
-      const g = this.scene.add.graphics();
-      g.fillStyle(0xffffff, 0.95).fillRoundedRect(-26, -26, 52, 44, 14).fillTriangle(-6, 16, 6, 16, 0, 28);
-      g.lineStyle(3, 0xd9534f, 1).strokeRoundedRect(-26, -26, 52, 44, 14);
-      const meat = this.scene.add.text(0, -4, '🍖', { fontSize: '26px' }).setOrigin(0.5);
-      this.bubble = this.scene.add.container(0, 0, [g, meat]).setDepth(30);
-      this.scene.tweens.add({ targets: this.bubble, scale: { from: 0.9, to: 1.1 }, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    } else if (!show && this.bubble) {
-      this.bubble.destroy(); this.bubble = null;
+    const level = this.hungerLevel;
+    if (level !== was) gameEvents.emit('hunger', { id: this.id, hunger: this.hunger, level });
+    if (level === 'full') {
+      if (this.bubble) { this.bubble.destroy(); this.bubble = null; }
+      return;
     }
-    if (this.bubble) this.bubble.setPosition(this.x, this.head().y - 60 * this.scale);
+    const key = level === 'starving' ? 'hunger_2' : 'hunger_1';
+    if (!this.bubble) {
+      this.bubble = this.scene.add.image(0, 0, key).setOrigin(0.4, 1).setDepth(30).setScale(0);
+      this.scene.tweens.add({ targets: this.bubble, scale: HUNGER_FX.bubble, duration: 300, ease: 'Back.easeOut',
+        onComplete: () => this.bubble && this.scene.tweens.add({ targets: this.bubble, scale: HUNGER_FX.bubble * 1.08,
+          duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' }) });
+    } else if (this.bubble.texture.key !== key) {
+      this.bubble.setTexture(key);
+    }
+    this.bubble.setPosition(this.x + 18 * this.dir * -1, this.head().y - 40 * this.scale);
+    if (this.action === 'sleep' || this.height > 20 || (this.nextGrowl -= dt) > 0) return;
+    this.nextGrowl = Phaser.Math.FloatBetween(2.5, 4.5);
+    if (level === 'starving') this.drool(); else this.growl();
+  }
+
+  /** A growl swirl rises off the belly and fades. */
+  private growl() {
+    const c = this.chest();
+    const g = this.scene.add.image(c.x - 30 * this.dir * this.scale, c.y + 50 * this.scale, 'hunger_4')
+      .setScale(0).setDepth(this.root.depth + 0.01).setFlipX(this.dir > 0);
+    this.scene.tweens.add({ targets: g, scale: HUNGER_FX.growl, y: g.y - 30, duration: 450, ease: 'Back.easeOut' });
+    this.scene.tweens.add({ targets: g, alpha: 0, delay: 700, duration: 500, onComplete: () => g.destroy() });
+  }
+
+  /** A drop of drool falls from the mouth. */
+  private drool() {
+    const m = this.mouth();
+    const d = this.scene.add.image(m.x, m.y + 4, 'hunger_3').setOrigin(0.5, 0).setScale(HUNGER_FX.drool * 0.4, 0).setDepth(this.root.depth + 0.01);
+    this.scene.tweens.add({ targets: d, scaleY: HUNGER_FX.drool, scaleX: HUNGER_FX.drool, duration: 500, ease: 'Sine.easeOut' });
+    this.scene.tweens.add({ targets: d, y: this.feet().y - 4, alpha: 0, delay: 650, duration: 450, ease: 'Quad.easeIn', onComplete: () => d.destroy() });
   }
 
   get hungerLevel(): 'full' | 'hungry' | 'starving' {
@@ -302,7 +343,7 @@ export class Dragon implements SkillActor {
       turn: d => this.turn(d), dir: this.dir, action: this.action,
       setAction: a => this.setAction(a as import('../bridge').DragonAction),
       dustRing: () => this.scene.ambient.dustRing(this),
-      setRest: v => { this.rest = v; },
+      setRest: () => { this.rest = Phaser.Math.FloatBetween(2, 8); },
     });
     this.alt = alt;
   }
