@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { getEggLevel, setEggLevel as syncEggLevel } from '@/game/bridge';
 import { BLESS_COST, EGG_LEVELS, STAR_BONUS, bracketOdds, rollStars } from '@/game/config/breeding';
 import { SPECIES, SPECIES_INFO, portraitUrl, type SpeciesId } from '@/game/config';
+import { assetUrl } from '@/game/config/assets';
 import { Egg } from './Egg';
 import { StarRing } from './StarRing';
 import styles from './BreedPanel.module.css';
@@ -126,7 +127,7 @@ export default function BreedPanel({ onClose }: { onClose: () => void }) {
               <span>Cần:</span>
               <div className={styles.costBar}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/ui/res_stone.png" alt="" />
+                <img src={assetUrl('ui/res_stone.png')} alt="" />
                 <b>{stone.toLocaleString('vi-VN')}</b> / {BLESS_COST.toLocaleString('vi-VN')}
               </div>
               <button className={`${styles.btn} ${styles.green}`} onClick={bless} disabled={blessed || !!child}>Chúc phúc</button>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { assetUrl } from "@/game/config/assets";
 
 const NAV = [
   { href: "/", label: "Trang chủ" },
@@ -16,7 +17,7 @@ export default function TopBar({ active, slim = false }: { active?: string; slim
         <div className="header-inner">
           <Link href="/" className="logo" aria-label="Dragon Island">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/ui/logo.png" alt="Dragon Island" />
+            <img src={assetUrl("ui/logo.png")} alt="Dragon Island" />
           </Link>
 
           <nav className="nav" aria-label="Điều hướng chính">

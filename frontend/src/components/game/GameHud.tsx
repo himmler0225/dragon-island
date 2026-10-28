@@ -6,6 +6,7 @@ import { gameEvents, island, type DragonAction, type DragonCommand } from '@/gam
 import { ISLANDS, RESOURCE_NAME, type Resource } from '@/game/config';
 import { COMBOS, SKILLS, skillIconUrl, type SkillSlot } from '@/game/skills';
 import { SPECIES, SPECIES_INFO, portraitUrl, type SpeciesId } from '@/game/config';
+import { assetUrl } from '@/game/config/assets';
 import BattleScreen from './BattleScreen';
 import BreedPanel from './BreedPanel';
 import TeamPanel from './TeamPanel';
@@ -23,7 +24,7 @@ const ACTION_LABEL: Record<DragonAction, string> = { idle: 'đứng', walk: 'đi
 const ICON_ALIAS: Record<string, string> = { breed: 'chest', team: 'cards' };
 const Icon = ({ name }: { name: string }) => (
   // eslint-disable-next-line @next/next/no-img-element
-  <img src={`/ui/${ICON_ALIAS[name] ?? name}.png`} alt="" draggable={false} />
+  <img src={assetUrl(`ui/${ICON_ALIAS[name] ?? name}.png`)} alt="" draggable={false} />
 );
 
 export default function GameHud({ dev = false }: { dev?: boolean }) {

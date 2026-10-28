@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "assets:sync": "node scripts/sync-assets.mjs",
+    "assets:sync:all": "node scripts/sync-assets.mjs --all",
+    "assets:check": "node scripts/sync-assets.mjs --dry"
   },
   "dependencies": {
     "next": "16.4.0",

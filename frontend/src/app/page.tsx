@@ -4,6 +4,7 @@ import { Footer, TopBar } from "@/components";
 import { BUILDING_NAME, ISLANDS, PRODUCES, RESOURCE_NAME, type BuildingType } from "@/game/config";
 import { SKILLS, skillIconUrl } from "@/game/skills";
 import { SPECIES, SPECIES_INFO, portraitUrl, type SpeciesId } from "@/game/config";
+import { assetUrl } from "@/game/config/assets";
 import styles from "./home.module.css";
 
 const DRAGON_BLURB: Record<SpeciesId, string> = {
@@ -41,10 +42,10 @@ const BUILDINGS: { type: BuildingType; blurb: string }[] = [
 ];
 
 const FEATURES = [
-  { icon: "/ui/battle.png", title: "Chiến đấu theo lượt", text: "Mỗi rồng có nội tại, đòn đánh, kỹ năng và tuyệt kỹ riêng." },
-  { icon: "/ui/map.png", title: "Quần đảo nổi", text: "Mỗi đảo một cảnh sắc, một chủ nhân và công trình riêng." },
-  { icon: "/ui/potion.png", title: "Tẩy tủy & thăng cấp", text: "Quay lại tư chất, nâng cấp sao để rồng mạnh hơn." },
-  { icon: "/ui/cards.png", title: "Từ điển rồng", text: "Sưu tầm đủ hệ: Băng, Ám, Quang và các rồng nguyên tố." },
+  { icon: assetUrl("ui/battle.png"), title: "Chiến đấu theo lượt", text: "Mỗi rồng có nội tại, đòn đánh, kỹ năng và tuyệt kỹ riêng." },
+  { icon: assetUrl("ui/map.png"), title: "Quần đảo nổi", text: "Mỗi đảo một cảnh sắc, một chủ nhân và công trình riêng." },
+  { icon: assetUrl("ui/potion.png"), title: "Tẩy tủy & thăng cấp", text: "Quay lại tư chất, nâng cấp sao để rồng mạnh hơn." },
+  { icon: assetUrl("ui/cards.png"), title: "Từ điển rồng", text: "Sưu tầm đủ hệ: Băng, Ám, Quang và các rồng nguyên tố." },
 ];
 
 export default function HomePage() {
@@ -55,7 +56,7 @@ export default function HomePage() {
       {/* Hero */}
       <section className={styles.hero}>
         <div className={styles.heroInner}>
-          <img className={styles.heroLogo} src="/ui/logo.png" alt="Dragon Island" />
+          <img className={styles.heroLogo} src={assetUrl("ui/logo.png")} alt="Dragon Island" />
           <p className={styles.tagline}>Nuôi rồng trên những hòn đảo nổi giữa biển mây — thu hoạch, huấn luyện và chiến đấu.</p>
           <div className={styles.heroActions}>
             <Link href="/play" className={styles.playBtn}>Chơi ngay</Link>
@@ -103,7 +104,7 @@ export default function HomePage() {
           <div className={styles.islands}>
             {ISLANDS.map(isl => (
               <article key={isl.id} className={styles.islandCard}>
-                <img src={`/islands/${isl.id}.png`} alt={isl.name} />
+                <img src={assetUrl(`islands/${isl.id}.png`)} alt={isl.name} />
                 <h3>{isl.name}</h3>
                 <p>{ISLAND_BLURB[isl.id]}</p>
                 <span className={styles.owner}>
@@ -122,10 +123,10 @@ export default function HomePage() {
             {BUILDINGS.map(b => (
               <article key={b.type} className={styles.buildingCard}>
                 <div className={styles.buildingLevels}>
-                  {[1, 2, 3].map(l => <img key={l} src={`/buildings/${b.type}_${l}.png`} alt={`${BUILDING_NAME[b.type]} cấp ${l}`} />)}
+                  {[1, 2, 3].map(l => <img key={l} src={assetUrl(`buildings/${b.type}_${l}.png`)} alt={`${BUILDING_NAME[b.type]} cấp ${l}`} />)}
                 </div>
                 <h3>
-                  <img src={`/ui/res_${PRODUCES[b.type]}.png`} alt="" />
+                  <img src={assetUrl(`ui/res_${PRODUCES[b.type]}.png`)} alt="" />
                   {BUILDING_NAME[b.type]}
                 </h3>
                 <p>{b.blurb} <em>Sản xuất: {RESOURCE_NAME[PRODUCES[b.type]]}.</em></p>
@@ -149,7 +150,7 @@ export default function HomePage() {
 
         {/* Call to action */}
         <section className={styles.cta}>
-          <img src="/ui/logo.png" alt="" />
+          <img src={assetUrl("ui/logo.png")} alt="" />
           <div>
             <h2>Đảo của bạn đang chờ</h2>
             <p>Chơi ngay trên trình duyệt, không cần cài đặt.</p>

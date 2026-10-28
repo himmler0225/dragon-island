@@ -1,5 +1,6 @@
-// Dragon species that have a cut-out rig in public/dragons/<id>/ (built by tools/build_rig.py).
+// Dragon species that have a cut-out rig in assets/dragons/<id>/ (built by tools/build_rig.py).
 // To add one: build its rig and skills art, then add it here and to SKILLS in skills.ts.
+import { assetUrl } from './assets';
 
 export const SPECIES = ['black_dragon', 'bone_dragon', 'stag_dragon', 'sea_dragon', 'qilin', 'gold_dragon', 'silver_dragon', 'celestial_dragon', 'void_serpent', 'fire_phoenix', 'ice_phoenix', 'fire_dragon', 'earth_dragon', 'east_sea_dragon', 'west_sea_dragon', 'north_sea_dragon', 'south_sea_dragon', 'peacock'] as const;
 export type SpeciesId = (typeof SPECIES)[number];
@@ -26,9 +27,9 @@ export const SPECIES_INFO: Record<SpeciesId, { name: string; element: string; ra
   peacock: { name: 'Khổng Tước', element: 'Mộc', rarity: 'SSR' },
 };
 
-export const rigUrl = (id: SpeciesId) => `/dragons/${id}/rig.json`;
+export const rigUrl = (id: SpeciesId) => assetUrl(`dragons/${id}/rig.json`);
 /** Riding cloud of species whose rig has motion.rideCloud (tools/slice_cloud.py). */
 export const CLOUD_PUFFS = 3;
 export const cloudKey = (id: SpeciesId, part: 'main' | number) => `cloud_${part}_${id}`;
-export const cloudUrl = (id: SpeciesId, part: 'main' | number) => `/dragons/${id}/cloud_${part}.png`;
-export const portraitUrl = (id: SpeciesId) => `/dragons/${id}/portrait.png`;
+export const cloudUrl = (id: SpeciesId, part: 'main' | number) => assetUrl(`dragons/${id}/cloud_${part}.png`);
+export const portraitUrl = (id: SpeciesId) => assetUrl(`dragons/${id}/portrait.png`);

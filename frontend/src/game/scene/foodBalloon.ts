@@ -5,6 +5,7 @@
 // the pile and the heart are public/boat/food_7.png, food_8.png (tools/slice_boat.py).
 import * as Phaser from 'phaser';
 import { HUNGER } from '../config/economy';
+import { assetUrl } from '../config/assets';
 import type { Point } from '../config/world';
 import type { Dragon } from './Dragon';
 import type { Island } from './Island';
@@ -19,8 +20,8 @@ export const BALLOON = {
   drop: 1.6,         // s the crate takes to parachute down
 };
 export const BALLOON_TEXTURES: [string, string][] = [
-  ['balloon_full', '/balloon/balloon_full.png'], ['balloon_empty', '/balloon/balloon_empty.png'], ['crate', '/balloon/crate.png'],
-  ['food_7', '/boat/food_7.png'], ['food_8', '/boat/food_8.png'],
+  ['balloon_full', assetUrl('balloon/balloon_full.png')], ['balloon_empty', assetUrl('balloon/balloon_empty.png')], ['crate', assetUrl('balloon/crate.png')],
+  ['food_7', assetUrl('boat/food_7.png')], ['food_8', assetUrl('boat/food_8.png')],
 ];
 
 interface Pile { img: Phaser.GameObjects.Image; at: Point; left: number; eaters: Set<Dragon> }

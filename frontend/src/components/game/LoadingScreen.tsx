@@ -3,6 +3,7 @@
 // opening, measured by tools/slice_ui.py (public/ui/loading_bar.json): hole = [x, y, w, h] shares.
 import { useEffect, useState } from 'react';
 import { gameEvents, island } from '@/game/bridge';
+import { assetUrl } from '@/game/config/assets';
 import styles from './LoadingScreen.module.css';
 
 const HOLE = { x: 0.1977, y: 0.3966, w: 0.6865, h: 0.342 };
@@ -41,7 +42,7 @@ export default function LoadingScreen() {
   return (
     <div className={`${styles.screen} ${done ? styles.fade : ''}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className={styles.logo} src="/ui/logo.png" alt="Dragon Island" />
+      <img className={styles.logo} src={assetUrl("ui/logo.png")} alt="Dragon Island" />
       <div className={styles.bottom}>
         <div className={styles.bar}>
           <div className={styles.track}
@@ -49,7 +50,7 @@ export default function LoadingScreen() {
             <div className={styles.fill} style={{ width: `${Math.max(4, progress * 100)}%` }} />
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className={styles.frame} src="/ui/loading_frame.png" alt="" />
+          <img className={styles.frame} src={assetUrl("ui/loading_frame.png")} alt="" />
         </div>
         <p className={styles.percent}>Đang tải đảo… {Math.round(progress * 100)}%</p>
         <p className={styles.tip}>💡 {TIPS[tip]}</p>

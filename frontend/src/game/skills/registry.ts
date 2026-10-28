@@ -1,5 +1,6 @@
 // SKILLS registry: assembled from per-species files, plus URL helpers.
 import type { SpeciesId } from '../config/species';
+import { assetUrl } from '../config/assets';
 import type { SkillDef, SkillType } from './types';
 import { SEA_DRAGON_SKILLS } from './seaDragon';
 import { PEACOCK_SKILLS } from './peacock';
@@ -41,7 +42,7 @@ export const skill = (id: SpeciesId, type: SkillType): SkillDef => {
   if (!found) throw new Error(`Species "${id}" has no "${type}" skill`);
   return found;
 };
-export const skillIconUrl = (id: SpeciesId, type: SkillType) => `/dragons/${id}/skills/icon_${type}.png`;
+export const skillIconUrl = (id: SpeciesId, type: SkillType) => assetUrl(`dragons/${id}/skills/icon_${type}.png`);
 export const vfxKey = (id: SpeciesId, n: number) => `vfx_${id}_${n}`;
 /** Species whose skills use only code-drawn effects (no skills/vfx.png yet). */
 /** Species with a second vfx sheet (skills/vfx2.png -> vfx_9..16). */
@@ -57,5 +58,5 @@ export const NO_VFX: SpeciesId[] = ['void_serpent', 'fire_dragon', 'earth_dragon
 /** Species with drawn bite jaws (skills/jaw_upper.png + jaw_lower.png); others get procedural fangs. */
 export const JAW_SPECIES: SpeciesId[] = ['black_dragon', 'celestial_dragon'];
 export const jawKey = (id: SpeciesId, part: 'upper' | 'lower') => `jaw_${part}_${id}`;
-export const jawUrl = (id: SpeciesId, part: 'upper' | 'lower') => `/dragons/${id}/skills/jaw_${part}.png`;
-export const vfxUrl = (id: SpeciesId, n: number) => `/dragons/${id}/skills/vfx_${n}.png`;
+export const jawUrl = (id: SpeciesId, part: 'upper' | 'lower') => assetUrl(`dragons/${id}/skills/jaw_${part}.png`);
+export const vfxUrl = (id: SpeciesId, n: number) => assetUrl(`dragons/${id}/skills/vfx_${n}.png`);

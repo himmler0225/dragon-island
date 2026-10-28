@@ -84,3 +84,27 @@ vàng kim cho mọi thứ người chơi bấm được.
 ## Asset pipeline
 
 Ảnh gốc (`assets/`) và pipeline Python (`tools/`) nằm ở repo riêng **`../dragon-island-tools`** (checkout cạnh repo này). Pipeline ghi thẳng vào `frontend/public/` ở đây; xem README bên đó để cài đặt và chạy.
+
+### Lưu ảnh trên Supabase Storage
+
+Ảnh (~79 MB, 983 file) có thể đẩy lên bucket `assets` của Supabase thay vì nằm trong git/deploy.
+Mọi URL ảnh đi qua `assetUrl()` (`src/game/config/assets.ts`), nên khi bật `NEXT_PUBLIC_ASSET_BASE`
+thì game đọc ảnh từ Supabase, còn không bật thì đọc từ `public/` như cũ (fallback an toàn).
+
+```bash
+cd frontend
+cp .env.example .env.local
+# điền SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (Supabase dashboard -> Project Settings -> API Keys)
+npm run assets:sync          # chỉ upload file chưa có / khác size
+npm run assets:sync:all      # upload lại tất cả
+npm run assets:check         # xem sẽ upload gì, không upload
+
+# rồi đặt base URL vào .env.local:
+# NEXT_PUBLIC_ASSET_BASE=https://<project>.supabase.co/storage/v1/object/public/assets
+```
+
+Bucket cần **public** (read-only cho mọi người) để game tải ảnh không cần token.
+Service role key chỉ dùng cho script upload, không bao giờ đưa vào `NEXT_PUBLIC_*`.
+
+Lưu ý: free tier của Supabase chỉ có **5 GB egress/tháng**; ảnh tĩnh 79 MB dùng lâu sẽ tốn quota.
+Nếu cần nhiều lượt chơi, dùng Cloudflare R2 (egress 0$) thay cho Supabase Storage.

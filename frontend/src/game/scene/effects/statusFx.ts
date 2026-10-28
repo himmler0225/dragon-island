@@ -1,9 +1,10 @@
-// The look of status effects on a dragon (art: public/status/<kind>_<n>.png, tools/slice_status.py).
+// The look of status effects on a dragon (art: assets/status/<kind>_<n>.png, tools/slice_status.py).
 // Layers follow the dragon every frame until the status ends; an icon sits over its head.
 //   freeze: ice shell over the body, frost on the ground, snowflakes; shatters when it ends
 //   burn:   flames on the body, rising embers and smoke, a fiery puff on every tick
 //   curse:  skull sigil over the head, rune ring round the body, hex on the ground, violet drips
 import * as Phaser from 'phaser';
+import { assetUrl } from '../../config/assets';
 import type { Spot } from '../../skills/types';
 import { STATUS, STATUS_KINDS, type StatusKind } from '../../skills/status';
 import type { CombatFx } from './combatFx';
@@ -11,7 +12,7 @@ import type { CombatFx } from './combatFx';
 export const statusKey = (kind: StatusKind, n: number) => `status_${kind}_${n}`;
 
 export function loadStatusTextures(load: Phaser.Loader.LoaderPlugin) {
-  for (const kind of STATUS_KINDS) for (let n = 1; n <= 8; n++) load.image(statusKey(kind, n), `/status/${kind}_${n}.png`);
+  for (const kind of STATUS_KINDS) for (let n = 1; n <= 8; n++) load.image(statusKey(kind, n), assetUrl(`status/${kind}_${n}.png`));
 }
 
 /** What a status needs from the dragon it sits on. */

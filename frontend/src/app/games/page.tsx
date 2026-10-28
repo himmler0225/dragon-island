@@ -1,10 +1,11 @@
 import { TopBar, Footer, GameCard } from "@/components";
+import { assetUrl } from "@/game/config/assets";
 
 const allGames = [
   {
     id: "dragon-island",
     title: "Dragon Island",
-    art: "/islands/meadow.png",
+    art: assetUrl("islands/meadow.png"),
     players: 15420,
     rating: 4.8,
     category: "Nuôi thú",

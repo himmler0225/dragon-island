@@ -5,6 +5,7 @@ import { gameEvents, island, type DragonAction, type DragonCommand } from '@/gam
 import { ISLANDS, RESOURCE_NAME, type Resource } from '@/game/config';
 import { SKILLS, skillIconUrl, type SkillSlot } from '@/game/skills';
 import { SPECIES, SPECIES_INFO, portraitUrl, type SpeciesId } from '@/game/config';
+import { assetUrl } from '@/game/config/assets';
 import styles from './DevPanel.module.css';
 
 const COMMANDS: [DragonCommand, string][] = [['idle', 'Đứng'], ['walk', 'Đi'], ['fly', 'Bay'], ['sleep', 'Ngủ']];
@@ -40,7 +41,7 @@ export default function DevPanel() {
         {(Object.keys(wallet) as Resource[]).map(r => (
           <span key={r} className={styles.res} title={RESOURCE_NAME[r]}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`/ui/res_${r}.png`} alt="" />{wallet[r].toLocaleString('vi-VN')}
+            <img src={assetUrl(`ui/res_${r}.png`)} alt="" />{wallet[r].toLocaleString('vi-VN')}
           </span>
         ))}
       </div>

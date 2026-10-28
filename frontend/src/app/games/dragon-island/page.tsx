@@ -1,4 +1,5 @@
 import { TopBar, Footer, Breadcrumb } from "@/components";
+import { assetUrl } from "@/game/config/assets";
 
 export const metadata = { title: { absolute: "Dragon Island" } };
 
@@ -44,7 +45,7 @@ export default function DragonIslandPage() {
                   <div key={id} className="card" style={{ padding: 12 }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={`/islands/${id}.png`}
+                      src={assetUrl(`islands/${id}.png`)}
                       alt=""
                       style={{ width: "100%", aspectRatio: "1.45", objectFit: "contain" }}
                     />
@@ -58,7 +59,7 @@ export default function DragonIslandPage() {
               <div className="info-panel">
                 <div className="info-panel-head">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/ui/logo.png" alt="" />
+                  <img src={assetUrl("ui/logo.png")} alt="" />
                   <div>
                     <b>Dragon Island</b>
                     <small>Nuôi thú · Chiến đấu</small>

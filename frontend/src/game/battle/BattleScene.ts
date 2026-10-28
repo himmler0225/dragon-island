@@ -2,6 +2,7 @@
 import * as Phaser from 'phaser';
 import type { SpeciesId } from '../config/species';
 import { SPECIES, SPECIES_INFO, cloudKey, cloudUrl, rigUrl } from '../config/species';
+import { assetUrl } from '../config/assets';
 import { JAW_SPECIES, NO_VFX, SKILLS, jawKey, jawUrl, vfxKey, vfxNumbers, vfxUrl } from '../skills/registry';
 import type { SkillActor, SkillCtx, SkillSlot } from '../skills/types';
 import { CombatFx } from '../scene/effects/combatFx';
@@ -39,11 +40,11 @@ class BattleScene extends Phaser.Scene {
   preload() {
     loadStatusTextures(this.load);
     this.load.on(Phaser.Loader.Events.PROGRESS, (p: number) => this.events_.progress?.(p));
-    this.load.image('battle_bg', '/battle/background.jpg');
-    this.load.audio(MUSIC_KEY, '/audio/battle.mp3');   // cut from dragon-island-tools/assets/audio/battle_source.mp4
-    for (const k of ['tower_ally', 'tower_enemy', 'hp_frame']) this.load.image(k, `/battle/${k}.png`);
+    this.load.image('battle_bg', assetUrl('battle/background.jpg'));
+    this.load.audio(MUSIC_KEY, assetUrl('audio/battle.mp3'));   // cut from dragon-island-tools/assets/audio/battle_source.mp4
+    for (const k of ['tower_ally', 'tower_enemy', 'hp_frame']) this.load.image(k, assetUrl(`battle/${k}.png`));
     for (const id of SPECIES) {
-      for (const b of this.rigs[id].bones) this.load.image(`rig_${id}_${b.name}`, `/dragons/${id}/${b.name}.png`);
+      for (const b of this.rigs[id].bones) this.load.image(`rig_${id}_${b.name}`, assetUrl(`dragons/${id}/${b.name}.png`));
       if (this.rigs[id].motion?.rideCloud) this.load.image(cloudKey(id, 'main'), cloudUrl(id, 'main'));
       if (SKILLS[id].length && !NO_VFX.includes(id)) for (const n of vfxNumbers(id)) this.load.image(vfxKey(id, n), vfxUrl(id, n));
       if (JAW_SPECIES.includes(id)) for (const part of ['upper', 'lower'] as const) this.load.image(jawKey(id, part), jawUrl(id, part));

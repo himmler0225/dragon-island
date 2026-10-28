@@ -5,6 +5,7 @@
 // Icons: public/ui/bag/<name>.png when drawn (see the prompt in the chat); an emoji stands in until then.
 import { useEffect, useMemo, useState } from 'react';
 import { SPECIES, SPECIES_INFO, portraitUrl, type SpeciesId } from '@/game/config';
+import { assetUrl } from '@/game/config/assets';
 import { SKILLS, skillIconUrl } from '@/game/skills';
 import styles from './BagPanel.module.css';
 
@@ -35,7 +36,7 @@ const PAGE = 12;
 function BagIcon({ name, emoji }: { name: string; emoji: string }) {
   const [missing, setMissing] = useState(false);
   // eslint-disable-next-line @next/next/no-img-element
-  return missing ? <span className={styles.emoji}>{emoji}</span> : <img className={styles.icon} src={`/ui/bag/${name}.png`} alt="" onError={() => setMissing(true)} />;
+  return missing ? <span className={styles.emoji}>{emoji}</span> : <img className={styles.icon} src={assetUrl(`ui/bag/${name}.png`)} alt="" onError={() => setMissing(true)} />;
 }
 
 export default function BagPanel({ onClose }: { onClose: () => void }) {
