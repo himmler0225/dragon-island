@@ -4,7 +4,7 @@ import { BaseService } from '../../common/base/base.service.js';
 import { BusinessRuleError, ErrorCode, NotFoundError } from '../../common/errors/index.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { DragonsRepository, type DragonTypes } from './dragons.repository.js';
-import { STARTER_SPECIES, type DragonSpecies } from './dragon-species.js';
+import { GUEST_ROSTER, STARTER_SPECIES, type DragonSpecies } from './dragon-species.js';
 import type { ListDragonsQueryDto } from './dto/dragon.dto.js';
 import { currentHunger, HUNGER, isHungry } from './hunger.js';
 
@@ -49,5 +49,15 @@ export class DragonsService extends BaseService<DragonTypes> {
 
   grantStarter(ownerId: string) {
     return this.grant(ownerId, STARTER_SPECIES);
+  }
+
+  /** A guest's dragons: one of every species. */
+  async grantGuestRoster(ownerId: string) {
+    for (const species of GUEST_ROSTER) await this.grant(ownerId, species);
+  }
+
+  /** The species this player has at least one dragon of. */
+  async speciesOwned(ownerId: string): Promise<Set<string>> {
+    return new Set((await this.repository.findMany({ ownerId })).map(d => d.species));
   }
 }

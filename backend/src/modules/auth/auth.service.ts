@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import type { AuthUser } from '../../common/decorators/current-user.decorator.js';
@@ -24,6 +25,19 @@ export class AuthService {
     const user = await this.prisma.transaction(async () => {
       const created = await this.users.create({ email: dto.email, displayName: dto.displayName, passwordHash });
       await this.dragons.grantStarter(created.id);
+      return created;
+    });
+    return this.session(user);
+  }
+
+  /** A guest account: no email or password to remember, the token is all the browser keeps. It owns one dragon of
+   *  every species (the prototype's islands show them all). */
+  async guest() {
+    const id = randomUUID();
+    const passwordHash = await hashPassword(randomUUID());   // nobody knows it: the account lives by its token
+    const user = await this.prisma.transaction(async () => {
+      const created = await this.users.create({ email: `guest-${id}@guest.local`, displayName: `Khách ${id.slice(0, 4)}`, passwordHash });
+      await this.dragons.grantGuestRoster(created.id);
       return created;
     });
     return this.session(user);

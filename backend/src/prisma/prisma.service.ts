@@ -13,8 +13,14 @@ export type Db = Prisma.TransactionClient;
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   private readonly tx = new AsyncLocalStorage<Db>();
 
+  /** The client as callers hold it. PrismaClient's constructor returns a proxy, and a getter reached through that
+   *  proxy runs with `this` = the bare object behind it, which has no model delegates (`this.dragon` is undefined
+   *  there): `db` must hand back the proxy, kept here. */
+  private readonly self: PrismaService;
+
   constructor(config: AppConfig) {
     super({ adapter: new PrismaPg({ connectionString: config.get('DATABASE_URL') }) });
+    this.self = this;
   }
 
   async onModuleInit() {
@@ -27,7 +33,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   /** The client to query with: the current transaction if one is open, else the plain client. */
   get db(): Db {
-    return this.tx.getStore() ?? this;
+    return this.tx.getStore() ?? this.self;
   }
 
   /** Run `fn` in one transaction (nested calls join the outer one). Throwing rolls everything back. */

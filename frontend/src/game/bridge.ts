@@ -4,9 +4,9 @@ import type { SkillSlot } from './skills/types';
 import type { Resource } from './config/world';
 
 /** What a dragon is doing on the island. */
-export type DragonAction = 'idle' | 'walk' | 'fly' | 'sleep' | 'strike';
+export type DragonAction = 'idle' | 'walk' | 'fly' | 'strike';
 /** Commands the HUD can give a dragon. */
-export type DragonCommand = 'idle' | 'walk' | 'fly' | 'sleep';
+export type DragonCommand = 'idle' | 'walk' | 'fly';
 
 export interface IslandApi {
   readonly dragonIds: SpeciesId[];

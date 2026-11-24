@@ -15,4 +15,6 @@ export interface BattleEvents {
   hit(side: Side): void;
   view?(from: number, to: number): void;
   progress?(p: number): void;
+  /** A boss on the field lost (or regained) HP; hp 0 when it falls. */
+  boss?(hp: number, maxHp: number): void;
 }

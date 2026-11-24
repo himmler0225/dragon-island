@@ -1,7 +1,7 @@
 // Combat helpers: dive/land, foe search, impact, damage numbers, kill, status.
 import * as Phaser from 'phaser';
 import type { Unit } from './units';
-import { HUE, SCALE, STOP_MS, SUMMON_MS } from './constants';
+import { HUE, REACH_SLACK, SCALE, STOP_MS, SUMMON_MS } from './constants';
 import { STATUS } from '../skills/status';
 
 /** Number pop style: chunky rounded digits, a dark rim and a soft drop shadow (thousands grouped). */
@@ -11,25 +11,24 @@ const fmtNum = (n: number) => Math.round(n).toLocaleString('vi-VN');
 export class CombatScene {
   constructor(private scene: Phaser.Scene) {}
 
-  /** A column of light strikes the ground where the dragon stands, flashes white, and the dragon
-   *  pops out of it (scaled up from small) while sparks run up the beam. */
+  /** A soft column of light comes down where the dragon stands, glows, and the dragon pops out of
+   *  it (scaled up from small) while a few sparks drift up the beam. Kept dim: summons come often. */
   summon(u: Unit) {
     const sc = this.scene, tint = u.side === 'ally' ? 0x9fe8ff : 0xff9a7a;
     const x = u.root.x, ground = u.y, top = sc.cameras.main.worldView.y - 40, h = ground - top;
     const halo = sc.add.image(x, top + h / 2, 'glow').setTint(tint).setBlendMode(Phaser.BlendModes.ADD)
-      .setScale(5, h / 30).setAlpha(0).setDepth(19);
-    // white core drawn twice (additive) so it reads as pure light even over a bright sky
-    const cores = [0, 1].map(() => sc.add.image(x, top + h / 2, 'glow').setTint(0xffffff).setBlendMode(Phaser.BlendModes.ADD)
-      .setScale(1.6, h / 30).setAlpha(0).setDepth(19.1));
-    for (const [beam, a] of [[halo, 0.9], ...cores.map(c => [c, 1] as const)] as const) {
-      sc.tweens.add({ targets: beam, alpha: a, duration: 80, ease: 'Quad.easeOut' });
+      .setScale(4, h / 30).setAlpha(0).setDepth(19);
+    const core = sc.add.image(x, top + h / 2, 'glow').setTint(0xffffff).setBlendMode(Phaser.BlendModes.ADD)
+      .setScale(1.2, h / 30).setAlpha(0).setDepth(19.1);
+    for (const [beam, a] of [[halo, 0.4], [core, 0.45]] as const) {
+      sc.tweens.add({ targets: beam, alpha: a, duration: 200, ease: 'Sine.easeOut' });
       sc.tweens.add({ targets: beam, alpha: 0, scaleX: beam.scaleX * 0.2, delay: 420, duration: 380, ease: 'Quad.easeIn', onComplete: () => beam.destroy() });
     }
     // sparks rising up the beam
-    for (let k = 0; k < 14; k++) {
+    for (let k = 0; k < 8; k++) {
       const p = sc.add.image(x + Phaser.Math.Between(-26, 26), ground - Phaser.Math.Between(0, 120), 'spark')
-        .setTint(k % 2 ? 0xffffff : tint).setBlendMode(Phaser.BlendModes.ADD).setScale(Phaser.Math.FloatBetween(0.6, 1.3)).setAlpha(0).setDepth(19.2);
-      sc.tweens.add({ targets: p, alpha: { from: 1, to: 0 }, y: p.y - Phaser.Math.Between(220, 520), delay: 60 + k * 22,
+        .setTint(k % 2 ? 0xffffff : tint).setBlendMode(Phaser.BlendModes.ADD).setScale(Phaser.Math.FloatBetween(0.5, 1)).setAlpha(0).setDepth(19.2);
+      sc.tweens.add({ targets: p, alpha: { from: 0.6, to: 0 }, y: p.y - Phaser.Math.Between(220, 520), delay: 60 + k * 40,
         duration: Phaser.Math.Between(420, 700), ease: 'Cubic.easeOut', onComplete: () => p.destroy() });
     }
     sc.time.delayedCall(90, () => this.land(u, ground - u.alt, tint));
@@ -41,12 +40,13 @@ export class CombatScene {
 
   land(u: Unit, y: number, tint: number) {
     const x = u.root.x;
-    for (const [k, tint] of [[9, 0xffffff], [6, 0xffffff], [12, u.side === 'ally' ? 0x9fe8ff : 0xff9a7a]] as const) {
-      const flash = this.scene.add.image(x, y - 40, 'glow').setTint(tint).setBlendMode(Phaser.BlendModes.ADD).setScale(k * 0.4).setDepth(19.3);
-      this.scene.tweens.add({ targets: flash, scale: k, alpha: { from: 1, to: 0 }, duration: 520, ease: 'Quad.easeOut', onComplete: () => flash.destroy() });
+    // a soft glow where it lands (not a white flash: several summons in a row would strobe)
+    for (const [k, tint, a] of [[4, 0xffffff, 0.35], [7, u.side === 'ally' ? 0x9fe8ff : 0xff9a7a, 0.3]] as const) {
+      const flash = this.scene.add.image(x, y - 40, 'glow').setTint(tint).setBlendMode(Phaser.BlendModes.ADD).setScale(k * 0.5).setDepth(19.3);
+      this.scene.tweens.add({ targets: flash, scale: k, alpha: { from: a, to: 0 }, duration: 600, ease: 'Sine.easeOut', onComplete: () => flash.destroy() });
     }
     for (let k = 0; k < 2; k++) {
-      const ring = this.scene.add.ellipse(x, u.y, 90, 30).setStrokeStyle(5 - k * 2, k ? 0xffffff : tint, 0.9).setDepth(4).setScale(0.3);
+      const ring = this.scene.add.ellipse(x, u.y, 90, 30).setStrokeStyle(4 - k * 2, k ? 0xffffff : tint, 0.6).setDepth(4).setScale(0.3);
       this.scene.tweens.add({ targets: ring, scale: 2.6 + k, alpha: 0, delay: k * 90, duration: 520, ease: 'Cubic.easeOut', onComplete: () => ring.destroy() });
     }
     for (let k = 0; k < 12; k++) {
@@ -59,7 +59,7 @@ export class CombatScene {
 
   foe(u: Unit, units: Unit[]): Unit | null {
     const dir = u.side === 'ally' ? 1 : -1;
-    let best: Unit | null = null, bestD = u.reach;
+    let best: Unit | null = null, bestD = u.reach + (u.engaged ? REACH_SLACK : 0);
     for (const o of units) {
       if (o.dead || o.side === u.side) continue;
       const d = (o.root.x - u.root.x) * dir;
@@ -75,9 +75,23 @@ export class CombatScene {
     u.rig.hurt(true);
     u.kick = crit ? 26 : 14;
     this.scene.tweens.add({ targets: u, kick: 0, delay: ms, duration: 260, ease: 'Back.easeOut' });
-    const spark = this.scene.add.image(u.root.x, u.y - u.alt - 60 * SCALE, 'glow').setBlendMode(Phaser.BlendModes.SCREEN)
-      .setTint(by ? HUE[by.id].c : 0xffffff).setScale(crit ? 3.2 : 2.2).setDepth(21).setAlpha(0.9);
-    this.scene.tweens.add({ targets: spark, scale: 0.4, alpha: 0, duration: 260, ease: 'Quad.easeOut', onComplete: () => spark.destroy() });
+    // the hit: a flash in the attacker's colour round a white core, a ring bursting out and sparks flying off
+    const sc = this.scene, c = by ? HUE[by.id].c : 0xffffff, k = crit ? 1.4 : 1;
+    const x = u.root.x + (Math.random() - 0.5) * 20, y = u.y - u.alt - 60 * SCALE + (Math.random() - 0.5) * 20;
+    const flash = sc.add.image(x, y, 'glow').setBlendMode(Phaser.BlendModes.ADD).setTint(c).setScale(0.6 * k).setDepth(21).setAlpha(0.95);
+    sc.tweens.add({ targets: flash, scale: 3 * k, alpha: 0, duration: 320, ease: 'Cubic.easeOut', onComplete: () => flash.destroy() });
+    const core = sc.add.image(x, y, 'glow').setBlendMode(Phaser.BlendModes.ADD).setScale(1.4 * k).setDepth(21.1).setAlpha(1);
+    sc.tweens.add({ targets: core, scale: 0.3, alpha: 0, duration: 200, ease: 'Quad.easeIn', onComplete: () => core.destroy() });
+    const ring = sc.add.circle(x, y, 18).setStrokeStyle(crit ? 5 : 3, c, 0.9).setDepth(21).setScale(0.4);
+    sc.tweens.add({ targets: ring, scale: 2.6 * k, alpha: 0, duration: 360, ease: 'Cubic.easeOut', onComplete: () => ring.destroy() });
+    const n = crit ? 12 : 8;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + Math.random() * 0.4, r = Phaser.Math.Between(50, 95) * k;
+      const p = sc.add.image(x, y, 'spark').setBlendMode(Phaser.BlendModes.ADD).setTint(i % 3 ? c : 0xffffff)
+        .setDepth(21.2).setScale(Phaser.Math.FloatBetween(1, 1.8)).setRotation(a);
+      sc.tweens.add({ targets: p, x: x + Math.cos(a) * r, y: y + Math.sin(a) * r * 0.75, scaleX: 0.2, scaleY: 0.2, alpha: 0,
+        duration: Phaser.Math.Between(260, 420), ease: 'Cubic.easeOut', onComplete: () => p.destroy() });
+    }
   }
 
   /** A damage number: pops in with a little overshoot over the target's head, drifts up and to the side,
@@ -104,10 +118,10 @@ export class CombatScene {
     const x = u.root.x + (Math.random() - 0.5) * 24, y = headY - lift;
     // allies' losses red, crits gold, otherwise the attacker's colour (white for no attacker)
     const color = crit ? '#ffe066' : u.side === 'ally' ? '#ff6b6b' : by ? HUE[by.id].css : '#ffffff';
-    this.num(x, y, `-${fmtNum(dmg)}`, crit ? { color, size: 34, rim: '#6a1a00', scale: 1.5 } : { color, size: 24 });
+    this.num(x, y, `-${fmtNum(dmg)}`, crit ? { color, size: 26, rim: '#6a1a00', scale: 1.35 } : { color, size: 19 });
     if (crit) {
       const tag = this.scene.add.text(x, y - 30, 'CHÍ MẠNG!', {
-        fontFamily: NUM_FONT, fontStyle: 'italic 900', fontSize: '15px', color: '#fff6c8',
+        fontFamily: NUM_FONT, fontStyle: 'italic 900', fontSize: '12px', color: '#fff6c8',
         stroke: '#a83200', strokeThickness: 4, resolution: 2,
       }).setOrigin(0.5).setDepth(5001).setAngle(-6).setScale(0.4).setAlpha(0);
       tag.setShadow(0, 2, 'rgba(0, 0, 0, 0.5)', 3, true, true);
@@ -129,9 +143,9 @@ export class CombatScene {
 
   float(u: Unit, text: string, color: string, headY: number) {
     const t = this.scene.add.text(u.root.x, headY - 30, text, {
-      fontFamily: 'system-ui, sans-serif', fontStyle: '900', fontSize: '28px', color,
-      stroke: '#1a0d00', strokeThickness: 5, resolution: 2,
-    }).setOrigin(0.5).setDepth(5000).setScale(1.6);
+      fontFamily: 'system-ui, sans-serif', fontStyle: '900', fontSize: '18px', color,
+      stroke: '#1a0d00', strokeThickness: 4, resolution: 2,
+    }).setOrigin(0.5).setDepth(5000).setScale(1.3);
     this.scene.tweens.add({ targets: t, scale: 1, duration: 160, ease: 'Back.easeOut' });
     this.scene.tweens.add({ targets: t, y: t.y - 70, alpha: 0, delay: 380, duration: 700, ease: 'Cubic.easeIn', onComplete: () => t.destroy() });
   }
@@ -140,7 +154,7 @@ export class CombatScene {
     const tick = STATUS[kind].tick ?? 0;
     u.hp -= tick;
     const popColor = kind === 'burn' ? '#ffab5a' : '#d39bff';
-    this.num(u.root.x + (Math.random() - 0.5) * 24, headY - 10, `-${fmtNum(tick)}`, { color: popColor, size: 20, scale: 1.15 });
+    this.num(u.root.x + (Math.random() - 0.5) * 24, headY - 10, `-${fmtNum(tick)}`, { color: popColor, size: 16, scale: 1.1 });
     if (u.hp <= 0) this.kill(u);
   }
 }

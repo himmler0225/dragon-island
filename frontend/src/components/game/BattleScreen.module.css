@@ -10,18 +10,23 @@
 }
 
 /* top */
-.timer { position: absolute; left: 1.5%; top: calc(1.1 * var(--u)); width: calc(9 * var(--u)); aspect-ratio: 337 / 155; display: grid; place-items: center;
-  background: url('/battle/timer.png') center / 100% 100% no-repeat; color: #fff; font-weight: 800; font-size: calc(2.2 * var(--u)); text-shadow: 0 2px 2px #000; }
-.cards { position: absolute; left: calc(1.5% + 11.5 * var(--u)); top: calc(1.7 * var(--u)); display: flex; gap: calc(0.45 * var(--u)); width: calc(74 * var(--u)); }
-.card { position: relative; flex: 1; aspect-ratio: 329 / 310; padding: 0; border: 0; cursor: pointer;
-  background: url('/battle/card.png') center / 100% 100% no-repeat; }
-.card img { position: absolute; inset: 10% 8% 6%; width: 84%; height: 84%; object-fit: contain; }
-.cardOn { background-image: url('/battle/card_on.png'); transform: translateY(4%); }
-.cardDead { background-image: url('/battle/card_dead.png'); }
+.timer { position: absolute; left: 0.8%; top: calc(1.2 * var(--u)); padding: calc(0.25 * var(--u)) calc(1 * var(--u)); border-radius: calc(0.8 * var(--u));
+  background: rgba(0, 0, 0, .55); color: #fff; font-weight: 800; font-size: calc(1.8 * var(--u)); font-variant-numeric: tabular-nums; text-shadow: 0 1px 1px #000; }
+/* up to 50 cards: fixed size, the row pages with its arrows; plain slots as in Lai Rồng */
+.cardsBox { position: absolute; left: calc(1.5% + 11.5 * var(--u)); top: calc(1.7 * var(--u)); display: flex; align-items: center; gap: calc(0.4 * var(--u)); width: calc(76 * var(--u)); }
+.cardsArrow { flex: none; width: calc(2.4 * var(--u)); height: calc(4.4 * var(--u)); padding: 0; border-radius: calc(0.7 * var(--u)); cursor: pointer;
+  border: calc(0.14 * var(--u)) solid #e3b54a; background: linear-gradient(#4e5a2a, #2f3816); color: #fff4c8; font-size: calc(1.2 * var(--u)); font-weight: 900; }
+.cardsArrow:disabled { opacity: .35; cursor: default; }
+.cards { flex: 1; min-width: 0; display: flex; gap: calc(0.45 * var(--u)); overflow: hidden; padding: calc(0.3 * var(--u)) calc(0.2 * var(--u)); }
+.card { position: relative; flex: 0 0 calc(6.6 * var(--u)); aspect-ratio: 1; padding: 0; cursor: pointer; overflow: hidden; border-radius: calc(0.8 * var(--u));
+  background: radial-gradient(#2f6f6a, #163d3c); border: calc(0.16 * var(--u)) solid #3f8a86; }
+.card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: calc(1 * var(--u)) calc(0.3 * var(--u)) calc(0.3 * var(--u)); }
+.cardOn { border-color: #ffe066; box-shadow: 0 0 calc(0.8 * var(--u)) #ffe066; }
+.cardDead { border-color: #555; background: radial-gradient(#3a3a3a, #1c1c1c); }
 .cardDead img { filter: grayscale(1) brightness(.7); }
-.cardStars { position: absolute; left: 4%; top: -6%; display: flex; align-items: center; gap: 2px; color: #fff; font-weight: 900;
-  font-size: calc(1.1 * var(--u)); text-shadow: 0 1px 2px #000; z-index: 1; }
-.cardStars i { width: calc(1.3 * var(--u)); height: calc(1.3 * var(--u)); background: url('/battle/star.png') center / contain no-repeat; }
+.cardStars { position: absolute; top: calc(0.1 * var(--u)); right: calc(0.3 * var(--u)); display: flex; align-items: center; gap: 2px; color: #fff; font-weight: 800;
+  font-size: calc(1 * var(--u)); text-shadow: 0 1px 2px #000; z-index: 1; }
+.cardStars i { width: calc(1 * var(--u)); height: calc(1 * var(--u)); background: url('/battle/star.png') center / contain no-repeat; }
 .track { position: absolute; left: calc(1.5% + 29.5 * var(--u)); top: calc(9.8 * var(--u)); width: calc(40 * var(--u)); aspect-ratio: 1452 / 81; background: url('/battle/track.png') center / 100% 100% no-repeat; }
 .track i { position: absolute; left: 4%; top: 25%; height: 50%; max-width: 92%; border-radius: calc(1 * var(--u));
   background: url('/battle/track_fill.png') left center / auto 100% no-repeat, #3dc94c; }
@@ -42,18 +47,35 @@
 .wave img { height: 90%; aspect-ratio: 1; object-fit: contain; }
 .waveNow { filter: drop-shadow(0 0 calc(0.5 * var(--u)) #ffd84d); }
 
+/* right: the boss card (boss fight) */
+.boss { position: absolute; right: 0.4%; top: 1%; width: calc(9.4 * var(--u)); display: flex; flex-direction: column; align-items: center;
+  gap: calc(0.4 * var(--u)); padding: calc(0.6 * var(--u)); border-radius: calc(1 * var(--u)); color: #fff; text-align: center;
+  background: linear-gradient(rgba(70, 10, 6, .85), rgba(30, 6, 4, .85)); border: calc(0.25 * var(--u)) solid #e3b54a;
+  box-shadow: 0 0 calc(1.2 * var(--u)) rgba(255, 90, 30, .55); transition: filter .6s, opacity .6s; }
+.boss img { width: 100%; aspect-ratio: 1; object-fit: contain; filter: drop-shadow(0 0 calc(0.6 * var(--u)) #ff6a2a); }
+.boss b { font-size: calc(1.4 * var(--u)); color: #ffe066; text-shadow: 0 1px 2px #000; }
+.boss small { font-size: calc(1 * var(--u)); font-weight: 800; text-shadow: 0 1px 2px #000; }
+.bossBar { width: 100%; height: calc(1.1 * var(--u)); border-radius: 2px; background: rgba(0, 0, 0, .6); overflow: hidden;
+  box-shadow: inset 0 0 0 calc(0.12 * var(--u)) rgba(255, 226, 122, .5); }
+.bossBar { position: relative; }
+.bossBar i { display: block; height: 100%; background: linear-gradient(#ff8a78, #e0362c 55%, #a3171a); transition: width .25s; }
+/* cut into 10 cells */
+.bossBar::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(90deg, transparent 0 calc(10% - 2px), rgba(20, 6, 2, .85) calc(10% - 2px) 10%); }
+.bossDown { filter: grayscale(1); opacity: .6; }
+
 /* bottom */
 .mana { position: absolute; left: 0.5%; bottom: calc(0.8 * var(--u)); width: calc(28 * var(--u)); aspect-ratio: 931 / 125; background: url('/battle/mana_frame.png') center / 100% 100% no-repeat; }
 .mana i { position: absolute; left: 13%; top: 31%; height: 38%; max-width: 80%; border-radius: calc(1 * var(--u));
   background: url('/battle/mana_fill.png') left center / auto 100% no-repeat, #e8542a; transition: width .1s linear; }
 .mana b { position: absolute; inset: 0; display: grid; place-items: center; padding-left: 8%; color: #fff; font-size: calc(1.6 * var(--u)); text-shadow: 0 1px 2px #000; }
 .skills { position: absolute; left: calc(0.5% + 29.5 * var(--u)); bottom: calc(0.6 * var(--u)); display: flex; gap: calc(1.2 * var(--u)); }
-.skill { width: calc(7.5 * var(--u)); aspect-ratio: 254 / 242; padding: 0; border: 0; cursor: pointer; display: grid; place-items: center;
-  background: url('/battle/skill_btn.png') center / 100% 100% no-repeat; font-size: calc(3 * var(--u)); }
-.skill:hover:not(:disabled) { background-image: url('/battle/skill_btn_on.png'); }
+.skill { width: calc(6.6 * var(--u)); aspect-ratio: 1; padding: 0; cursor: pointer; display: grid; place-items: center; border-radius: calc(0.8 * var(--u));
+  background: radial-gradient(#2f6f6a, #163d3c); border: calc(0.16 * var(--u)) solid #3f8a86; font-size: calc(3 * var(--u)); }
+.skill:hover:not(:disabled) { border-color: #ffe066; box-shadow: 0 0 calc(0.8 * var(--u)) #ffe066; }
 .skill:disabled { cursor: default; filter: grayscale(.4) brightness(.85); }
 .skill { position: relative; }
-.skill img { width: 72%; height: 72%; object-fit: contain; }
+.skill img { width: 88%; height: 88%; object-fit: contain; }
 .skill small { position: absolute; left: 0; right: 0; top: calc(-1.8 * var(--u)); color: #fff; font-weight: 900; font-size: calc(1.1 * var(--u)); text-shadow: 0 1px 2px #000; white-space: nowrap; }
 /* summon ready: the button glows and pulses */
 .skillReady { animation: ready 1s ease-in-out infinite alternate; }
@@ -85,7 +107,7 @@
 .loadTip { max-width: calc(44 * var(--u)); text-align: center; font-size: calc(1.05 * var(--u)); color: #cfe2ff; opacity: .9; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes bob { from { transform: translateY(-4%) scale(.97); } to { transform: translateY(4%) scale(1.03); } }
-.timer, .cards, .track, .buffs, .waves, .mana, .skills, .close, .scroll, .over { z-index: 1; }
+.timer, .cardsBox, .track, .buffs, .waves, .boss, .mana, .skills, .close, .scroll, .over { z-index: 1; }
 .close { position: absolute; right: calc(0.4% + 10 * var(--u)); top: calc(11.2 * var(--u)); width: calc(3 * var(--u)); height: calc(3 * var(--u)); border-radius: 50%; cursor: pointer;
   border: calc(0.2 * var(--u)) solid #fff0b0; background: radial-gradient(circle at 35% 30%, #ffe27a, #c8901f); color: #4a2c00; font-weight: 900; font-size: calc(1.4 * var(--u)); }
 .over { position: absolute; inset: 0; display: grid; place-content: center; gap: calc(2 * var(--u)); background: rgba(0, 0, 0, .55); text-align: center; }

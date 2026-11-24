@@ -1,0 +1,74 @@
+/* Từ điển panel: the gold-framed sheet of Đội hình (TeamPanel.module.css) in warm red-brown, a big dragon card
+   beside a board of cell bars. */
+.backdrop { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; background: rgba(4, 10, 20, .6); pointer-events: auto; z-index: 20; }
+.panel {
+  position: relative;
+  width: min(1000px, 100%); max-height: 100%; overflow: auto; border-radius: 18px; padding: 6px;
+  background: linear-gradient(#f7d77a, #b8862a 40%, #8a5f17); box-shadow: 0 14px 50px rgba(0, 0, 0, .65);
+}
+.title { position: relative; display: grid; place-items: center; height: 44px; margin-bottom: 6px; border-radius: 12px 12px 6px 6px;
+  background: linear-gradient(#8a2a12, #4a1206); border: 2px solid #e3b54a; }
+.title h2 { margin: 0; font-size: 20px; color: #fff4c8; text-shadow: 0 2px 0 #2a0600; letter-spacing: .5px; }
+.close { position: absolute; right: 6px; top: 50%; translate: 0 -50%; width: 34px; height: 34px; border-radius: 50%;
+  border: 2px solid #fff0b0; background: radial-gradient(circle at 35% 30%, #ffe27a, #c8901f); color: #4a2c00; font-weight: 800; cursor: pointer; }
+
+/* the dragons: square avatars, all framed alike, cropped onto the front of the dragon (they all face left:
+   head and chest) so a long serpent and a chibi show at the same size */
+.list { display: flex; gap: 8px; overflow-x: auto; padding: 8px; margin-bottom: 6px; border-radius: 10px; background: rgba(60, 24, 8, .55);
+  scrollbar-width: thin; scrollbar-color: #c99a35 rgba(0, 0, 0, .3); }
+.list::-webkit-scrollbar { height: 6px; }
+.list::-webkit-scrollbar-thumb { background: #c99a35; border-radius: 3px; }
+.thumb { position: relative; flex: none; display: flex; flex-direction: column; align-items: center; gap: 3px; width: 82px; padding: 0;
+  border: 0; background: none; cursor: pointer; }
+.thumb span { position: relative; width: 78px; height: 78px; border-radius: 14px; overflow: hidden;
+  background: radial-gradient(circle at 40% 45%, color-mix(in srgb, var(--el) 70%, #fff) 0%, color-mix(in srgb, var(--el) 55%, #2a1206) 75%);
+  border: 3px solid #8a5a2a; box-shadow: inset 0 0 0 2px rgba(255, 230, 160, .35), 0 2px 0 rgba(0, 0, 0, .4); }
+.thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 12% 30%;
+  transform: scale(var(--z, 1.15)); transform-origin: 12% 30%; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .45)); }
+.thumb small { max-width: 82px; font-size: 11px; font-weight: 800; color: #ffe7c8; text-shadow: 0 1px 0 #2a0600; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; }
+.thumb:hover span { border-color: #e3b54a; }
+.thumbOn span { border-color: #ffe066; box-shadow: inset 0 0 0 2px rgba(255, 240, 180, .7), 0 0 12px rgba(255, 224, 102, .85); }
+.thumbOn small { color: #ffe066; }
+
+.body { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 10px; padding: 8px; border-radius: 10px;
+  background: linear-gradient(#5a2412, #2e1006); border: 2px solid #1e0704; }
+
+/* the big card */
+.card { display: flex; flex-direction: column; gap: 8px; padding: 8px; border-radius: 14px;
+  background: linear-gradient(#e8742a, #a8380e); border: 3px solid #f2c14e; box-shadow: inset 0 0 0 2px #6a1e06, 0 4px 12px rgba(0, 0, 0, .45); }
+.banner { margin: 0; padding: 6px 10px; border-radius: 8px; text-align: center; font-size: 18px; color: #fff4c8;
+  background: linear-gradient(#a8260e, #6a1206); border: 2px solid #f2c14e; text-shadow: 0 2px 0 #2a0600; }
+.art { position: relative; aspect-ratio: 1.15; border-radius: 10px; overflow: hidden; border: 2px solid #6a1e06;
+  background: radial-gradient(circle at 50% 70%, #fff 0%, color-mix(in srgb, var(--el) 70%, #fff) 25%, color-mix(in srgb, var(--el) 60%, #123) 85%); }
+.art img { width: 100%; height: 100%; object-fit: contain; padding: 8px; filter: drop-shadow(0 6px 8px rgba(0, 0, 0, .45)); }
+.badges { position: absolute; left: 6px; bottom: 6px; display: flex; gap: 4px; }
+.badges i { padding: 2px 8px; border-radius: 99px; font-style: normal; font-size: 12px; font-weight: 800; color: #fff;
+  background: rgba(0, 0, 0, .55); border: 1px solid rgba(255, 255, 255, .4); }
+.badges .rarity { background: #6b3fa0; }
+.desc { margin: 0; padding: 8px 10px; border-radius: 8px; font-size: 13px; line-height: 1.45; color: #fff3e0;
+  background: linear-gradient(#7a3a16, #5a2410); border: 2px solid #b8862a; }
+.desc b { color: #ffd27a; }
+
+/* attributes: an icon in a gold disc, the name, a bar of STAT_MAX cells */
+.side { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.stats { list-style: none; margin: 0; padding: 10px; display: flex; flex-direction: column; gap: 8px; border-radius: 12px;
+  background: linear-gradient(#d9a45a, #b07a36); border: 3px solid #6a3a12; box-shadow: inset 0 2px 6px rgba(0, 0, 0, .25); }
+.stats li { display: grid; grid-template-columns: 34px 78px minmax(0, 1fr); align-items: center; gap: 6px; }
+.icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; font-size: 16px;
+  background: radial-gradient(circle at 35% 30%, #2c4a7a, #0e1c36); border: 2px solid #f2c14e; box-shadow: 0 2px 0 rgba(0, 0, 0, .35); }
+.stats small { font-size: 13px; font-weight: 800; color: #3a1a06; }
+.bar { display: flex; gap: 2px; height: 18px; padding: 3px; border-radius: 6px; background: #4a2a10; border: 2px solid #2a1406; }
+.bar i { flex: 1; border-radius: 2px; background: #6a4420; }
+.bar i.on { background: linear-gradient(#c9f27a, #6fbf2a 55%, #3e8a14); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45); }
+
+.moves { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.moves li { display: flex; gap: 8px; align-items: flex-start; padding: 6px; border-radius: 10px; background: rgba(0, 0, 0, .3); border: 1px solid #7a3a22; }
+.moves img { width: 40px; height: 40px; border-radius: 8px; flex: none; }
+.moves b { font-size: 14px; color: #ffd27a; }
+.moves p { margin: 2px 0 0; font-size: 12px; color: #f0d8c8; }
+
+@media (max-width: 760px) {
+  .body { grid-template-columns: 1fr; }
+  .stats li { grid-template-columns: 30px 70px minmax(0, 1fr); }
+}

@@ -22,3 +22,23 @@ export async function skyfall(ctx: SkillCtx, t: SkillActor, count: number, onHit
     onHit(k);
   }));
 }
+
+/** The straight basic attack (Hắc Long, Thần Long; their skills/basic.png -> vfx_17..24, drawn flying left: 17 one
+ *  blade, 18 a fan of three, 19 a thick streak, 20 a sparkling head; 21 claw slashes, 22 column of light, 23
+ *  shockwave, 24 wisps): blades shot from the mouth one after another, each bursting on the target. */
+export async function volley(ctx: SkillCtx, t: SkillActor, count: number, onHit: (k: number) => void) {
+  const { self, projectile, fx, wait } = ctx;
+  await Promise.all(Array.from({ length: count }, async (_, k) => {
+    await wait(k * 130);
+    const m = self.mouth(), to = t.chest();
+    fx(20, m, { scale: 0.2, dur: 260, flipX: self.facing > 0 });
+    await projectile(FALL[k % 3], { x: m.x, y: m.y + (k - 1) * 14 }, { x: to.x, y: to.y + (k - 1) * 18 }, { dur: 300, scale: 0.34, rotate: false, flipX: self.facing > 0 });
+    fx(IMPACT[0], to, { scale: 0.3, dur: 320 });
+    onHit(k);
+    if (k === count - 1) {   // the last one: the column of light and the shockwave under the target
+      fx(IMPACT[1], t.feet(), { scale: 0.42, anchor: 'bottom', dur: 620 });
+      fx(IMPACT[2], t.feet(), { scale: 0.34, anchor: 'bottom', dur: 620 });
+      fx(IMPACT[3], to, { scale: 0.3, dur: 800 });
+    }
+  }));
+}

@@ -3,28 +3,33 @@
 // Menu buttons open a placeholder panel for now — replace PANELS entries with real screens.
 import { useEffect, useState } from 'react';
 import { gameEvents, island, type DragonAction, type DragonCommand } from '@/game/bridge';
-import { ISLANDS, RESOURCE_NAME, type Resource } from '@/game/config';
+import { EXP_PER_LEVEL, ISLANDS, RESOURCE_NAME, START_LEVEL, type Resource } from '@/game/config';
 import { COMBOS, SKILLS, skillIconUrl, type SkillSlot } from '@/game/skills';
-import { SPECIES, SPECIES_INFO, portraitUrl, type SpeciesId } from '@/game/config';
+import { SPECIES, SPECIES_INFO, portraitUrl, type BossId, type SpeciesId } from '@/game/config';
 import { assetUrl } from '@/game/config/assets';
 import BattleScreen from './BattleScreen';
 import BreedPanel from './BreedPanel';
 import TeamPanel from './TeamPanel';
 import BagPanel from './BagPanel';
+import BossPanel from './BossPanel';
+import LibraryPanel from './LibraryPanel';
+import ChristmasPanel, { christmasIcon } from './ChristmasPanel';
+import ElementIcon from './ElementIcon';
 import styles from './GameHud.module.css';
 
-type MenuId = 'breed' | 'team' | 'quest' | 'achievement' | 'ranking' | 'mail' | 'gift' | 'bag' | 'shop' | 'cards' | 'battle' | 'map' | 'friends' | 'settings' | 'profile';
-const SIDE: [MenuId, string][] = [['quest', 'Nhiệm vụ'], ['achievement', 'Thành tựu'], ['ranking', 'Xếp hạng'], ['mail', 'Thư'], ['gift', 'Quà']];
-const BOTTOM: [MenuId, string][] = [['breed', 'Lai rồng'], ['team', 'Đội hình'], ['bag', 'Túi'], ['shop', 'Cửa hàng'], ['cards', 'Từ điển'], ['battle', 'Chiến đấu'], ['map', 'Bản đồ'], ['friends', 'Bạn bè'], ['settings', 'Cài đặt']];
-const LABEL = Object.fromEntries([...SIDE, ...BOTTOM, ['profile', 'Hồ sơ']]) as Record<MenuId, string>;
-const COMMANDS: [DragonCommand, string][] = [['walk', '🚶'], ['fly', '🪽'], ['sleep', '💤']];
-const ACTION_LABEL: Record<DragonAction, string> = { idle: 'đứng', walk: 'đi dạo', fly: 'bay', sleep: 'ngủ', strike: 'ra đòn' };
+type MenuId = 'event' | 'breed' | 'team' | 'quest' | 'achievement' | 'ranking' | 'mail' | 'gift' | 'bag' | 'shop' | 'cards' | 'battle' | 'boss' | 'map' | 'friends' | 'settings' | 'profile';
+// the menu buttons by where they sit: the big gift and sword at the bottom left, then a row of small
+// octagons, mail and settings on the right, round buttons in the corners
+const ROW: [MenuId, string][] = [['friends', 'Bạn bè'], ['quest', 'Nhiệm vụ'], ['cards', 'Từ điển'], ['achievement', 'Thành tựu'], ['team', 'Đội hình'], ['breed', 'Lai rồng']];
+const SYSTEM: [MenuId, string][] = [['mail', 'Thư'], ['settings', 'Cài đặt']];
+const CORNER: [MenuId, string][] = [['boss', 'Đánh Boss'], ['map', 'Bản đồ']];
+const LABEL: Record<MenuId, string> = Object.fromEntries([...ROW, ...SYSTEM, ...CORNER, ['gift', 'Quà'], ['battle', 'Chiến đấu'], ['ranking', 'Xếp hạng'], ['shop', 'Cửa hàng'], ['bag', 'Túi'], ['profile', 'Hồ sơ'], ['event', 'Sự kiện Giáng Sinh']]) as Record<MenuId, string>;
+const COMMANDS: [DragonCommand, string][] = [['walk', '🚶'], ['fly', '🪽']];
+const ACTION_LABEL: Record<DragonAction, string> = { idle: 'đứng', walk: 'đi dạo', fly: 'bay', strike: 'ra đòn' };
 
-// menus without their own icon art yet borrow one (breed -> egg icon when drawn: public/ui/breed.png)
-const ICON_ALIAS: Record<string, string> = { breed: 'chest', team: 'cards' };
 const Icon = ({ name }: { name: string }) => (
   // eslint-disable-next-line @next/next/no-img-element
-  <img src={assetUrl(`ui/${ICON_ALIAS[name] ?? name}.png`)} alt="" draggable={false} />
+  <img src={assetUrl(`ui/${name}.png`)} alt="" draggable={false} />
 );
 
 export default function GameHud({ dev = false }: { dev?: boolean }) {
@@ -34,6 +39,7 @@ export default function GameHud({ dev = false }: { dev?: boolean }) {
   const [focused, setFocused] = useState(0);
   const [wallet, setWallet] = useState<Record<Resource, number>>({ gold: 1500, exp: 0, stone: 3 });
   const [panel, setPanel] = useState<MenuId | null>(null);
+  const [bossFight, setBossFight] = useState<BossId | null>(null);   // Đánh Boss: the boss being fought
   const [bump, setBump] = useState<Resource | null>(null);
   const [full, setFull] = useState(false);
   const [sky, setSky] = useState<{ hour: number; night: number; weather: 'clear' | 'cloudy' | 'rain' } | null>(null);
@@ -80,36 +86,57 @@ export default function GameHud({ dev = false }: { dev?: boolean }) {
 
   return (
     <div className={styles.hud}>
-      {/* top: player, island, resources */}
-      <div className={styles.top}>
-        <button className={styles.player} onClick={() => setPanel('profile')}>
-          <Icon name="profile" />
-          <span><b>Người chơi</b><small>Cấp 12</small></span>
-        </button>
-        <div className={styles.islandNav}>
-          <button onClick={() => go(-1)} aria-label="Đảo trước">◀</button>
-          <span>{ISLANDS[focused].name}
-            {sky && <small className={styles.clock} title="Giờ trên đảo (giờ TP.HCM)">
-              {sky.weather === 'rain' ? '🌧️' : sky.weather === 'cloudy' ? '☁️' : sky.night > 0.5 ? '🌙' : sky.hour >= 16.5 || sky.hour < 7 ? '🌇' : '☀️'} {String(Math.floor(sky.hour)).padStart(2, '0')}:{String(Math.round((sky.hour % 1) * 60) % 60).padStart(2, '0')}
-            </small>}
+      {/* top left: the crest with the level, name and exp bar, the ranking cup, the resources under it */}
+      <button className={styles.crest} onClick={() => setPanel('profile')} title="Hồ sơ">
+        <Icon name="profile" />
+        <b>{START_LEVEL + Math.floor(wallet.exp / EXP_PER_LEVEL)}</b>
+      </button>
+      <div className={styles.who}>
+        <b>Người chơi</b>
+        <div className={`${styles.expBar} ${bump === 'exp' ? styles.bump : ''}`} title={RESOURCE_NAME.exp}>
+          <span>EXP</span>
+          <i><u style={{ width: `${(100 * (wallet.exp % EXP_PER_LEVEL)) / EXP_PER_LEVEL}%` }} /></i>
+          <small>{(wallet.exp % EXP_PER_LEVEL).toLocaleString('vi-VN')} / {EXP_PER_LEVEL.toLocaleString('vi-VN')}</small>
+        </div>
+      </div>
+      <button className={styles.cup} onClick={() => setPanel('ranking')} title="Xếp hạng"><Icon name="ranking" /></button>
+      <div className={styles.wallet}>
+        {(['gold', 'stone'] as Resource[]).map(r => (
+          <span key={r} className={`${styles.pill} ${bump === r ? styles.bump : ''}`} title={RESOURCE_NAME[r]}>
+            <Icon name={`res_${r}`} />
+            <b>{wallet[r].toLocaleString('vi-VN')}</b>
           </span>
-          <button onClick={() => go(1)} aria-label="Đảo sau">▶</button>
-        </div>
-        <div className={styles.wallet}>
-          <button className={styles.fullBtn} onClick={toggleFull} title={full ? 'Thoát toàn màn hình' : 'Toàn màn hình'}>
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
-              {full
-                ? <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />
-                : <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />}
-            </svg>
-          </button>
-          {(Object.keys(wallet) as Resource[]).map(r => (
-            <span key={r} className={`${styles.pill} ${bump === r ? styles.bump : ''}`} title={RESOURCE_NAME[r]}>
-              <Icon name={`res_${r}`} />
-              <b>{wallet[r].toLocaleString('vi-VN')}</b>
-            </span>
-          ))}
-        </div>
+        ))}
+      </div>
+
+      {/* top: the island's name and clock */}
+      <div className={styles.islandName}>
+        <span>{ISLANDS[focused].name}</span>
+        {sky && <small className={styles.clock} title="Giờ trên đảo (giờ TP.HCM)">
+          {sky.weather === 'rain' ? '🌧️' : sky.weather === 'cloudy' ? '☁️' : sky.night > 0.5 ? '🌙' : sky.hour >= 16.5 || sky.hour < 7 ? '🌇' : '☀️'} {String(Math.floor(sky.hour)).padStart(2, '0')}:{String(Math.round((sky.hour % 1) * 60) % 60).padStart(2, '0')}
+        </small>}
+      </div>
+
+      {/* top right: round buttons; right: the arrows between the islands */}
+      <div className={styles.corner}>
+        <button className={`${styles.round} ${styles.event}`} onClick={() => setPanel('event')} title="Sự kiện Giáng Sinh">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={christmasIcon} alt="" draggable={false} />
+        </button>
+        {CORNER.map(([id, label]) => (
+          <button key={id} className={styles.round} onClick={() => setPanel(id)} title={label}><Icon name={id} /></button>
+        ))}
+        <button className={styles.fullBtn} onClick={toggleFull} title={full ? 'Thoát toàn màn hình' : 'Toàn màn hình'}>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+            {full
+              ? <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />
+              : <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />}
+          </svg>
+        </button>
+      </div>
+      <div className={styles.arrows}>
+        <button onClick={() => go(1)} aria-label="Đảo sau">▶</button>
+        <button onClick={() => go(-1)} aria-label="Đảo trước">◀</button>
       </div>
 
       {/* left: dragons */}
@@ -125,19 +152,10 @@ export default function GameHud({ dev = false }: { dev?: boolean }) {
         ))}
       </div>
 
-      {/* right: event menus */}
-      <div className={styles.side}>
-        {SIDE.map(([id, label]) => (
-          <button key={id} className={styles.menuBtn} onClick={() => setPanel(id)}>
-            <Icon name={id} /><span>{label}</span>
-          </button>
-        ))}
-      </div>
-
       {/* bottom-left: selected dragon's skills and commands */}
       <div className={styles.skills}>
         <div className={styles.skillHead}>
-          <b>{info.name}</b><small>{info.element} · {info.rarity}</small>
+          <b>{info.name}</b><small><ElementIcon element={info.element} /> {info.element} · {info.rarity}</small>
           <span className={styles.cmds}>
             <button title="Gọi thuyền thức ăn" onClick={() => api?.callBoat(selected)}>⛵</button>
             {COMMANDS.filter(([cmd]) => cmd !== 'fly' || api?.canFly(selected) !== false).map(([cmd, emoji]) => (
@@ -146,7 +164,7 @@ export default function GameHud({ dev = false }: { dev?: boolean }) {
           </span>
         </div>
         <div className={styles.skillRow}>
-          {SKILLS[selected].map(s => (
+          {SKILLS[selected]?.map(s => (
             <button key={s.type} className={`${styles.skill} ${s.type === 'passive' ? styles.passive : ''}`}
               disabled={s.type === 'passive'} title={`${s.name}: ${s.desc}`}
               onClick={() => api?.useSkill(selected, s.type as SkillSlot)}>
@@ -161,20 +179,28 @@ export default function GameHud({ dev = false }: { dev?: boolean }) {
           <button key={c.id} className={styles.combo} title={c.desc} onClick={() => api?.useCombo(c.id)}>
             <span className={styles.comboIcon}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              {c.pair.map(p => <img key={p} src={portraitUrl(p)} alt="" />)}
+              {c.icon ? <img className={styles.comboArt} src={c.icon} alt="" /> : c.pair.map(p => <img key={p} src={portraitUrl(p)} alt="" />)}
             </span>
             <small>Hợp Kích</small><b>{c.name}</b>
           </button>
         ))}
       </div>
 
-      {/* bottom: main menu */}
+      {/* bottom left: the big gift and sword, the row of menus */}
       <div className={styles.bottom}>
-        {BOTTOM.map(([id, label]) => (
-          <button key={id} className={styles.menuBtn} onClick={() => setPanel(id)}>
-            <Icon name={id} /><span>{label}</span>
-          </button>
+        <button className={`${styles.octa} ${styles.big}`} onClick={() => setPanel('gift')} title="Quà"><Icon name="gift" /></button>
+        <button className={`${styles.octa} ${styles.mid}`} onClick={() => setPanel('battle')} title="Chiến đấu"><Icon name="battle" /></button>
+        {ROW.map(([id, label]) => (
+          <button key={id} className={styles.octa} onClick={() => setPanel(id)} title={label}><Icon name={id} /></button>
         ))}
+      </div>
+      {/* bottom right: mail and settings, the shop, the big bag */}
+      <div className={styles.bottomRight}>
+        {SYSTEM.map(([id, label]) => (
+          <button key={id} className={styles.octa} onClick={() => setPanel(id)} title={label}><Icon name={id} /></button>
+        ))}
+        <button className={styles.round} onClick={() => setPanel('shop')} title="Cửa hàng"><Icon name="shop" /></button>
+        <button className={`${styles.round} ${styles.bag}`} onClick={() => setPanel('bag')} title="Túi"><Icon name="bag" /></button>
       </div>
 
       {dev && <p className={styles.devHint}>dev: kéo ngang đổi đảo · Shift+bấm để bay · bấm công trình để thu</p>}
@@ -183,8 +209,13 @@ export default function GameHud({ dev = false }: { dev?: boolean }) {
       {panel === 'battle' && <BattleScreen onClose={() => setPanel(null)} />}
       {panel === 'team' && <TeamPanel onClose={() => setPanel(null)} />}
       {panel === 'bag' && <BagPanel onClose={() => setPanel(null)} />}
+      {panel === 'cards' && <LibraryPanel onClose={() => setPanel(null)} />}
+      {panel === 'event' && <ChristmasPanel onClose={() => setPanel(null)} />}
+      {panel === 'boss' && !bossFight && <BossPanel onClose={() => setPanel(null)} onFight={setBossFight} />}
+      {/* leaving a boss fight goes back to the boss list */}
+      {bossFight && <BattleScreen key={bossFight} boss={bossFight} onClose={() => setBossFight(null)} />}
 
-      {panel && panel !== 'breed' && panel !== 'battle' && panel !== 'team' && panel !== 'bag' && (
+      {panel && !['breed', 'battle', 'team', 'bag', 'boss', 'cards', 'event'].includes(panel) && (
         <div className={styles.modal} onClick={e => { if (e.target === e.currentTarget) setPanel(null); }}>
           <div className={styles.sheet}>
             <header>

@@ -1,6 +1,6 @@
 // Thần Long skills.
 import type { SkillDef } from './types';
-import { skyfall } from './skyfall';
+import { volley } from './skyfall';
 
 const dmg = (scale: number) => `-${Math.round((180 + Math.random() * 40) * scale)}`;
 const HEAL = '#7dffa0';
@@ -8,11 +8,11 @@ const HEAL = '#7dffa0';
 export const CELESTIAL_DRAGON_SKILLS: SkillDef[] = [
   { type: 'passive', name: 'Thánh Quang Hộ Thể', desc: 'Đầu trận toàn đội nhận Lá Chắn 10% Sinh lực tối đa; Thần Long miễn hiệu ứng khống chế lượt đầu.' },
   {
-    type: 'basic', name: 'Thánh Quang Thương', desc: 'Gọi thương ánh sáng từ trời: 3 ngọn, mỗi ngọn 35% Công lên 1 mục tiêu, hồi 20% sát thương gây ra.',
+    type: 'basic', name: 'Thánh Quang Thương', desc: 'Phóng 3 ngọn thương ánh sáng thẳng vào 1 mục tiêu từ xa: mỗi ngọn 35% Công, hồi 20% sát thương gây ra.',
     anim: 'attack', target: 'enemy',
     run: async ctx => {
       const [t] = ctx.targets;
-      await skyfall(ctx, t, 3, () => { t.hurt(); t.text(dmg(0.35)); });
+      await volley(ctx, t, 3, () => { t.hurt(); t.text(dmg(0.35)); });
       ctx.self.text('+40', HEAL);
     },
   },

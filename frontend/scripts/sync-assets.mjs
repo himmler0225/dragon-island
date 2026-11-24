@@ -5,7 +5,7 @@
 //   node scripts/sync-assets.mjs --all      # upload everything again
 //   node scripts/sync-assets.mjs --dry      # list what would be uploaded, upload nothing
 //
-// Needs two environment variables (see .env.example):
+// Needs two environment variables (see .env.example; the npm scripts read them from .env.local):
 //   SUPABASE_URL             e.g. https://xxxx.supabase.co
 //   SUPABASE_SERVICE_ROLE_KEY  the service_role key (full access, never exposed to the browser)
 //
@@ -18,7 +18,8 @@
 
 import { createReadStream } from 'node:fs';
 import { readdir, stat } from 'node:fs/promises';
-import { dirname, extname, join, relative, resolve } from 'node:path';import { fileURLToPath } from 'node:url';
+import { dirname, extname, join, relative, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC = join(ROOT, 'public');
@@ -59,7 +60,8 @@ async function remoteSize(path) {
     method: 'HEAD',
     headers: headers(),
   });
-  if (res.status === 404) return null;
+  // Supabase answers a missing object with 400 ("Object not found"), not 404
+  if (res.status === 404 || res.status === 400) return null;
   if (!res.ok) throw new Error(`HEAD ${path}: ${res.status} ${await res.text()}`);
   const len = res.headers.get('content-length');
   return len === null ? null : Number(len);
@@ -78,6 +80,24 @@ const MIME = {
   '.json': 'application/json',
   '.mp4': 'video/mp4',
 };
+
+/** Create the bucket (public: the game fetches the art without a token) when it does not exist yet. */
+async function ensureBucket() {
+  const res = await fetch(`${url}/storage/v1/bucket/${BUCKET}`, { headers: headers() });
+  if (res.ok) {
+    const bucket = await res.json();
+    if (!bucket.public) console.warn(`Bucket "${BUCKET}" is private: make it public or the game cannot load the art.`);
+    return;
+  }
+  const made = await fetch(`${url}/storage/v1/bucket`, {
+    method: 'POST',
+    headers: headers({ 'content-type': 'application/json' }),
+    body: JSON.stringify({ id: BUCKET, name: BUCKET, public: true }),
+  });
+  if (!made.ok) throw new Error(`create bucket ${BUCKET}: ${made.status} ${await made.text()}`);
+  console.log(`Created public bucket "${BUCKET}".`);
+}
+if (!DRY) await ensureBucket();
 
 const files = (await walk(PUBLIC)).sort();
 let uploaded = 0, skipped = 0, failed = 0;

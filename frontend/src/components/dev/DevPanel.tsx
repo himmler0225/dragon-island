@@ -8,8 +8,8 @@ import { SPECIES, SPECIES_INFO, portraitUrl, type SpeciesId } from '@/game/confi
 import { assetUrl } from '@/game/config/assets';
 import styles from './DevPanel.module.css';
 
-const COMMANDS: [DragonCommand, string][] = [['idle', 'Đứng'], ['walk', 'Đi'], ['fly', 'Bay'], ['sleep', 'Ngủ']];
-const ACTION_LABEL: Record<DragonAction, string> = { idle: 'đứng', walk: 'đi', fly: 'bay', sleep: 'ngủ', strike: 'ra đòn' };
+const COMMANDS: [DragonCommand, string][] = [['idle', 'Đứng'], ['walk', 'Đi'], ['fly', 'Bay']];
+const ACTION_LABEL: Record<DragonAction, string> = { idle: 'đứng', walk: 'đi', fly: 'bay', strike: 'ra đòn' };
 
 export default function DevPanel() {
   const [ready, setReady] = useState(() => island() !== null);
@@ -69,7 +69,7 @@ export default function DevPanel() {
       </div>
 
       <div className={styles.group}>
-        {SKILLS[selected].map(s => (
+        {SKILLS[selected]?.map(s => (
           <button key={s.type} className={styles.skill} disabled={!ready || s.type === 'passive'}
             title={`${s.name}: ${s.desc}`} onClick={() => api?.useSkill(selected, s.type as SkillSlot)}>
             {/* eslint-disable-next-line @next/next/no-img-element */}

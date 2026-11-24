@@ -121,9 +121,8 @@ export class FoodBalloons {
           if (d.action === 'walk') continue;
           this.eat(d, pile);
           if (pile.left <= 0) break;
-        } else if (!pile.eaters.has(d) || d.action === 'idle' || d.action === 'sleep') {
+        } else if (!pile.eaters.has(d) || d.action === 'idle') {
           pile.eaters.add(d);
-          if (d.action === 'sleep') d.play('idle');
           d.walkTo(pile.at[0] + (d.x < pile.at[0] ? -45 : 45), pile.at[1] + 6);
         }
       }

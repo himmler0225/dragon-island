@@ -1,5 +1,6 @@
-// Ambient effects: foot dust, cloud puff, dust ring, sleep z, grass step, fish jump, splash.
+// Ambient effects: foot dust, cloud puff, dust ring, grass step, fish jump, splash.
 // All use this.scene for Phaser objects.
+import { makeProceduralVfx } from './proceduralVfx';
 import type { IslandScene } from '../IslandScene';
 import type { Dragon } from '../Dragon';
 
@@ -65,12 +66,12 @@ export class AmbientFx {
     }
   }
 
-  /** A small cloud puff left behind a cloud-riding dragon; drifts back and fades. */
+  /** A faint wisp of cloud left behind a cloud-riding dragon (as misty as the wisps under its paws); drifts back and fades. */
   cloudPuff(d: Dragon) {
     const s = d.scale, { x, y } = d.feet();
     const back = -d.dir;
     const p = this.scene.add.image(x + back * Phaser.Math.Between(42, 77) * s, y - (d.height - 4) * s + Phaser.Math.Between(-6, 6) * s,
-      cloudKey(d.id, Phaser.Math.Between(1, CLOUD_PUFFS))).setScale(0.25 * s).setAlpha(0.9).setDepth(d.root.depth - 0.01).setFlipX(back > 0);
+      cloudKey(d.id, Phaser.Math.Between(1, CLOUD_PUFFS))).setScale(0.25 * s).setAlpha(0.6).setDepth(d.root.depth - 0.01).setFlipX(back > 0);
     this.scene.tweens.add({ targets: p, x: p.x + back * 85 * s, y: p.y + 7 * s, scale: 0.39 * s, alpha: 0,
       duration: 1100, ease: 'Sine.easeOut', onComplete: () => p.destroy() });
   }
@@ -85,15 +86,6 @@ export class AmbientFx {
       this.scene.tweens.add({ targets: p, x: p.x + Math.cos(a) * 90 * s, y: p.y + Math.sin(a) * 26 * s - 6 * s,
         scale: 2.4 * s, alpha: 0, duration: 750, ease: 'Sine.easeOut', onComplete: () => p.destroy() });
     }
-  }
-
-  /** A "z" drifting up from a sleeping dragon's head. */
-  sleepZ(d: Dragon) {
-    const p = d.head();
-    const z = this.scene.add.text(p.x, p.y, 'z', { fontFamily: 'system-ui, sans-serif', fontSize: '18px', fontStyle: 'bold',
-      color: '#dff4ff', stroke: '#16354f', strokeThickness: 4 }).setOrigin(0.5).setDepth(20).setAlpha(0);
-    this.scene.tweens.add({ targets: z, alpha: { from: 0, to: 0.95 }, duration: 400, yoyo: true, hold: 900 });
-    this.scene.tweens.add({ targets: z, x: z.x + 18 * d.dir, y: z.y - 46, scale: 1.5, duration: 1700, ease: 'Sine.easeOut', onComplete: () => z.destroy() });
   }
 }
 
@@ -137,4 +129,5 @@ export function makeFxTextures(scene: Phaser.Scene) {
     g.fillStyle(0xcab8e8).fillTriangle(x + w / 6, y0, x + w / 2, y0, x, Math.min(JH - 2, y0 + len));
   }
   g.generateTexture('fangs', JW, JH); g.destroy();
+  makeProceduralVfx(scene);   // skill effects drawn in code (no drawn art for them yet)
 }

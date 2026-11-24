@@ -3,10 +3,12 @@ import * as Phaser from 'phaser';
 import { H, W } from './config/world';
 import { IslandScene } from './scene/IslandScene';
 import type { RigData } from './rig';
+import { loadTweaks } from './rig/tweaks';
 import { SPECIES, rigUrl, type SpeciesId } from './config/species';
 
 export async function createGame(parent: HTMLElement) {
-  const list = await Promise.all(SPECIES.map(id => fetch(rigUrl(id)).then(r => r.json() as Promise<RigData>)));
+  // the rigs, and the hand tweaks made to them in the rig editor (none if the backend is not there)
+  const [list] = await Promise.all([Promise.all(SPECIES.map(id => fetch(rigUrl(id)).then(r => r.json() as Promise<RigData>))), loadTweaks()]);
   const rigs = Object.fromEntries(SPECIES.map((id, i) => [id, list[i]])) as Record<SpeciesId, RigData>;
   // render at the screen's real pixel density: a canvas sized in CSS px is stretched 2x on retina
   // screens and the whole game looks blurry. The canvas holds (CSS size x res) pixels and is shown

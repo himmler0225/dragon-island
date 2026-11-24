@@ -3,27 +3,53 @@
 .hud button { font: inherit; color: inherit; cursor: pointer; pointer-events: auto; }
 .hud img { display: block; user-select: none; }
 
-.top { position: absolute; top: 10px; left: 12px; right: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.player, .pill, .islandNav { display: flex; align-items: center; gap: 8px; background: rgba(14, 32, 58, .9); border: 2px solid #b8862a;
-  border-radius: 999px; box-shadow: 0 3px 10px rgba(0, 0, 0, .35); }
-.player { padding: 3px 14px 3px 3px; }
-.player img { width: 42px; height: 42px; }
-.player span { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2; }
-.player small { font-size: 11px; color: #9fb4cc; }
-.islandNav { padding: 4px 6px; font-weight: 700; }
-.islandNav span { min-width: 120px; text-align: center; color: #f2c14e; }
-.islandNav button { width: 28px; height: 28px; border-radius: 50%; border: 0; background: #1f4677; }
-.wallet { display: flex; gap: 8px; }
-.pill { padding: 3px 12px 3px 3px; min-width: 104px; transition: transform .15s; }
-.pill img { width: 30px; height: 30px; object-fit: contain; }
-.pill b { flex: 1; text-align: right; font-variant-numeric: tabular-nums; }
+/* top left: crest, name + exp bar, ranking cup, resources under it */
+.crest { position: absolute; left: 6px; top: 4px; width: 104px; height: 104px; padding: 0; border: 0; background: none; }
+.crest img { width: 100%; height: 100%; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .5)); }
+.crest b { position: absolute; right: -4px; top: 8px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; font-size: 14px;
+  background: radial-gradient(circle at 35% 30%, #7fc4ff, #1f5fb0); border: 2px solid #fff; text-shadow: 0 1px 1px #000; }
+.who { position: absolute; left: 116px; top: 12px; width: 170px; display: flex; flex-direction: column; gap: 4px; font-weight: 800; text-shadow: 0 1px 2px #000, 0 0 4px #000; }
+/* the exp bar: a gold-rimmed gauge with its tag on the left, the numbers over a glossy fill */
+.expBar { position: relative; display: flex; align-items: center; height: 22px; transition: transform .15s; }
+.expBar span { position: relative; z-index: 1; flex: none; padding: 1px 7px; border-radius: 7px; font-size: 11px; font-weight: 900; letter-spacing: .4px; color: #3a2400;
+  text-shadow: none; background: linear-gradient(#ffe48a, #d99a2a); border: 1px solid #7a4f0f; }
+.expBar i { position: relative; flex: 1; height: 16px; margin-left: -6px; border-radius: 0 99px 99px 0; overflow: hidden; background: #1c2a3f;
+  border: 2px solid #c98d22; box-shadow: inset 0 2px 3px rgba(0, 0, 0, .6); }
+.expBar u { display: block; height: 100%; border-radius: 0 99px 99px 0; transition: width .4s; text-decoration: none;
+  background: linear-gradient(#7ff0ff 0%, #2fb8f0 45%, #1a7fd0 100%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6); }
+.expBar small { position: absolute; left: 34px; right: 4px; text-align: center; font-size: 10px; font-weight: 800; color: #fff; text-shadow: 0 1px 1px #000; }
+.cup { position: absolute; left: 292px; top: 6px; width: 52px; height: 52px; padding: 0; border: 0; background: none; transition: transform .12s; }
+.cup img { width: 100%; height: 100%; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .5)); }
+.cup:hover { transform: scale(1.08); }
+.wallet { position: absolute; left: 12px; top: 112px; display: flex; flex-direction: column; gap: 3px; }
+.pill { display: flex; align-items: center; gap: 6px; min-width: 104px; padding: 1px 12px 1px 2px; border-radius: 999px; background: rgba(14, 32, 58, .75); transition: transform .15s; }
+.pill img { width: 28px; height: 28px; object-fit: contain; }
+.pill b { flex: 1; text-align: right; color: #d6ff7a; font-variant-numeric: tabular-nums; text-shadow: 0 1px 1px #000; }
+.bump { transform: scale(1.12); }
+
+.islandName { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); padding: 3px 18px; text-align: center; font-weight: 700; color: #f2c14e;
+  background: rgba(14, 32, 58, .85); border: 2px solid #b8862a; border-radius: 999px; box-shadow: 0 3px 10px rgba(0, 0, 0, .35); }
+
+/* top right, right: round buttons, the island arrows */
+.corner { position: absolute; right: 12px; top: 10px; display: flex; align-items: center; gap: 8px; }
+.round { position: relative; width: 66px; height: 66px; padding: 7px; border-radius: 50%; border: 3px solid #e3b54a; transition: transform .12s;
+  background: radial-gradient(circle at 40% 35%, #3f8fe0, #123a7a); box-shadow: inset 0 0 0 2px #0e2a55, 0 3px 6px rgba(0, 0, 0, .45); }
+.round img { width: 100%; height: 100%; object-fit: contain; }
+/* the event button: the round event art itself, a soft glow round it */
+.event { padding: 0; overflow: hidden; box-shadow: 0 0 14px rgba(255, 224, 102, .75); animation: eventGlow 2.4s ease-in-out infinite; }
+.event img { object-fit: cover; }
+@keyframes eventGlow { 50% { box-shadow: 0 0 22px rgba(255, 224, 102, 1); } }
+.round:hover, .octa:hover { transform: translateY(-2px) scale(1.06); }
 .fullBtn { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; border: 2px solid #b8862a; background: rgba(14, 32, 58, .9);
   font-size: 18px; box-shadow: 0 3px 10px rgba(0, 0, 0, .35); }
 .fullBtn:hover { border-color: #ffe08a; }
-.bump { transform: scale(1.12); border-color: #ffe08a; }
+.arrows { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 12px; }
+.arrows button { width: 52px; height: 48px; border-radius: 10px; border: 3px solid #e3b54a; font-size: 20px; color: #ffe066; text-shadow: 0 1px 2px #000;
+  background: linear-gradient(#3f8fe0, #123a7a); box-shadow: 0 3px 6px rgba(0, 0, 0, .45); }
 
-.dragons { position: absolute; left: 12px; top: 72px; bottom: 190px; display: flex; flex-direction: column; gap: 6px;
-  overflow-y: auto; scrollbar-width: thin; padding-right: 4px; pointer-events: auto; }   /* many dragons: scrolls above the skills panel */
+/* left: dragons, scrolling between the resources and the skills panel */
+.dragons { position: absolute; left: 12px; top: 184px; bottom: 236px; display: flex; flex-direction: column; gap: 6px;
+  overflow-y: auto; scrollbar-width: thin; padding-right: 4px; pointer-events: auto; }
 .dragon { display: flex; align-items: center; gap: 6px; padding: 3px 10px 3px 3px; border-radius: 12px; border: 2px solid #2c4f7c;
   background: rgba(14, 32, 58, .85); text-align: left; }
 .dragon img { width: 56px; height: 40px; object-fit: contain; }
@@ -31,15 +57,19 @@
 .dragon small { font-weight: 400; font-size: 11px; color: #9fb4cc; }
 .on { border-color: #f2c14e; background: rgba(27, 58, 99, .95); }
 
-.side { position: absolute; right: 10px; top: 72px; display: flex; flex-direction: column; gap: 4px; }
-.bottom { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); display: flex; gap: 2px; padding: 6px 10px;
-  background: rgba(10, 24, 44, .78); border: 2px solid #b8862a; border-radius: 18px; }
-.menuBtn { display: flex; flex-direction: column; align-items: center; width: 64px; padding: 0; border: 0; background: none; transition: transform .12s; }
-.menuBtn img { width: 52px; height: 52px; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .45)); }
-.menuBtn span { font-size: 11px; font-weight: 700; text-shadow: 0 1px 2px #000, 0 0 4px #000; white-space: nowrap; }
-.menuBtn:hover { transform: translateY(-2px) scale(1.06); }
+/* the menu buttons: an octagon of gold round a blue face (drawn behind, so a badge may stick out of it) */
+.bottom { position: absolute; left: 10px; bottom: 8px; display: flex; align-items: flex-end; gap: 4px; }
+.bottomRight { position: absolute; right: 10px; bottom: 8px; display: flex; align-items: flex-end; gap: 6px; }
+.octa { position: relative; width: 62px; height: 62px; padding: 9px; border: 0; background: none; transition: transform .12s; isolation: isolate; }
+.octa::before, .octa::after { content: ''; position: absolute; clip-path: polygon(28% 0, 72% 0, 100% 28%, 100% 72%, 72% 100%, 28% 100%, 0 72%, 0 28%); }
+.octa::before { inset: 0; z-index: -2; background: linear-gradient(#ffe48a, #c98d22 55%, #8a5d14); }
+.octa::after { inset: 4px; z-index: -1; background: radial-gradient(circle at 50% 35%, #4fa6ee, #0f4a94); }
+.octa img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .45)); }
+.big { width: 96px; height: 96px; padding: 13px; }
+.mid { width: 76px; height: 76px; padding: 11px; }
+.bag { width: 96px; height: 96px; padding: 10px; }
 
-.skills { position: absolute; left: 12px; bottom: 10px; padding: 8px 10px; border-radius: 14px; background: rgba(14, 32, 58, .88); border: 2px solid #b8862a; }
+.skills { position: absolute; left: 12px; bottom: 112px; padding: 8px 10px; border-radius: 14px; background: rgba(14, 32, 58, .88); border: 2px solid #b8862a; }
 .skillHead { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
 .skillHead small { color: #9fb4cc; font-size: 11px; }
 .cmds { margin-left: auto; display: flex; gap: 4px; }
@@ -62,10 +92,15 @@
 .sheet p { margin: 0; padding: 24px 16px; text-align: center; color: #9fb4cc; }
 
 @media (max-width: 900px) {
-  .dragons span, .player span { display: none; }
-  .menuBtn { width: 48px; } .menuBtn img { width: 40px; height: 40px; }
-  .skills { bottom: 86px; }
-  .pill { min-width: 80px; }
+  .dragons span, .who { display: none; }
+  .cup { left: 112px; }
+  .octa { width: 46px; height: 46px; padding: 7px; }
+  .big { width: 66px; height: 66px; padding: 9px; }
+  .mid { width: 54px; height: 54px; }
+  .round { width: 50px; height: 50px; padding: 5px; }
+  .bag { width: 66px; height: 66px; }
+  .skills { bottom: 78px; }
+  .dragons { bottom: 200px; }
 }
 
 /* Hợp Kích: a strip under the skills, the two dragons' portraits split diagonally */
@@ -78,6 +113,7 @@
 .comboIcon img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 15% 25%; }
 .comboIcon img:first-child { clip-path: polygon(0 0, 100% 0, 0 100%); }
 .comboIcon img:last-child { clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+.comboIcon img.comboArt { clip-path: none; object-position: center; }
 
 /* island clock under the island name (Ho Chi Minh City time) */
 .clock { display: block; text-align: center; font-size: 11px; font-weight: 600; color: #cfe3ff; }

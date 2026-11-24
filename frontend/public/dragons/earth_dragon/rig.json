@@ -60,7 +60,7 @@
    "name": "hind_far_upper",
    "parent": "torso",
    "joint": [
-    20.4,
+    0.24,
     -65.95
    ],
    "origin": [
@@ -72,7 +72,7 @@
    "name": "hind_far_lower",
    "parent": "hind_far_upper",
    "joint": [
-    23.65,
+    3.49,
     -2.08
    ],
    "origin": [
@@ -84,7 +84,7 @@
    "name": "hind_far_paw",
    "parent": "hind_far_lower",
    "joint": [
-    23.65,
+    3.49,
     -0.31
    ],
    "origin": [
@@ -92,7 +92,7 @@
     0.311
    ],
    "toe": [
-    23.65,
+    3.49,
     0.0
    ]
   },

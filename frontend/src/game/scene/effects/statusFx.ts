@@ -3,6 +3,7 @@
 //   freeze: ice shell over the body, frost on the ground, snowflakes; shatters when it ends
 //   burn:   flames on the body, rising embers and smoke, a fiery puff on every tick
 //   curse:  skull sigil over the head, rune ring round the body, hex on the ground, violet drips
+//   stun:   a burst of stars and a ring cracking the ground, then stars circling its head (status/stun_*, tools/slice_stun.py)
 import * as Phaser from 'phaser';
 import { assetUrl } from '../../config/assets';
 import type { Spot } from '../../skills/types';
@@ -13,7 +14,11 @@ export const statusKey = (kind: StatusKind, n: number) => `status_${kind}_${n}`;
 
 export function loadStatusTextures(load: Phaser.Loader.LoaderPlugin) {
   for (const kind of STATUS_KINDS) for (let n = 1; n <= 8; n++) load.image(statusKey(kind, n), assetUrl(`status/${kind}_${n}.png`));
+  // stun: its circling stars are stun_1..8 (frames of a loop); a burst, a ground ring and its icon besides
+  for (let n = 1; n <= 8; n++) for (const p of ['b', 'g']) load.image(`status_stun_${p}${n}`, assetUrl(`status/stun_${p}${n}.png`));
+  load.image('status_stun_icon', assetUrl('status/stun_icon.png'));
 }
+const STUN_FRAMES = Array.from({ length: 8 }, (_, k) => statusKey('stun', k + 1));
 
 /** What a status needs from the dragon it sits on. */
 export interface StatusHost {
@@ -24,7 +29,9 @@ export interface StatusHost {
   gone?(): boolean;
 }
 
-interface Layer { img: Phaser.GameObjects.Image; at: (h: StatusHost, t: number) => Spot; pulse?: (t: number) => number; sx: number; sy: number }
+interface Layer { img: Phaser.GameObjects.Image; at: (h: StatusHost, t: number) => Spot; pulse?: (t: number) => number; sx: number; sy: number;
+  /** an animated layer: its frames, played in a loop */
+  frames?: string[] }
 interface Active { kind: StatusKind; host: StatusHost; left: number; t: number; tickT: number; puffT: number; layers: Layer[]; onTick?: () => void }
 
 export class StatusFx {
@@ -47,19 +54,19 @@ export class StatusFx {
     map.set(kind, { kind, host, left: STATUS[kind].ms, t: 0, tickT: 1000, puffT: 0, layers: this.layers(kind), onTick });
   }
 
-  private img(kind: StatusKind, n: number, scale: number, depth: number) {
+  private img(kind: StatusKind, n: number | string, scale: number, depth: number) {
     const c = this.combat;
-    return this.scene.add.image(0, 0, statusKey(kind, n)).setBlendMode(c.blend).setAlpha(0).setDepth(depth)
+    return this.scene.add.image(0, 0, typeof n === 'string' ? n : statusKey(kind, n)).setBlendMode(c.blend).setAlpha(0).setDepth(depth)
       .setScale(scale * c.size);
   }
 
   private layers(kind: StatusKind): Layer[] {
     const L: Layer[] = [];
-    const add = (n: number, scale: number, at: Layer['at'], o: { ground?: boolean; depth?: number; origin?: [number, number]; pulse?: Layer['pulse'] } = {}) => {
+    const add = (n: number | string, scale: number, at: Layer['at'], o: { ground?: boolean; depth?: number; origin?: [number, number]; pulse?: Layer['pulse']; frames?: string[] } = {}) => {
       const img = this.img(kind, n, scale, o.depth ?? (o.ground ? 4 : 19));
       if (o.origin) img.setOrigin(...o.origin);
       if (o.ground) img.setScale(img.scaleX, img.scaleY * 0.45);
-      L.push({ img, at, pulse: o.pulse, sx: img.scaleX, sy: img.scaleY });
+      L.push({ img, at, pulse: o.pulse, sx: img.scaleX, sy: img.scaleY, frames: o.frames });
     };
     const chest = (h: StatusHost) => h.chest(), feet = (h: StatusHost) => h.feet();
     if (kind === 'freeze') {
@@ -67,13 +74,16 @@ export class StatusFx {
       add(1, 0.5, h => ({ x: h.chest().x, y: h.chest().y + 26 }), { origin: [0.5, 0.75] });   // dome over the body
     } else if (kind === 'burn') {
       add(1, 0.34, h => ({ x: h.chest().x, y: h.chest().y + 40 }), { origin: [0.5, 0.95], pulse: t => 1 + 0.08 * Math.sin(t * 13) });
+    } else if (kind === 'stun') {
+      add(1, 0.32, h => ({ x: h.head().x, y: h.head().y - 18 }), { frames: STUN_FRAMES, depth: 21 });   // stars circling the head
     } else {
       add(6, 0.42, feet, { ground: true, pulse: t => 1 + 0.04 * Math.sin(t * 3) });
       add(2, 0.36, chest, { pulse: t => 1 + 0.06 * Math.sin(t * 4) });
       add(1, 0.15, h => ({ x: h.head().x, y: h.head().y - 34 + 4 * Math.sin(this.scene.time.now / 300) }));
     }
     // the icon: over the head, one slot per status the dragon has
-    add(7, 0.075, h => ({ x: h.head().x + (STATUS_KINDS.indexOf(kind) - 1) * 26, y: h.head().y - 70 }), { depth: 4100 });
+    add(kind === 'stun' ? 'status_stun_icon' : 7, kind === 'stun' ? 0.16 : 0.075,
+      h => ({ x: h.head().x + (STATUS_KINDS.indexOf(kind) - 1.5) * 26, y: h.head().y - 70 }), { depth: 4100 });
     for (const l of L) this.scene.tweens.add({ targets: l.img, alpha: this.combat.intensity, duration: 220 });
     return L;
   }
@@ -86,7 +96,13 @@ export class StatusFx {
     if (o.rise) this.scene.tweens.add({ targets: img, y: at.y - o.rise, duration: dur * 1.8 });
   }
 
-  private flash(kind: StatusKind, h: StatusHost) { this.once(kind, 8, h.chest(), 0.3, 420); }
+  private flash(kind: StatusKind, h: StatusHost) {
+    if (kind !== 'stun') { this.once(kind, 8, h.chest(), 0.3, 420); return; }
+    // stunned: a burst of stars at the head, a ring cracking the ground under it
+    const frames = (p: string) => Array.from({ length: 8 }, (_, k) => `status_stun_${p}${k + 1}`);
+    void this.combat.anim(frames('b'), { x: h.head().x, y: h.head().y - 10 }, { scale: 0.5, fps: 16 });
+    void this.combat.anim(frames('g'), h.feet(), { scale: 0.6, fps: 14, anchor: 'bottom', ground: true });
+  }
 
   private update(ms: number) {
     for (const [key, map] of this.on) {
@@ -104,6 +120,7 @@ export class StatusFx {
           const p = l.at(h, a.t);
           l.img.setPosition(p.x, p.y);
           if (l.pulse) { const k = l.pulse(a.t); l.img.setScale(l.sx * k, l.sy * k); }
+          if (l.frames) l.img.setTexture(l.frames[Math.floor(a.t * 12) % l.frames.length]);
         }
         // drifting bits
         if ((a.puffT -= ms) <= 0) {

@@ -1,5 +1,5 @@
 'use client';
-// Đội hình (team formation): three teams of up to 9 dragons; the slot order is the summon order in battle.
+// Đội hình (team formation): three teams of up to TEAM_SIZE (50) dragons; the slot order is the summon order in battle.
 // Pick a slot, then a dragon below to put it there; tap a filled slot again to take the dragon out; tap
 // two slots in turn to swap them. Same gold-framed teal sheet as Lai Rồng (BreedPanel), all CSS.
 // The owned collection, stars and levels are placeholders until the backend has them.
@@ -7,15 +7,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { SPECIES, SPECIES_INFO, portraitUrl, type SpeciesId } from '@/game/config';
 import { TEAM_COUNT, TEAM_SIZE, loadTeams, saveTeams, type Team } from '@/game/config/team';
 import { STARS } from './battleScreenData';
+import ElementIcon from './ElementIcon';
+import Stars from './Stars';
 import styles from './TeamPanel.module.css';
 
 /** Element badge per SPECIES_INFO element. */
-const ELEMENT: Record<string, { icon: string; color: string }> = {
-  'Hỏa': { icon: '🔥', color: '#e2452a' }, 'Thủy': { icon: '💧', color: '#2f86e0' }, 'Băng': { icon: '❄️', color: '#5fc4f0' },
-  'Mộc': { icon: '🍃', color: '#3fae3a' }, 'Thổ': { icon: '⛰️', color: '#9a7446' }, 'Kim': { icon: '☀️', color: '#e6a81c' },
-  'Quang': { icon: '✨', color: '#f0d24a' }, 'Thiên': { icon: '🌟', color: '#f5c542' }, 'Nguyệt': { icon: '🌙', color: '#8c6ff0' },
-  'Ám': { icon: '💀', color: '#6a3fb0' }, 'Hư Không': { icon: '🌀', color: '#7a3fc8' },
-};
 const RARITIES = ['R', 'SR', 'SSR', 'UR'] as const;
 const RARITY_RANK: Record<string, number> = { R: 0, SR: 1, SSR: 2, UR: 3 };
 const SORTS = [['power', 'Lực chiến cao nhất'], ['stars', 'Sao cao nhất'], ['name', 'Tên A-Z']] as const;
@@ -78,7 +74,7 @@ export default function TeamPanel({ onClose }: { onClose: () => void }) {
     const next = [...team];
     const at = next.indexOf(id);
     const k = slot ?? (at >= 0 ? at : next.indexOf(null));
-    if (k < 0) return setMsg('Đội đã đủ 9 rồng, chọn một ô để thay');
+    if (k < 0) return setMsg(`Đội đã đủ ${TEAM_SIZE} rồng, chọn một ô để thay`);
     if (at >= 0 && at !== k) next[at] = next[k];   // already in the team: move it (swap with what was there)
     next[k] = id;
     setTeam(next); setSlot(null);
@@ -122,8 +118,8 @@ export default function TeamPanel({ onClose }: { onClose: () => void }) {
                   {id ? <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={portraitUrl(id)} alt="" />
-                    <span className={styles.el} style={{ background: ELEMENT[SPECIES_INFO[id].element]?.color }}>{ELEMENT[SPECIES_INFO[id].element]?.icon}</span>
-                    <span className={styles.stars}>{STARS(id)}<i>★</i></span>
+                    <span className={styles.el}><ElementIcon element={SPECIES_INFO[id].element} size="100%" /></span>
+                    <Stars n={STARS(id)} className={styles.stars} />
                     <span className={styles.lv}>Lv.{LEVEL(id)}</span>
                   </> : <span className={styles.plus}>+</span>}
                 </button>
@@ -136,7 +132,7 @@ export default function TeamPanel({ onClose }: { onClose: () => void }) {
               <h4>Thành phần hệ</h4>
               <div className={styles.counts}>
                 {counts.filter(([, n]) => n > 0).map(([el, n]) => (
-                  <span key={el} title={el}><b style={{ background: ELEMENT[el]?.color }}>{ELEMENT[el]?.icon}</b>{n}</span>
+                  <span key={el} title={el}><b><ElementIcon element={el} size="100%" /></b>{n}</span>
                 ))}
               </div>
               <h4>Hiệu ứng đội hình</h4>
@@ -149,8 +145,8 @@ export default function TeamPanel({ onClose }: { onClose: () => void }) {
               <span className={styles.label}>Rồng của tôi</span>
               <button className={`${styles.chip} ${!element ? styles.chipOn : ''}`} onClick={() => setElement(null)}>Tất cả</button>
               {elements.map(el => (
-                <button key={el} className={`${styles.dot} ${element === el ? styles.chipOn : ''}`} style={{ background: ELEMENT[el]?.color }}
-                  onClick={() => setElement(element === el ? null : el)} title={el}>{ELEMENT[el]?.icon}</button>
+                <button key={el} className={`${styles.dot} ${element === el ? styles.chipOn : ''}`} 
+                  onClick={() => setElement(element === el ? null : el)} title={el}><ElementIcon element={el} size="100%" /></button>
               ))}
               <span className={styles.sep} />
               {RARITIES.map(r => (
@@ -166,8 +162,8 @@ export default function TeamPanel({ onClose }: { onClose: () => void }) {
                   onClick={() => pick(id)} title={`${SPECIES_INFO[id].name} · ${SPECIES_INFO[id].element} · ${SPECIES_INFO[id].rarity}`}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={portraitUrl(id)} alt="" />
-                  <span className={styles.el} style={{ background: ELEMENT[SPECIES_INFO[id].element]?.color }}>{ELEMENT[SPECIES_INFO[id].element]?.icon}</span>
-                  <span className={styles.stars}>{STARS(id)}<i>★</i></span>
+                  <span className={styles.el}><ElementIcon element={SPECIES_INFO[id].element} size="100%" /></span>
+                  <Stars n={STARS(id)} className={styles.stars} />
                   <span className={styles.lv}>Lv.{LEVEL(id)}</span>
                   {team.includes(id) && <span className={styles.inTeam}>{team.indexOf(id) + 1}</span>}
                 </button>

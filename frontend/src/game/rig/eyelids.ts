@@ -10,8 +10,6 @@ export interface Eye {
 }
 
 export const EYES: Partial<Record<SpeciesId, Eye[]>> = {
-  stag_dragon: [{ x: 0.155, y: 0.645, rx: 0.045, ry: 0.034 }],
-  void_serpent: [{ x: 0.335, y: 0.48, rx: 0.058, ry: 0.062 }],
   fire_phoenix: [{ x: 0.318, y: 0.484, rx: 0.071, ry: 0.067 }],
   ice_phoenix: [{ x: 0.347, y: 0.481, rx: 0.073, ry: 0.072 }],
   fire_dragon: [{ x: 0.475, y: 0.575, rx: 0.105, ry: 0.14 }],

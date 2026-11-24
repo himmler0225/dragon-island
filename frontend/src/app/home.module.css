@@ -149,6 +149,7 @@
 .dark { --el: #7dde62; }
 .light { --el: #ffd36b; }
 .water { --el: #ff8a3d; }
+.boss { --el: #ff4a1a; background: #2a1210; border-color: rgba(255, 106, 42, 0.35); }
 
 .dragonArt {
   height: 210px;

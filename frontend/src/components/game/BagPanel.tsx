@@ -7,12 +7,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { SPECIES, SPECIES_INFO, portraitUrl, type SpeciesId } from '@/game/config';
 import { assetUrl } from '@/game/config/assets';
 import { SKILLS, skillIconUrl } from '@/game/skills';
+import ElementIcon from './ElementIcon';
+import Stars from './Stars';
 import styles from './BagPanel.module.css';
 
 interface OwnedDragon { uid: number; species: SpeciesId; stars: number; level: number; event: boolean; gems: (string | null)[] }
 
 /** Dragons from limited-time events (shown with the Event ribbon). */
-const EVENT_SPECIES = new Set<SpeciesId>(['east_sea_dragon', 'west_sea_dragon', 'north_sea_dragon', 'south_sea_dragon', 'peacock']);
+const EVENT_SPECIES = new Set<SpeciesId>(['peacock']);
 // mock collection: a few of each species with different stars and levels
 const MOCK: OwnedDragon[] = Array.from({ length: 40 }, (_, i) => {
   const species = SPECIES[(i * 7) % SPECIES.length];
@@ -134,7 +136,7 @@ export default function BagPanel({ onClose }: { onClose: () => void }) {
                 <img src={portraitUrl(dragon.species)} alt="" />
                 <div>
                   <h3>{SPECIES_INFO[dragon.species].name}</h3>
-                  <small>{SPECIES_INFO[dragon.species].element} · {SPECIES_INFO[dragon.species].rarity} · {dragon.stars}★ · Lv.{dragon.level}{dragon.event ? ' · Event' : ''}</small>
+                  <small><ElementIcon element={SPECIES_INFO[dragon.species].element} /> {SPECIES_INFO[dragon.species].element} · {SPECIES_INFO[dragon.species].rarity} · <Stars n={dragon.stars} /> · Lv.{dragon.level}{dragon.event ? ' · Event' : ''}</small>
                 </div>
               </header>
 

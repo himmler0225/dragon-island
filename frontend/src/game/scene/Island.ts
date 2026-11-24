@@ -1,7 +1,7 @@
 // Island: art, walkable ground, buildings, production, lamps and grass.
 import * as Phaser from 'phaser';
 import {
-  BUILDING_SCALE, PRODUCES, PRODUCTION,
+  BUILDING_SCALE, PRODUCES, PRODUCTION, buildingTier,
 } from '../config/economy';
 import {
   islandCentre,
@@ -16,7 +16,9 @@ import {
 } from './islandGeometry';
 
 export const islandKey = (id: string) => `island_${id}`;
-export const buildingKey = (type: BuildingType, level: number) => `building_${type}_${level}`;
+/** A building's texture: its art stage for that level (public/buildings/<type>_t<stage>.png). */
+export const buildingKey = (type: BuildingType, level: number) => `building_${type}_t${buildingTier(level)}`;
+export const buildingUrl = (type: BuildingType, level: number) => `/buildings/${type}_t${buildingTier(level)}.png`;
 export const resourceKey = (r: Resource) => `res_${r}`;
 export const NEST_KEY = 'egg_nest';
 export const eggKey = (level: number) => `egg_${level}`;
@@ -98,8 +100,8 @@ export class Island {
     const { scene, def } = this;
     const pts = def.walk.map(p => this.toWorld(p));
     const cx = pts.reduce((s, p) => s + p[0], 0) / pts.length, cy = pts.reduce((s, p) => s + p[1], 0) / pts.length;
-    // every other corner of the walk area, pulled toward the middle so the lamps stand on grass
-    pts.filter((_, k) => k % 2 === 1).forEach(([px, py], k) => {
+    // a few corners of the walk area, spread round it and pulled toward the middle so the lamps stand on grass
+    pts.filter((_, k) => k % 5 === 2).forEach(([px, py], k) => {
       const x = px + (cx - px) * 0.12, y = py + (cy - py) * 0.12;
       if (!this.free(x, y, 10)) return;
       // props/lamp.png (tools/slice_props.py): origin on the foot of the post
@@ -260,6 +262,7 @@ export class Island {
   }
 
   private waterSparkle() {
+    if (!this.def.water.length) return;   // an island without water
     const [x0, y0, x1, y1] = Phaser.Utils.Array.GetRandom(this.def.water);
     const [x, y] = this.toWorld([Phaser.Math.Between(x0, x1), Phaser.Math.Between(y0, y1)]);
     if (!this.opaqueAt(x, y) || this.walk.contains(x, y)) return;

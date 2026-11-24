@@ -1,8 +1,10 @@
-// Đội hình: three saved teams of up to 9 dragons, in summon order, and which one is active.
+// Đội hình: three saved teams of up to TEAM_SIZE dragons, in summon order, and which one is active.
 // Kept in localStorage until the backend stores it (per player); Phaser-free, safe for React.
 import { SPECIES, type SpeciesId } from './species';
 
-export const TEAM_SIZE = 9;
+export const TEAM_SIZE = 50;
+/** Dragons in a new player's starting team. */
+const STARTER = 9;
 export const TEAM_COUNT = 3;
 /** One team: TEAM_SIZE slots, null = empty. */
 export type Team = (SpeciesId | null)[];
@@ -11,7 +13,7 @@ const KEY = 'dragon-island.teams.v1';
 const valid = new Set<string>(SPECIES);
 
 const fill = (ids: SpeciesId[]): Team => Array.from({ length: TEAM_SIZE }, (_, k) => ids[k] ?? null);
-const DEFAULT: Team[] = [fill(SPECIES.slice(0, TEAM_SIZE)), fill([]), fill([])];
+const DEFAULT: Team[] = [fill(SPECIES.slice(0, STARTER)), fill([]), fill([])];
 
 interface Saved { teams: Team[]; active: number }
 
@@ -38,5 +40,5 @@ export function saveTeams(saved: Saved) {
 export function activeTeam(): SpeciesId[] {
   const { teams, active } = loadTeams();
   const ids = teams[active].filter((id): id is SpeciesId => id !== null);
-  return ids.length ? ids : SPECIES.slice(0, TEAM_SIZE);
+  return ids.length ? ids : SPECIES.slice(0, STARTER);
 }

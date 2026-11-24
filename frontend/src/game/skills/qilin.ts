@@ -20,12 +20,12 @@ export const QILIN_SKILLS: SkillDef[] = [
   },
   {
     type: 'skill', name: 'Long Thủ Xuyên Trận', desc: 'Khạc ra đầu rồng vàng bay thẳng xuyên qua toàn bộ đội hình địch: 120% Công lên mỗi mục tiêu trên đường bay.',
-    anim: 'cast', target: 'enemies',
+    anim: 'cast', target: 'enemies', pierce: true,
     run: (ctx) => spitDragonHead(ctx, 1.2),
   },
   {
     type: 'ultimate', name: 'Kim Long Liên Châu', desc: 'Liên tiếp khạc 3 đầu rồng vàng xuyên trận: mỗi đầu 90% Công lên mọi mục tiêu trên đường bay.',
-    anim: 'ultimate', target: 'enemies',
+    anim: 'ultimate', target: 'enemies', pierce: true,
     run: async (ctx) => {
       ctx.fx(6, ctx.self.feet(), { scale: 0.7, ground: true, dur: 1800 });
       for (let k = 0; k < 3; k++) {

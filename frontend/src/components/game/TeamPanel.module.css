@@ -23,8 +23,9 @@
 .tab i { margin-left: 6px; color: #ffe066; font-style: normal; }
 .tabOn { background: linear-gradient(#6fc8ff, #2a77d0); border-color: #e3b54a; color: #fff; text-shadow: 0 1px 0 rgba(0, 0, 0, .45); }
 
-/* the 9 slots, numbered in summon order */
-.slots { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 6px; padding: 18px 10px 12px; align-content: center; }
+/* the TEAM_SIZE slots, numbered in summon order: 10 a row, scrolling */
+.slots { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 18px 6px; padding: 18px 10px 12px; align-content: start;
+  max-height: 300px; overflow-y: auto; }
 .slot { position: relative; min-width: 0; aspect-ratio: 3 / 4; padding: 0; border-radius: 10px; cursor: pointer; overflow: visible;
   background: radial-gradient(#2f6f6a, #163d3c); border: 3px solid #c99a35; box-shadow: inset 0 0 14px rgba(0, 0, 0, .5); }
 .slot img { position: absolute; inset: 8% 4% 22%; width: 92%; height: 70%; object-fit: contain; }
@@ -88,6 +89,6 @@
 
 @media (max-width: 760px) {
   .top { grid-template-columns: 1fr; }
-  .slots { grid-template-columns: repeat(5, 1fr); row-gap: 18px; }
+  .slots { grid-template-columns: repeat(5, 1fr); }
   .btn { min-width: 0; flex: 1; }
 }

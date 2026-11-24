@@ -5,10 +5,10 @@ import type { Point } from '../config/world';
 import { gameEvents, type DragonAction } from '../bridge';
 import { COMBAT_HOVER, DragonRig, type RigData, type StrikeKind } from '../rig';
 import { skill, type SkillActor, type SkillDef, type SkillSlot } from '../skills';
-import { cloudKey, type SpeciesId } from '../config/species';
+import type { SpeciesId } from '../config/species';
 import type { Island } from './Island';
 import type { IslandScene } from './IslandScene';
-import { DRAGON_SCALE, HUNGER } from '../config/economy';
+import { DRAGON_SCALE, HUNGER, WALK_SPEED } from '../config/economy';
 import { bump, clamp01, smooth } from '../config/world';
 import type { DragonFlight } from './Dragon.flight';
 import { advanceFlight } from './Dragon.flight';
@@ -17,8 +17,6 @@ import { advanceFlight } from './Dragon.flight';
 const KNOCK = { dur: 260, hop: 22, tilt: 0.16 };
 /** On-screen size of the hunger art (images ~180 px): thought bubble, growl swirl, drool drop. */
 const HUNGER_FX = { bubble: 0.3, growl: 0.22, drool: 0.14 };
-/** Width of the riding cloud in body px (the dragon is ~340 long): about its own length. */
-const CLOUD_W = 330;
 
 type Flight = DragonFlight;
 
@@ -33,9 +31,7 @@ export class Dragon implements SkillActor {
   private waypoint: Point | null = null;
   private flight: Flight | null = null;
   private rest: number;
-  private sleepFor = 0;
   private nextStep = 0;
-  private nextZ = 0;
   private turnT = 9;
   private pending: { slot: SkillSlot; targets: SkillActor[] }[] = [];
   private strikeSeq = 0;
@@ -53,7 +49,7 @@ export class Dragon implements SkillActor {
   private readonly contact: Phaser.GameObjects.Ellipse;
   readonly ring: Phaser.GameObjects.Ellipse;
   readonly rig: DragonRig;
-  private cloud: Phaser.GameObjects.Image | null = null;
+  private readonly rideCloud: boolean;
   private seenStomps = 0;
   private puffT = 0;
   height = 0;
@@ -67,11 +63,7 @@ export class Dragon implements SkillActor {
     this.body = scene.add.container(0, 0);
     this.root.add([this.ring, this.contact, this.body]);
     this.rig = new DragonRig(scene, rigData, this.body, id);
-    if (rigData.motion?.rideCloud) {
-      this.cloud = scene.add.image(-20, 4, cloudKey(id, 'main')).setOrigin(0.5, 0.52).setAlpha(0);
-      this.cloud.setScale(CLOUD_W / this.cloud.width);
-      this.body.addAt(this.cloud, 0);
-    }
+    this.rideCloud = !!rigData.motion?.rideCloud;
   }
 
   get scale() { return DRAGON_SCALE * this.island.depthScale(this.y); }
@@ -81,13 +73,13 @@ export class Dragon implements SkillActor {
   play(action: Exclude<DragonAction, 'strike'>) {
     if (this.action === 'strike') return;
     if (action === 'fly') return this.flyTo(...this.farPoint());
-    if (action === 'walk') return this.walkTo(...this.nearPoint());
-    if (action === 'sleep') { this.sleepFor = Phaser.Math.FloatBetween(6, 15); this.nextZ = 1.2; }
+    if (action === 'walk') return this.rigData.motion?.alwaysFly ? this.flyTo(...this.nearPoint()) : this.walkTo(...this.nearPoint());
     this.target = this.waypoint = null;
     this.setAction(action);
   }
 
-  walkTo(x: number, y: number) {
+  walkTo(x: number, y: number): void {
+    if (this.rigData.motion?.alwaysFly) return this.flyTo(x, y);   // never on foot (a tap on the ground, the food pile): it flies there
     if (this.action === 'strike') return;
     const ok = this.island.closestFree([x, y]);   // never stop on a building
     if (!ok) return;
@@ -102,7 +94,7 @@ export class Dragon implements SkillActor {
     if (this.action !== 'walk') this.setAction('walk');
   }
 
-  flyTo(x: number, y: number) {
+  flyTo(x: number, y: number): void {
     if (this.action === 'strike') return;
     if (this.rigData.motion?.noFly) return this.walkTo(x, y);
     if (Math.abs(x - this.x) > 10) this.turn(Math.sign(x - this.x) as 1 | -1);
@@ -159,10 +151,11 @@ export class Dragon implements SkillActor {
   chest() { return { x: this.x, y: this.screenY - (this.alt + this.hover + this.rig.air + 60) * this.scale }; }
   head() { const p = this.rig.headWorld(); return { x: p.x, y: p.y - 10 }; }
   mouth() { const p = this.rig.mouthWorld(); return { x: p.x, y: p.y }; }
+  eye() { const p = this.rig.eyeWorld(); return { x: p.x, y: p.y }; }
+  point(bone: string, fx: number, fy: number) { const p = this.rig.boneWorld(bone, fx, fy); return { x: p.x, y: p.y }; }
   get facing() { return this.dir; }
   hurt() {
     this.rig.hurt();
-    if (this.action === 'sleep') this.play('idle');
   }
   text(text: string, color?: string) { this.scene.combat.floatText(this.x, this.chest().y - 70 * this.scale, text, color); }
 
@@ -192,7 +185,10 @@ export class Dragon implements SkillActor {
     this.updateHunger(dt);
     if (this.action === 'walk' && this.target) {
       const dx = this.target[0] - this.x, dy = this.target[1] - this.y, dist = Math.hypot(dx, dy);
-      const step = this.rig.walkSpeed(DRAGON_SCALE) * this.island.depthScale(this.y) * dt * (this.hunger < HUNGER.hungry ? 0.6 : 1);   // hungry: drags its feet
+      const slow = this.hunger < HUNGER.hungry ? 0.6 : 1;   // hungry: drags its feet
+      const step = WALK_SPEED * this.island.depthScale(this.y) * dt * slow;
+      // every species walks at WALK_SPEED: its steps are timed to it so the feet stay planted
+      this.rig.gaitRate = WALK_SPEED * slow / this.rig.walkSpeed(DRAGON_SCALE);
       if (dist <= step) {
         this.target = null;
         if (this.waypoint) { const w = this.waypoint; this.waypoint = null; this.walkTo(...w); }
@@ -211,9 +207,6 @@ export class Dragon implements SkillActor {
       this.startStrike(skill(this.id, slot), targets);
     }
     this.updateFlight(dt);
-    if (this.action === 'sleep' && this.rig.sleep > 0.9 && (this.nextZ -= dt) <= 0) {
-      this.scene.ambient.sleepZ(this); this.nextZ = 1.4;
-    }
 
     const wasUp = this.hover > 5;
     this.combatT = Math.max(0, this.combatT - dt);
@@ -230,14 +223,10 @@ export class Dragon implements SkillActor {
     const height = this.alt + this.hover + this.rig.air + this.knock.hop;
     this.height = height;
     this.body.setPosition(0, -height).setScale(sx, sy).setRotation(this.knock.tilt);
-    if (this.cloud) {
-      const ride = this.rig.fly;
-      this.cloud.setAlpha(ride).setVisible(ride > 0.01).setScale((CLOUD_W / this.cloud.width) * (0.7 + 0.3 * ride));
-      if (ride > 0.5 && height > 20 && (this.puffT -= dt) <= 0) { this.scene.ambient.cloudPuff(this); this.puffT = 0.28; }
-    }
+    if (this.rideCloud && this.rig.fly > 0.5 && height > 20 && (this.puffT -= dt) <= 0) { this.scene.ambient.cloudPuff(this); this.puffT = 0.28; }
     if (this.rig.stomps !== this.seenStomps) {   // a front paw landed: a puff off the cloud (or dust on the ground)
       this.seenStomps = this.rig.stomps;
-      if (this.cloud && this.rig.fly > 0.5) this.scene.ambient.cloudPuff(this); else this.scene.ambient.footDust(this);
+      if (this.rideCloud && this.rig.fly > 0.5) this.scene.ambient.cloudPuff(this); else this.scene.ambient.footDust(this);
     }
 
     const fade = 1 - Math.min(0.75, height / 150);
@@ -269,7 +258,7 @@ export class Dragon implements SkillActor {
       this.bubble.setTexture(key);
     }
     this.bubble.setPosition(this.x + 18 * this.dir * -1, this.head().y - 40 * this.scale);
-    if (this.action === 'sleep' || this.height > 20 || (this.nextGrowl -= dt) > 0) return;
+    if (this.height > 20 || (this.nextGrowl -= dt) > 0) return;
     this.nextGrowl = Phaser.Math.FloatBetween(2.5, 4.5);
     if (level === 'starving') this.drool(); else this.growl();
   }
@@ -299,21 +288,16 @@ export class Dragon implements SkillActor {
   feed(amount = HUNGER.meal) {
     this.hunger = Math.min(HUNGER.full, this.hunger + amount);
     this.text('+' + Math.round(amount) + ' 🍖', '#ffd27a');
-    if (this.action === 'sleep' && this.hunger > HUNGER.starving) this.play('idle');
     gameEvents.emit('hunger', { id: this.id, hunger: this.hunger, level: this.hungerLevel });
   }
 
   think(dt: number) {
-    if (this.action === 'sleep' && this.t > this.sleepFor) {
-      this.setAction('idle'); this.rest = Phaser.Math.FloatBetween(3, 6); return;
-    }
     if (this.action !== 'idle' || this.combatT > 0 || (this.hover > 0 && !this.rigData.motion?.idleHover)) return;
     if ((this.rest -= dt) > 0) return;
-    if (this.hunger <= HUNGER.starving) { this.play('sleep'); this.rest = 8; return; }   // too weak to wander
+    if (this.hunger <= HUNGER.starving) { this.rest = 8; return; }   // too weak to wander: it stays put
     const r = Math.random();
-    if (r < 0.55) this.walkTo(...this.nearPoint());
-    else if (r < 0.8) this.flyTo(...this.farPoint());
-    else this.play('sleep');
+    if (r < 0.7 && !this.rigData.motion?.alwaysFly) this.walkTo(...this.nearPoint());   // (alwaysFly: never walks)
+    else this.flyTo(...this.farPoint());
     this.rest = Phaser.Math.FloatBetween(2, 8);
   }
 

@@ -1,0 +1,58 @@
+/* Đánh Boss panel: the gold-framed sheet of Đội hình (TeamPanel.module.css), in boss red. */
+.backdrop { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; background: rgba(4, 10, 20, .6); pointer-events: auto; z-index: 20; }
+.panel {
+  position: relative;
+  width: min(980px, 100%); max-height: 100%; overflow: auto; border-radius: 18px; padding: 6px;
+  background: linear-gradient(#f7d77a, #b8862a 40%, #8a5f17); box-shadow: 0 14px 50px rgba(0, 0, 0, .65);
+}
+.title { position: relative; display: grid; place-items: center; height: 44px; margin-bottom: 6px; border-radius: 12px 12px 6px 6px;
+  background: linear-gradient(#7a1e12, #3e0c06); border: 2px solid #e3b54a; }
+.title h2 { margin: 0; font-size: 20px; color: #fff4c8; text-shadow: 0 2px 0 #2a0600; letter-spacing: .5px; }
+.close { position: absolute; right: 6px; top: 50%; translate: 0 -50%; width: 34px; height: 34px; border-radius: 50%;
+  border: 2px solid #fff0b0; background: radial-gradient(circle at 35% 30%, #ffe27a, #c8901f); color: #4a2c00; font-weight: 800; cursor: pointer; }
+
+.body { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 8px; padding: 8px; border-radius: 10px;
+  background: linear-gradient(#5a1a14, #2e0c08); border: 2px solid #1e0704; }
+
+/* left: the bosses */
+.list { display: flex; flex-direction: column; gap: 6px; }
+.item { display: flex; align-items: center; gap: 8px; padding: 6px; border-radius: 10px; cursor: pointer; text-align: left;
+  background: rgba(0, 0, 0, .35); border: 2px solid #7a3a22; color: #ffe7c8; }
+.item img { width: 56px; height: 56px; object-fit: contain; }
+.item span { display: flex; flex-direction: column; min-width: 0; }
+.item b { font-size: 15px; }
+.item small { color: #ffb08a; font-size: 12px; }
+.itemOn { border-color: #ffe066; box-shadow: 0 0 10px rgba(255, 224, 102, .7); }
+
+/* right: the picked boss */
+.detail { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 12px; padding: 10px; border-radius: 10px;
+  background: rgba(0, 0, 0, .3); border: 1px solid #7a3a22; color: #ffeede; }
+.art { display: grid; place-items: center; border-radius: 10px; background: radial-gradient(#7a2a12, #240804 70%); }
+.art img { width: 92%; max-height: 300px; object-fit: contain; filter: drop-shadow(0 0 14px #ff6a2a); }
+.info { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.info h3 { margin: 0; font-size: 22px; color: #ffe066; text-shadow: 0 2px 0 #3a0a00; }
+.info h3 small { margin-left: 6px; font-size: 14px; color: #ffb08a; }
+.info > p { margin: 0; font-size: 14px; line-height: 1.45; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tags span { padding: 3px 10px; border-radius: 99px; background: rgba(0, 0, 0, .4); border: 1px solid #a8562e; font-size: 13px; font-weight: 700; }
+
+.skills { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.skills li { display: flex; gap: 8px; align-items: flex-start; }
+.skills img { width: 40px; height: 40px; border-radius: 8px; flex: none; }
+.skills b { font-size: 14px; color: #ffd27a; }
+.skills p { margin: 2px 0 0; font-size: 12px; color: #f0d8c8; }
+
+.escort { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; color: #ffb08a; }
+.escort img { width: 34px; height: 34px; object-fit: contain; border-radius: 50%; background: rgba(0, 0, 0, .35); }
+
+.actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: auto; }
+.actions small { color: #f0c8a8; }
+.fight { min-width: 180px; padding: 10px 18px; border-radius: 10px; border: 2px solid rgba(255, 255, 255, .6); cursor: pointer;
+  background: linear-gradient(#ff7a4a, #c8261a); color: #fff; font-size: 17px; font-weight: 900; text-shadow: 0 1px 0 rgba(0, 0, 0, .45);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, .35); }
+.fight:active { translate: 0 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, .35); }
+
+@media (max-width: 760px) {
+  .body, .detail { grid-template-columns: 1fr; }
+  .list { flex-direction: row; overflow-x: auto; }
+}

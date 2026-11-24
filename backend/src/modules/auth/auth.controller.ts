@@ -15,6 +15,13 @@ export class AuthController {
     return this.auth.register(dto);
   }
 
+  /** POST /api/auth/guest -> { accessToken, user }: a new guest account with every dragon (the prototype's player) */
+  @Public()
+  @Post('guest')
+  guest() {
+    return this.auth.guest();
+  }
+
   /** POST /api/auth/login -> { accessToken, user } */
   @Public()
   @Post('login')

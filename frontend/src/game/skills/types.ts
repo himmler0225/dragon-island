@@ -7,6 +7,31 @@ export type SkillType = 'passive' | SkillSlot;
 
 export interface Spot { x: number; y: number }
 
+/** Options for SkillCtx.anim. */
+export interface AnimOpts {
+  /** frames per second (default 14) */
+  fps?: number;
+  scale?: number;
+  /** which point of the frames sits on the spot (default: centre) */
+  anchor?: 'center' | 'bottom';
+  /** keep playing the last `loop[0]` frames for `loop[1]` ms before it ends (a held aura) */
+  loop?: [number, number];
+  tint?: number;
+  flipX?: boolean;
+  /** drawn under the dragons (a ring on the ground) */
+  ground?: boolean;
+  /** after the frames (and `loop`), keep replaying the last `loop[0]` frames while this is true (an aura held while it lasts) */
+  hold?: () => boolean;
+  /** follow a moving spot (re-read every frame): an aura round a dragon that walks */
+  follow?: () => Spot;
+  /** extra copies stacked on it (additive): a brighter effect */
+  boost?: number;
+  /** draw at this depth instead (e.g. just behind a dragon, so the effect wraps round it) */
+  depth?: number;
+  /** called as each frame shows (k from 0): time a blow to the frame it lands on */
+  onFrame?: (k: number) => void;
+}
+
 export interface FxOpts {
   scale?: number;
   /** Total life in ms (fade in, hold, fade out). */
@@ -20,6 +45,8 @@ export interface FxOpts {
   /** Which point of the image sits on the spot. Default: centre. */
   anchor?: 'center' | 'bottom';
   flipX?: boolean;
+  /** Colour of the soft light the effect throws round itself (set by the scene: the dragon's colour). */
+  light?: number;
   /** Turn the image (radians), e.g. to point a slash at the target. */
   angle?: number;
   /** Recolour the effect (e.g. 0xff3040 for a blood-red drain). */
@@ -58,7 +85,9 @@ export interface SkillActor {
 }
 
 export interface SkillCtx {
-  self: SkillActor & { mouth(): Spot; facing: 1 | -1 };
+  self: SkillActor & { mouth(): Spot; eye(): Spot; facing: 1 | -1;
+    /** World position of a point on a bone's image (share of its width / height), e.g. a cannon's muzzle. */
+    point(bone: string, fx: number, fy: number): Spot };
   /** Resolved from the skill's `target`: nearest dragon, all other dragons, or the whole team. */
   targets: SkillActor[];
   fx(n: number, at: Spot, opts?: FxOpts): void;
@@ -82,6 +111,8 @@ export interface SkillCtx {
   boneRain(at: Spot, opts?: { count?: number; scale?: number }): Promise<void>;
   /** A glowing orb spat from `from` to `to` with a trail; resolves on arrival. */
   orb(from: Spot, to: Spot, opts?: { scale?: number; tint?: number; dur?: number }): Promise<void>;
+  /** Play effects first .. first + count - 1 as an animation at `at`; resolves when it is gone. */
+  anim(first: number, count: number, at: Spot, opts?: AnimOpts): Promise<void>;
   /** Water splash at `at`: foam rings and droplets (`big` adds a falling water pillar). */
   splash(at: Spot, opts?: { scale?: number; big?: boolean }): void;
 }
@@ -93,5 +124,7 @@ export interface SkillDef {
   /** Pose played by the rig; passives have none. */
   anim?: StrikeKind;
   target?: 'enemy' | 'enemies' | 'team';
+  /** With target 'enemies': every foe ahead on the field, not just the few round the one it aims at (a shot that pierces them all). */
+  pierce?: boolean;
   run?(ctx: SkillCtx): Promise<void> | void;
 }

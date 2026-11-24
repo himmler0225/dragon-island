@@ -2,3 +2,5 @@
 export * from './world';
 export * from './economy';
 export * from './species';
+export * from './bosses';
+export * from './stats';

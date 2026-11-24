@@ -1,0 +1,48 @@
+/* Sự kiện Giáng Sinh: the gold-framed sheet of the other panels, in winter night blue, the banner across the top. */
+.backdrop { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; background: rgba(4, 10, 20, .6); pointer-events: auto; z-index: 20; }
+.panel { position: relative; width: min(900px, 100%); max-height: 100%; overflow-x: hidden; overflow-y: auto; border-radius: 18px; padding: 6px;
+  background: linear-gradient(#f7d77a, #b8862a 40%, #8a5f17); box-shadow: 0 14px 50px rgba(0, 0, 0, .65); }
+.title { position: relative; display: grid; place-items: center; height: 92px; margin-bottom: 6px; border-radius: 12px 12px 6px 6px;
+  background-size: cover; background-position: center 35%; border: 2px solid #e3b54a; overflow: hidden; }
+.title::before { content: ''; position: absolute; inset: 0; background: linear-gradient(rgba(6, 14, 40, .15), rgba(6, 14, 40, .55)); }
+.title h2 { position: relative; margin: 0; font-size: 26px; color: #fff4c8; text-shadow: 0 2px 0 #10183a, 0 0 12px #6ab0ff; letter-spacing: .5px; }
+.close { position: absolute; right: 8px; top: 8px; width: 34px; height: 34px; border-radius: 50%;
+  border: 2px solid #fff0b0; background: radial-gradient(circle at 35% 30%, #ffe27a, #c8901f); color: #4a2c00; font-weight: 800; cursor: pointer; }
+
+.body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 10px; padding: 10px; border-radius: 10px;
+  background: linear-gradient(#16264f, #0b1430); border: 2px solid #070c1e; color: #e8f1ff; }
+
+/* left: the tree, the hung ornaments over it */
+.tree { position: relative; aspect-ratio: 3 / 4; max-height: 440px; margin: 0 auto; width: 100%; border-radius: 10px;
+  background: radial-gradient(ellipse at 50% 85%, rgba(255, 255, 255, .25), transparent 55%), radial-gradient(#2a3f78, #0d1838 75%); }
+.treeArt { position: absolute; inset: 4% 8% 2%; width: 84%; height: 94%; object-fit: contain; object-position: bottom; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .5)); }
+.ball { position: absolute; width: 9%; translate: -50% -30%; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .5)); pointer-events: none; }
+.pop { animation: pop .45s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes pop { from { scale: 0; } }
+
+/* right: progress, the daily gift, the ornament bag */
+.side { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.blurb { margin: 0; font-size: 14px; line-height: 1.45; color: #cfe0ff; }
+.progress span { display: block; margin-top: 6px; font-size: 13px; font-weight: 700; color: #ffe8a0; }
+.bar { position: relative; height: 14px; border-radius: 99px; background: rgba(0, 0, 0, .45); border: 1px solid #5a74b8; }
+.bar b { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #3fd47a, #ffe066); transition: width .35s; }
+.bar i { position: absolute; top: 50%; width: 14px; height: 14px; translate: -50% -50%; rotate: 45deg; background: #2a3a6a; border: 2px solid #8fa6e0; }
+.bar i[data-on] { background: #ffe066; border-color: #fff4c8; box-shadow: 0 0 8px #ffe066; }
+.claim { padding: 10px; border-radius: 12px; border: 2px solid #fff0b0; font-size: 15px; font-weight: 800; cursor: pointer; color: #4a1a00;
+  background: radial-gradient(circle at 35% 30%, #ffe27a, #e0901f); }
+.claim:disabled { cursor: default; color: #8a96b8; background: #1e2c55; border-color: #3a4c80; }
+.bag { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.orn { position: relative; display: grid; place-items: center; min-width: 0; aspect-ratio: 1; padding: 6px; border-radius: 12px; cursor: pointer;
+  background: rgba(255, 255, 255, .06); border: 2px solid #3a5290; transition: transform .1s; }
+.orn:not(:disabled):hover { transform: translateY(-2px); border-color: #ffe066; }
+.orn:disabled { cursor: default; opacity: .4; }
+.orn img { width: 100%; height: 100%; min-height: 0; object-fit: contain; }
+.orn b { position: absolute; right: 6px; bottom: 4px; font-size: 14px; color: #fff; text-shadow: 0 1px 2px #000; }
+.note { margin: 0; padding: 6px 10px; border-radius: 8px; background: rgba(255, 224, 102, .15); color: #ffe066; font-weight: 700; font-size: 14px; }
+
+@media (max-width: 640px) {
+  .body { grid-template-columns: 1fr; }
+  .tree { max-height: 300px; width: auto; }
+  .title { height: 70px; }
+  .title h2 { font-size: 20px; }
+}

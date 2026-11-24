@@ -1,209 +1,146 @@
 {
  "name": "H\u1eafc Long",
- "height": 442,
+ "height": 418,
  "motion": {
   "wingSpread": [
    0.22,
    -0.05
   ],
   "flyLegs": "dangle",
-  "flyPitch": 0.2
+  "flyPitch": 0.2,
+  "stance": [
+   0,
+   0
+  ],
+  "stride": 75,
+  "lean": -0.06,
+  "wingRest": {
+   "wing_far": [
+    -92.15,
+    -36.86,
+    -0.1396,
+    0.95
+   ],
+   "wing_near": [
+    13.82,
+    -9.22,
+    0.2618,
+    1.1
+   ]
+  },
+  "glowColor": 3975935
  },
  "bones": [
   {
    "name": "wing_far",
    "parent": "torso",
    "joint": [
-    -9.79,
-    -198.26
+    -9.22,
+    -211.95
    ],
    "origin": [
-    0.7696,
-    0.9392
+    0.2981,
+    0.9493
    ]
   },
   {
-   "name": "cap_fore_far_lower",
+   "name": "wing_far_glow",
    "parent": null,
    "joint": [
-    -43.23,
-    -71.14
+    -9.22,
+    -211.95
    ],
    "origin": [
-    0.5,
-    0.5
-   ],
-   "cap": [
-    "fore_far_upper",
-    "fore_far_lower"
-   ]
-  },
-  {
-   "name": "cap_fore_far_upper",
-   "parent": null,
-   "joint": [
-    -48.82,
-    -104.18
-   ],
-   "origin": [
-    0.5,
-    0.5
-   ],
-   "cap": [
-    "torso",
-    "fore_far_upper"
-   ]
-  },
-  {
-   "name": "fore_far_upper",
-   "parent": "torso",
-   "joint": [
-    -48.82,
-    -104.18
-   ],
-   "origin": [
-    0.5302,
-    0.3034
-   ]
-  },
-  {
-   "name": "cap_fore_far_paw",
-   "parent": null,
-   "joint": [
-    -49.34,
-    -30.84
-   ],
-   "origin": [
-    0.5,
-    0.5
-   ],
-   "cap": [
-    "fore_far_lower",
-    "fore_far_paw"
-   ]
-  },
-  {
-   "name": "fore_far_lower",
-   "parent": "fore_far_upper",
-   "joint": [
-    -43.23,
-    -71.14
-   ],
-   "origin": [
-    0.5015,
-    0.074
+    0.3678,
+    0.8421
    ]
   },
   {
    "name": "fore_far_paw",
    "parent": "fore_far_lower",
    "joint": [
-    -49.34,
-    -30.84
+    -102.79,
+    -32.07
    ],
    "origin": [
-    0.7083,
-    0.1057
+    0.6166,
+    0.131
    ],
    "toe": [
-    -83.22,
+    -142.38,
     0.0
    ]
   },
   {
-   "name": "cap_hind_far_lower",
-   "parent": null,
+   "name": "fore_far_lower",
+   "parent": "fore_far_upper",
    "joint": [
-    81.21,
-    -74.22
+    -91.98,
+    -67.88
    ],
    "origin": [
-    0.5,
-    0.5
-   ],
-   "cap": [
-    "hind_far_upper",
-    "hind_far_lower"
+    0.554,
+    0.1178
    ]
   },
   {
-   "name": "cap_hind_far_upper",
-   "parent": null,
-   "joint": [
-    76.04,
-    -113.66
-   ],
-   "origin": [
-    0.5,
-    0.5
-   ],
-   "cap": [
-    "torso",
-    "hind_far_upper"
-   ]
-  },
-  {
-   "name": "hind_far_upper",
+   "name": "fore_far_upper",
    "parent": "torso",
    "joint": [
-    76.04,
-    -113.66
+    -103.37,
+    -115.39
    ],
    "origin": [
-    0.5743,
-    0.3062
-   ]
-  },
-  {
-   "name": "cap_hind_far_paw",
-   "parent": null,
-   "joint": [
-    75.01,
-    -33.92
-   ],
-   "origin": [
-    0.5,
-    0.5
-   ],
-   "cap": [
-    "hind_far_lower",
-    "hind_far_paw"
-   ]
-  },
-  {
-   "name": "hind_far_lower",
-   "parent": "hind_far_upper",
-   "joint": [
-    81.21,
-    -74.22
-   ],
-   "origin": [
-    0.4984,
-    0.0587
+    0.4726,
+    0.3101
    ]
   },
   {
    "name": "hind_far_paw",
    "parent": "hind_far_lower",
    "joint": [
-    75.01,
-    -33.92
+    22.1,
+    -38.08
    ],
    "origin": [
-    0.7052,
-    0.0974
+    0.6272,
+    0.1216
    ],
    "toe": [
-    39.16,
+    -28.11,
     0.0
+   ]
+  },
+  {
+   "name": "hind_far_lower",
+   "parent": "hind_far_upper",
+   "joint": [
+    16.97,
+    -79.38
+   ],
+   "origin": [
+    0.4582,
+    0.0854
+   ]
+  },
+  {
+   "name": "hind_far_upper",
+   "parent": "torso",
+   "joint": [
+    17.94,
+    -126.36
+   ],
+   "origin": [
+    0.5228,
+    0.3024
    ]
   },
   {
    "name": "cap_tail_tip",
    "parent": null,
    "joint": [
-    244.76,
-    -107.7
+    237.04,
+    -155.5
    ],
    "origin": [
     0.5,
@@ -218,20 +155,20 @@
    "name": "tail_tip",
    "parent": "tail_mid",
    "joint": [
-    244.76,
-    -107.7
+    237.04,
+    -155.5
    ],
    "origin": [
-    0.2319,
-    0.9045
+    0.3607,
+    0.9228
    ]
   },
   {
    "name": "cap_tail_mid",
    "parent": null,
    "joint": [
-    161.54,
-    -146.86
+    152.76,
+    -175.27
    ],
    "origin": [
     0.5,
@@ -246,20 +183,20 @@
    "name": "tail_mid",
    "parent": "tail_base",
    "joint": [
-    161.54,
-    -146.86
+    152.76,
+    -175.27
    ],
    "origin": [
-    0.1435,
-    0.3165
+    0.1415,
+    0.406
    ]
   },
   {
    "name": "cap_tail_base",
    "parent": null,
    "joint": [
-    102.8,
-    -156.65
+    96.76,
+    -172.79
    ],
    "origin": [
     0.5,
@@ -274,52 +211,20 @@
    "name": "tail_base",
    "parent": "torso",
    "joint": [
-    102.8,
-    -156.65
+    96.76,
+    -172.79
    ],
    "origin": [
-    0.2259,
-    0.462
-   ]
-  },
-  {
-   "name": "cap_fore_near_upper",
-   "parent": null,
-   "joint": [
-    -72.03,
-    -103.6
-   ],
-   "origin": [
-    0.5,
-    0.5
-   ],
-   "cap": [
-    "torso",
-    "fore_near_upper"
-   ]
-  },
-  {
-   "name": "cap_hind_near_upper",
-   "parent": null,
-   "joint": [
-    61.19,
-    -114.64
-   ],
-   "origin": [
-    0.5,
-    0.5
-   ],
-   "cap": [
-    "torso",
-    "hind_near_upper"
+    0.2343,
+    0.4971
    ]
   },
   {
    "name": "cap_head",
    "parent": null,
    "joint": [
-    -93.01,
-    -166.44
+    -87.55,
+    -182.0
    ],
    "origin": [
     0.5,
@@ -335,67 +240,11 @@
    "parent": null,
    "joint": [
     0.0,
-    -127.28
+    -145.14
    ],
    "origin": [
-    0.4423,
-    0.6472
-   ]
-  },
-  {
-   "name": "cap_hind_near_lower",
-   "parent": null,
-   "joint": [
-    66.77,
-    -74.43
-   ],
-   "origin": [
-    0.5,
-    0.5
-   ],
-   "cap": [
-    "hind_near_upper",
-    "hind_near_lower"
-   ]
-  },
-  {
-   "name": "hind_near_upper",
-   "parent": "torso",
-   "joint": [
-    61.19,
-    -114.64
-   ],
-   "origin": [
-    0.577,
-    0.3055
-   ]
-  },
-  {
-   "name": "cap_hind_near_paw",
-   "parent": null,
-   "joint": [
-    56.69,
-    -34.75
-   ],
-   "origin": [
-    0.5,
-    0.5
-   ],
-   "cap": [
-    "hind_near_lower",
-    "hind_near_paw"
-   ]
-  },
-  {
-   "name": "hind_near_lower",
-   "parent": "hind_near_upper",
-   "joint": [
-    66.77,
-    -74.43
-   ],
-   "origin": [
-    0.4984,
-    0.0587
+    0.4588,
+    0.6681
    ]
   },
   {
@@ -403,135 +252,391 @@
    "parent": "hind_near_lower",
    "joint": [
     56.69,
-    -34.75
+    -40.98
    ],
    "origin": [
-    0.7157,
-    0.0949
+    0.6248,
+    0.1165
    ],
    "toe": [
-    19.58,
+    2.3,
     0.0
    ]
   },
   {
-   "name": "cap_fore_near_lower",
-   "parent": null,
+   "name": "hind_near_lower",
+   "parent": "hind_near_upper",
    "joint": [
-    -65.65,
-    -71.14
+    52.35,
+    -82.14
    ],
    "origin": [
-    0.5,
-    0.5
-   ],
-   "cap": [
-    "fore_near_upper",
-    "fore_near_lower"
+    0.4523,
+    0.0979
    ]
   },
   {
-   "name": "fore_near_upper",
+   "name": "hind_near_upper",
    "parent": "torso",
    "joint": [
-    -72.03,
-    -103.6
+    54.25,
+    -133.99
    ],
    "origin": [
-    0.5092,
-    0.3042
-   ]
-  },
-  {
-   "name": "cap_fore_near_paw",
-   "parent": null,
-   "joint": [
-    -72.48,
-    -31.25
-   ],
-   "origin": [
-    0.5,
-    0.5
-   ],
-   "cap": [
-    "fore_near_lower",
-    "fore_near_paw"
-   ]
-  },
-  {
-   "name": "fore_near_lower",
-   "parent": "fore_near_upper",
-   "joint": [
-    -65.65,
-    -71.14
-   ],
-   "origin": [
-    0.5015,
-    0.074
+    0.5282,
+    0.2925
    ]
   },
   {
    "name": "fore_near_paw",
    "parent": "fore_near_lower",
    "joint": [
-    -72.48,
-    -31.25
+    -65.22,
+    -35.39
    ],
    "origin": [
-    0.7208,
-    0.1028
+    0.6454,
+    0.1214
    ],
    "toe": [
-    -107.7,
+    -110.58,
     0.0
+   ]
+  },
+  {
+   "name": "fore_near_lower",
+   "parent": "fore_near_upper",
+   "joint": [
+    -53.53,
+    -70.98
+   ],
+   "origin": [
+    0.5529,
+    0.1229
+   ]
+  },
+  {
+   "name": "fore_near_upper",
+   "parent": "torso",
+   "joint": [
+    -64.44,
+    -124.71
+   ],
+   "origin": [
+    0.4871,
+    0.3194
    ]
   },
   {
    "name": "mouth",
    "parent": "head",
    "joint": [
-    -127.4,
-    -204.31
+    -120.5,
+    -216.87
    ],
    "origin": [
-    0.9594,
-    0.0492
+    0.9578,
+    0.0463
    ]
   },
   {
    "name": "jaw",
    "parent": "head",
    "joint": [
-    -127.4,
-    -204.31
+    -120.5,
+    -216.87
    ],
    "origin": [
-    0.9092,
-    0.1571
+    0.9062,
+    0.1547
    ]
   },
   {
    "name": "head",
    "parent": "torso",
    "joint": [
-    -93.01,
-    -166.44
+    -87.55,
+    -182.0
    ],
    "origin": [
-    0.6999,
-    0.7106
+    0.7012,
+    0.7018
    ]
   },
   {
    "name": "wing_near",
    "parent": "torso",
    "joint": [
-    -19.58,
-    -190.43
+    -18.43,
+    -204.58
    ],
    "origin": [
-    0.2248,
-    0.8811
+    0.2249,
+    0.8815
+   ]
+  },
+  {
+   "name": "wing_near_glow",
+   "parent": null,
+   "joint": [
+    -18.43,
+    -204.58
+   ],
+   "origin": [
+    0.283,
+    0.7872
+   ]
+  },
+  {
+   "name": "wing_far_aura",
+   "parent": null,
+   "joint": [
+    -9.22,
+    -211.95
+   ],
+   "origin": [
+    0.3754,
+    0.8283
+   ]
+  },
+  {
+   "name": "fore_far_paw_aura",
+   "parent": null,
+   "joint": [
+    -102.79,
+    -32.07
+   ],
+   "origin": [
+    0.5527,
+    0.3812
+   ]
+  },
+  {
+   "name": "fore_far_lower_aura",
+   "parent": null,
+   "joint": [
+    -91.98,
+    -67.88
+   ],
+   "origin": [
+    0.52,
+    0.346
+   ]
+  },
+  {
+   "name": "fore_far_upper_aura",
+   "parent": null,
+   "joint": [
+    -103.37,
+    -115.39
+   ],
+   "origin": [
+    0.4877,
+    0.4011
+   ]
+  },
+  {
+   "name": "hind_far_paw_aura",
+   "parent": null,
+   "joint": [
+    22.1,
+    -38.08
+   ],
+   "origin": [
+    0.5644,
+    0.3638
+   ]
+  },
+  {
+   "name": "hind_far_lower_aura",
+   "parent": null,
+   "joint": [
+    16.97,
+    -79.38
+   ],
+   "origin": [
+    0.4841,
+    0.3275
+   ]
+  },
+  {
+   "name": "hind_far_upper_aura",
+   "parent": null,
+   "joint": [
+    17.94,
+    -126.36
+   ],
+   "origin": [
+    0.5117,
+    0.3971
+   ]
+  },
+  {
+   "name": "tail_tip_aura",
+   "parent": null,
+   "joint": [
+    237.04,
+    -155.5
+   ],
+   "origin": [
+    0.4184,
+    0.7952
+   ]
+  },
+  {
+   "name": "tail_mid_aura",
+   "parent": null,
+   "joint": [
+    152.76,
+    -175.27
+   ],
+   "origin": [
+    0.2856,
+    0.4533
+   ]
+  },
+  {
+   "name": "tail_base_aura",
+   "parent": null,
+   "joint": [
+    96.76,
+    -172.79
+   ],
+   "origin": [
+    0.3417,
+    0.4986
+   ]
+  },
+  {
+   "name": "torso_aura",
+   "parent": null,
+   "joint": [
+    0.0,
+    -145.14
+   ],
+   "origin": [
+    0.4693,
+    0.6121
+   ]
+  },
+  {
+   "name": "hind_near_paw_aura",
+   "parent": null,
+   "joint": [
+    56.69,
+    -40.98
+   ],
+   "origin": [
+    0.5657,
+    0.3581
+   ]
+  },
+  {
+   "name": "hind_near_lower_aura",
+   "parent": null,
+   "joint": [
+    52.35,
+    -82.14
+   ],
+   "origin": [
+    0.4802,
+    0.3293
+   ]
+  },
+  {
+   "name": "hind_near_upper_aura",
+   "parent": null,
+   "joint": [
+    54.25,
+    -133.99
+   ],
+   "origin": [
+    0.5151,
+    0.3879
+   ]
+  },
+  {
+   "name": "fore_near_paw_aura",
+   "parent": null,
+   "joint": [
+    -65.22,
+    -35.39
+   ],
+   "origin": [
+    0.5689,
+    0.3717
+   ]
+  },
+  {
+   "name": "fore_near_lower_aura",
+   "parent": null,
+   "joint": [
+    -53.53,
+    -70.98
+   ],
+   "origin": [
+    0.5198,
+    0.348
+   ]
+  },
+  {
+   "name": "fore_near_upper_aura",
+   "parent": null,
+   "joint": [
+    -64.44,
+    -124.71
+   ],
+   "origin": [
+    0.4937,
+    0.4015
+   ]
+  },
+  {
+   "name": "mouth_aura",
+   "parent": null,
+   "joint": [
+    -120.5,
+    -216.87
+   ],
+   "origin": [
+    0.7017,
+    0.3172
+   ]
+  },
+  {
+   "name": "jaw_aura",
+   "parent": null,
+   "joint": [
+    -120.5,
+    -216.87
+   ],
+   "origin": [
+    0.691,
+    0.3811
+   ]
+  },
+  {
+   "name": "head_aura",
+   "parent": null,
+   "joint": [
+    -87.55,
+    -182.0
+   ],
+   "origin": [
+    0.6321,
+    0.6461
+   ]
+  },
+  {
+   "name": "wing_near_aura",
+   "parent": null,
+   "joint": [
+    -18.43,
+    -204.58
+   ],
+   "origin": [
+    0.2908,
+    0.7752
    ]
   }
  ]

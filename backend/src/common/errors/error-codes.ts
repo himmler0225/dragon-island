@@ -14,6 +14,10 @@ export const ErrorCode = {
   AUTH_EMAIL_TAKEN: 'AUTH_EMAIL_TAKEN',
   // dragons
   DRAGON_NOT_HUNGRY: 'DRAGON_NOT_HUNGRY',
+  // rig editor
+  RIG_TWEAKS_OUTDATED: 'RIG_TWEAKS_OUTDATED',
+  // teams
+  TEAM_DRAGON_NOT_OWNED: 'TEAM_DRAGON_NOT_OWNED',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];

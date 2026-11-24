@@ -7,11 +7,11 @@ const HEAL = '#7dffa0';
 export const BONE_DRAGON_SKILLS: SkillDef[] = [
   { type: 'passive', name: 'Bất Tử Cốt', desc: 'Lần đầu bị hạ: đứng dậy với 30% Sinh lực và Lá Chắn 15% Sinh lực tối đa.' },
   {
-    type: 'basic', name: 'Cắn Xương', desc: 'Chúi tới táp mạnh: 100% Công, hút 30% sát thương gây ra.', anim: 'attack', target: 'enemy',
+    type: 'basic', name: 'Cắn Xương', desc: 'Chúi tới táp mạnh, hất lùi mục tiêu: 100% Công, hút 30% sát thương gây ra.', anim: 'attack', target: 'enemy',
     run: async ({ self, targets: [t], fx, projectile }) => {
       fx(4, t.chest(), { scale: 0.55, dur: 420, flipX: self.facing < 0 });
       fx(3, t.chest(), { scale: 0.4, dur: 450 });
-      t.hurt(); t.push?.(55 * self.facing); t.text(dmg(1));
+      t.hurt(); t.push?.(90 * self.facing); t.text(dmg(1));
       await projectile(5, t.chest(), self.chest(), { dur: 600, scale: 0.42 });
       fx(8, self.feet(), { scale: 0.35, anchor: 'bottom', dur: 600 });
       self.text('+60', HEAL);
@@ -31,7 +31,7 @@ export const BONE_DRAGON_SKILLS: SkillDef[] = [
       await waves[0];
       targets.forEach(t => {
         fx(3, t.chest(), { scale: 0.45, dur: 500 });
-        t.hurt(); t.push?.(110 * dir); t.text(dmg(0.8));
+        t.hurt(); t.push?.(180 * dir); t.text(dmg(0.8));
       });
       await Promise.all(waves);
     },

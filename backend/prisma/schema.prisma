@@ -21,6 +21,7 @@ model User {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   dragons Dragon[]
+  teams   TeamSetup?
 
   @@map("users")
 }
@@ -44,4 +45,47 @@ model Dragon {
 
   @@index([ownerId])
   @@map("dragons")
+}
+
+/// Hand tweaks to a dragon rig, set in the frontend's rig editor (/dev/rig-editor): each piece (bone) of a
+/// species drawn shifted (dx, dy: rig px, in the piece's own frame), turned (rot: radians) and scaled on top of
+/// the pose rig.json gives it. The game reads them all at start (GET /api/rig-tweaks).
+model RigTweak {
+  species   String
+  bone      String
+  dx        Float    @default(0)
+  dy        Float    @default(0)
+  rot       Float    @default(0)
+  scale     Float    @default(1)
+  /// drawn mirrored left-right (about its joint)
+  flipX     Boolean  @default(false) @map("flip_x")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@id([species, bone])
+  @@map("rig_tweaks")
+}
+
+/// What the rig editor's eraser took off a piece's image: a PNG (data URL) the size of the piece's image, opaque where
+/// erased. The game cuts it out of the piece when it loads the rig.
+model RigMask {
+  species   String
+  bone      String
+  png       String   @db.Text
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@id([species, bone])
+  @@map("rig_masks")
+}
+
+/// Đội hình: a player's saved teams (TEAM_COUNT lists of TEAM_SIZE slots, each a species id or null, in summon
+/// order) and which one is active. One row per player, replaced whole on save.
+model TeamSetup {
+  ownerId   String   @id @map("owner_id") @db.Uuid
+  teams     Json
+  active    Int      @default(0)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("team_setups")
 }

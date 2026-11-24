@@ -1,4 +1,5 @@
 // The archipelago: ocean, islands, dragons, effects.
+import { applyRigMasks } from '../rig/tweaks';
 import * as Phaser from 'phaser';
 import { H, ISLANDS, W, islandCentre } from '../config/world';
 import type { Point } from '../config/world';
@@ -6,15 +7,15 @@ import type { Resource } from '../config/world';
 import { gameEvents, setIslandApi, type DragonCommand, type IslandApi } from '../bridge';
 import { Dragon } from './Dragon';
 import { SpotTarget } from './SpotTarget';
-import { Island, LAMP_KEY, grassKey, NEST_KEY, buildingKey, eggKey, islandKey, resourceKey } from './Island';
+import { Island, LAMP_KEY, grassKey, NEST_KEY, buildingKey, buildingUrl, eggKey, islandKey, resourceKey } from './Island';
 import { oceanFrag } from './ocean';
 import { DayNight, hcmHour } from './dayNight';
 import { BALLOON_TEXTURES, FoodBalloons } from './foodBalloon';
 import { RAIN_TEXTURES, Weather } from './weather';
 import { rigTextureKey, type RigData } from '../rig';
+import { HUE } from '../battle/constants';
 import { COMBOS, JAW_SPECIES, NO_VFX, vfxNumbers, SKILLS, combosFor, jawKey, jawUrl, skill, vfxKey, vfxUrl } from '../skills';
 import { CLOUD_PUFFS, SPECIES, cloudKey, cloudUrl, type SpeciesId } from '../config/species';
-import { assetUrl } from '../config/assets';
 import type { SkillActor, SkillCtx, SkillDef, SkillSlot } from '../skills';
 import { CombatFx } from './effects/combatFx';
 import { AmbientFx } from './effects/ambientFx';
@@ -50,6 +51,7 @@ export class IslandScene extends Phaser.Scene {
   constructor(private rigs: Record<SpeciesId, RigData>) {
     super('island');
     this.combat = new CombatFx(this);
+    this.combat.size = 1.3;   // big, showy skill effects
     this.ambient = new AmbientFx(this);
   }
 
@@ -57,29 +59,29 @@ export class IslandScene extends Phaser.Scene {
     this.load.on('progress', (v: number) => gameEvents.emit('progress', v));
     loadStatusTextures(this.load);
     for (const isl of ISLANDS) {
-      this.load.image(islandKey(isl.id), assetUrl(`islands/${isl.id}.png`));
-      for (const b of isl.buildings) this.load.image(buildingKey(b.type, b.level), assetUrl(`buildings/${b.type}_${b.level}.png`));
+      this.load.image(islandKey(isl.id), `/islands/${isl.id}.png`);
+      for (const b of isl.buildings) this.load.image(buildingKey(b.type, b.level), buildingUrl(b.type, b.level));
     }
-    for (const r of ['gold', 'exp', 'stone'] as Resource[]) this.load.image(resourceKey(r), assetUrl(`ui/res_${r}.png`));
-    this.load.image(NEST_KEY, assetUrl('eggs/nest.png'));
-    this.load.image(LAMP_KEY, assetUrl('props/lamp.png'));
-    for (let n = 1; n <= 6; n++) this.load.image(grassKey(n), assetUrl(`props/grass_${n}.png`));
+    for (const r of ['gold', 'exp', 'stone'] as Resource[]) this.load.image(resourceKey(r), `/ui/res_${r}.png`);
+    this.load.image(NEST_KEY, '/eggs/nest.png');
+    this.load.image(LAMP_KEY, '/props/lamp.png');
+    for (let n = 1; n <= 6; n++) this.load.image(grassKey(n), `/props/grass_${n}.png`);
     for (const [k, url] of BALLOON_TEXTURES) this.load.image(k, url);
-    for (let n = 1; n <= 4; n++) this.load.image(`hunger_${n}`, assetUrl(`balloon/hunger_${n}.png`));
-    for (const k of RAIN_TEXTURES) this.load.image(k, assetUrl(`weather/${k}.png`));
-    for (let l = 1; l <= 10; l++) this.load.image(eggKey(l), assetUrl(`eggs/egg_${l}.png`));
+    for (let n = 1; n <= 4; n++) this.load.image(`hunger_${n}`, `/balloon/hunger_${n}.png`);
+    for (const k of RAIN_TEXTURES) this.load.image(k, `/weather/${k}.png`);
+    for (let l = 1; l <= 10; l++) this.load.image(eggKey(l), `/eggs/egg_${l}.png`);
     for (const id of SPECIES) {
-      for (const b of this.rigs[id].bones) this.load.image(rigTextureKey(id, b.name), assetUrl(`dragons/${id}/${b.name}.png`));
+      for (const b of this.rigs[id].bones) this.load.image(rigTextureKey(id, b.name), `/dragons/${id}/${b.name}.png`);
       if (this.rigs[id].motion?.rideCloud) {
-        for (const part of ['main', ...Array.from({ length: CLOUD_PUFFS }, (_, k) => k + 1)] as ('main' | number)[])
-          this.load.image(cloudKey(id, part), cloudUrl(id, part));
+        for (let part = 1; part <= CLOUD_PUFFS; part++) this.load.image(cloudKey(id, part), cloudUrl(id, part));
       }
-      if (SKILLS[id].length && !NO_VFX.includes(id)) for (const n of vfxNumbers(id)) this.load.image(vfxKey(id, n), vfxUrl(id, n));
+      if (SKILLS[id]?.length && !NO_VFX.includes(id)) for (const n of vfxNumbers(id)) this.load.image(vfxKey(id, n), vfxUrl(id, n));
       if (JAW_SPECIES.includes(id)) for (const part of ['upper', 'lower'] as const) this.load.image(jawKey(id, part), jawUrl(id, part));
     }
   }
 
   create() {
+    for (const id of SPECIES) applyRigMasks(this, id);   // the rig editor's erasing, before the dragons are built
     this.status = new StatusFx(this, this.combat);
     const centres = ISLANDS.map((_, i) => islandCentre(i));
     const oceanW = W * 3 + 2 * PAD_X, oceanH = H + 2 * PAD_Y;
@@ -244,15 +246,15 @@ export class IslandScene extends Phaser.Scene {
     return {
       self,
       targets,
-      fx: (n, at, opts) => this.combat.fx(vfxKey(self.id, n), at, opts),
-      projectile: (n, from, to, opts) => this.combat.callProjectile(vfxKey(self.id, n), from, to, opts),
+      fx: (n, at, opts) => this.combat.fx(vfxKey(self.id, n), at, { light: HUE[self.id].c, ...opts }),
+      anim: (first, count, at, opts) => this.combat.anim(Array.from({ length: count }, (_, k) => vfxKey(self.id, first + k)), at, opts),
+      projectile: (n, from, to, opts) => this.combat.callProjectile(vfxKey(self.id, n), from, to, { light: HUE[self.id].c, ...opts }),
       rift: (at, ts, onHit, opts) => this.combat.callRift(self.id, this.rigs[self.id], at, ts, onHit, opts),
       elementRain: (ts, onHit, opts) => this.combat.callElementRain(ts, onHit, opts),
-      beam: (n, from, to, opts) => this.combat.callBeam(vfxKey(self.id, n), from, to, opts),
+      beam: (n, from, to, opts) => this.combat.callBeam(vfxKey(self.id, n), from, to, { light: HUE[self.id].c, ...opts }),
       wait: ms => new Promise(res => this.time.delayedCall(ms, res)),
-      // camera shake: intensity is Phaser's scale (0.001 barely visible, 0.01 harsh). The skills
-      // ask for 0.004-0.016, which reads as harsh on a small island, so damp it.
-      shake: (ms, intensity) => { this.cameras.main.shake(ms, Math.min(intensity * 0.45, 0.006)); },
+      // no screen shake: skills still ask for it, the camera stays still
+      shake: () => {},
       bite: (at, opts) => this.combat.callBite(self.id, at, opts),
       gust: (from, dir, opts) => this.combat.callGust(from, dir, opts),
       boneRain: (at, opts) => this.combat.callBoneRain(at, opts),

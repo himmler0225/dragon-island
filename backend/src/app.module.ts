@@ -9,10 +9,12 @@ import { AuthModule } from './modules/auth/auth.module.js';
 import { DragonsModule } from './modules/dragons/dragons.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { UsersModule } from './modules/users/users.module.js';
+import { TeamsModule } from './modules/teams/teams.module.js';
+import { RigTweaksModule } from './modules/rig-tweaks/rig-tweaks.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 
 @Module({
-  imports: [AppConfigModule, PrismaModule, HealthModule, AuthModule, UsersModule, DragonsModule],
+  imports: [AppConfigModule, PrismaModule, HealthModule, AuthModule, UsersModule, DragonsModule, RigTweaksModule, TeamsModule],
   providers: [
     // registered here (not in main.ts) so e2e tests get exactly the same pipeline
     { provide: APP_PIPE, useFactory: appValidationPipe },
